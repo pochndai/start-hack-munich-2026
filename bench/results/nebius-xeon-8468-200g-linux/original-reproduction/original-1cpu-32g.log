@@ -1,0 +1,79 @@
+cgroup: /sys/fs/cgroup/user.slice/user-1001.slice/user@1001.service/app.slice/baseline-run.service
+memory.max: 34359738368 bytes
+memory.swap.max: 0
+start: 2026-11-21T22:37:33Z
+Initialize CPU backend: 0.003131 s
+CPU: Intel(R) Xeon(R) Platinum 8468; affinity: 1; devices: [CpuDevice(id=0)]
+Read and parse public inputs: 0.001817 s
+Build optical setup and prepare inputs: 0.873398 s
+Workload: 101 frequencies; 193 physical design variables; no optimizer
+Forward: trace / lower: 1.507229 s
+Forward: compile: 15.806134 s
+Forward simulation + AD residuals: 13.817093 s
+Sensitivity: trace / lower: 0.089956 s
+Sensitivity: compile: 0.322507 s
+Sensitivity, powers and scalar loss: 0.001022 s
+Gradient: trace / lower: 0.397547 s
+Gradient: compile: 5.513958 s
+Reverse-mode gradient: 4.467917 s
+Transfer results to host: 0.000355 s
+Complete first-run total (excluding validation): 43.135353 s
+Forward: 14.366356 s
+Sensitivity: 0.102957 s
+Gradient: 4.533855 s
+Host transfer: 0.000247 s
+Repeat 01/10: 19.003414 s
+Forward: 14.240477 s
+Sensitivity: 0.102508 s
+Gradient: 4.521484 s
+Host transfer: 0.000249 s
+Repeat 02/10: 18.864718 s
+Forward: 14.447505 s
+Sensitivity: 0.102954 s
+Gradient: 4.468859 s
+Host transfer: 0.000256 s
+Repeat 03/10: 19.019574 s
+Forward: 14.379539 s
+Sensitivity: 0.100624 s
+Gradient: 4.513656 s
+Host transfer: 0.000247 s
+Repeat 04/10: 18.994066 s
+Forward: 14.411637 s
+Sensitivity: 0.102557 s
+Gradient: 4.523957 s
+Host transfer: 0.000260 s
+Repeat 05/10: 19.038411 s
+Forward: 14.449799 s
+Sensitivity: 0.105347 s
+Gradient: 4.519735 s
+Host transfer: 0.000247 s
+Repeat 06/10: 19.075127 s
+Forward: 14.420539 s
+Sensitivity: 0.104204 s
+Gradient: 4.525165 s
+Host transfer: 0.000236 s
+Repeat 07/10: 19.050145 s
+Forward: 14.122820 s
+Sensitivity: 0.096530 s
+Gradient: 4.479783 s
+Host transfer: 0.000247 s
+Repeat 08/10: 18.699379 s
+Forward: 14.314875 s
+Sensitivity: 0.100702 s
+Gradient: 4.460118 s
+Host transfer: 0.000252 s
+Repeat 09/10: 18.875947 s
+Forward: 14.065687 s
+Sensitivity: 0.100325 s
+Gradient: 4.461562 s
+Host transfer: 0.000244 s
+Repeat 10/10: 18.627818 s
+Validating outputs, reference sensitivity and finite-difference gradient...
+PASS: reference sensitivity and gradient spot check; full runtime median 18.998740 s
+JSON: benchmark-baseline.json
+Plot: benchmark-baseline.png
+exit code: 0
+memory.peak: 15342907392 bytes
+oom events: oom 0 oom_kill 0 
+end: 2026-11-21T22:42:12Z
+DONE
