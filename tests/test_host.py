@@ -7,8 +7,9 @@ Every case compares all three outputs and the reverse-mode gradients for random
 cotangents on each output. The cases cover: the two saved UIFO setups (one with a
 homodyne detector), aLIGO, Voyager (balanced homodyne detection), a cavity with a
 carrier sweep, randomly generated UIFO layouts, shifted parameters (reflectivities
-above 1), `jit`, `vmap`, the fallback for linking functions, and finite differences
-for one design variable of every kind.
+above 1), `jit`, `vmap`, the fallback for linking functions, finite differences for
+one design variable of every kind, and two situations no public setup has: a second
+noise detector, and matrix cells that are written twice.
 """
 
 import json
@@ -91,6 +92,47 @@ def compare(name, arrays, start, shift_seed=None):
         f"gradients {check(name + ' gradients', worst, 1e-5):8} | {sizes}"
     )
     return host_f, jax_f, start
+
+
+def directional(name, f, start):
+    """Gradient of a random scalar of the outputs against central differences in random directions."""
+    rng = np.random.default_rng(7)
+    weights = []
+    for output in f(start):
+        weight = rng.standard_normal(np.shape(output))
+        if jnp.iscomplexobj(output):
+            weight = weight + 1j * rng.standard_normal(np.shape(output))
+        weights.append(jnp.asarray(weight) / max(float(jnp.abs(output).max()), 1e-300) if np.size(output) else jnp.asarray(weight))
+    scalar = jax.jit(lambda p: sum(jnp.sum(jnp.real(o * w)) for o, w in zip(f(p), weights)))
+    gradient = np.asarray(jax.grad(scalar)(start))
+    worst, judged = 0.0, 0
+    for _ in range(4):
+        direction = jnp.asarray(rng.standard_normal(start.shape)) * jnp.maximum(jnp.abs(start), 1e-6)
+        slope = lambda h: float(scalar(start + h * direction) - scalar(start - h * direction)) / (2 * h)
+        for exponent in range(-3, -10, -1):  # shrink the step until two sizes agree within 1%
+            coarse, fine = slope(10.0**exponent), slope(10.0**exponent / 2)
+            if fine != 0 and abs(coarse - fine) <= 0.01 * abs(fine):
+                worst, judged = max(worst, abs(float(gradient @ np.asarray(direction)) - fine) / abs(fine)), judged + 1
+                break
+    if not judged:
+        FAILURES.append(f"{name}: finite differences never settled")
+    return f"{check(name, worst, 0.02)} ({judged} of 4 directions settled)"
+
+
+def written_twice(arrays):
+    """Make one cell of the carrier, signal and noise systems be written a second time, by another formula."""
+    arrays = dict(arrays)
+    twice = lambda indices: np.concatenate([np.asarray(indices), np.asarray(indices)[..., :1]], axis=-1)
+    again = lambda static: simulate_module.Static(np.concatenate([static.array, static.array[:, -1:]], axis=1))
+    arrays["carrier_matrix_indices"] = jnp.asarray(twice(arrays["carrier_matrix_indices"]))
+    for system in ("signal", "noise"):
+        layout = dict(arrays[f"{system}_sparse_indices"])
+        layout["update_slots"] = jnp.asarray(twice(layout["update_slots"]))
+        arrays[f"{system}_sparse_indices"] = layout
+    for system in ("carrier", "signal", "noise"):
+        # the extra write goes to the cell of the first write and carries the value of the last one
+        arrays[f"{system}_output_indices"] = again(arrays[f"{system}_output_indices"])
+    return arrays
 
 
 def saved_setup(file, low, high):
@@ -221,6 +263,22 @@ def main():
         index, estimate = result
         error = abs(gradient[index] - estimate) / abs(estimate)
         print(f"   {kind:13} {name(index):30} gradient {gradient[index]: .6e}  finite difference {estimate: .6e}  relative difference {check('finite difference ' + kind, error, 0.02)}")
+
+    print("5. Situations no public setup has (aLIGO as the base)")
+    two_detectors = aligo()[0]
+    two_detectors.add("qnoised", "noise-inside", target="srm", port="left", direction="in")
+    case = prepare(two_detectors, [("f", "frequency")], frequencies)
+    host_f, jax_f, start = compare("two noise detectors", case[0], case[2])
+    print(f"   two noise detectors, gradient against finite differences: {directional('two detectors, finite differences', host_f, start)}")
+    case = prepare(aligo()[0], [("f", "frequency")], frequencies)
+    doubled = written_twice(case[0])
+    host_f, jax_f, start = compare("cells written twice", doubled, case[2])
+    untouched = simulate_module.simulate(**dict(case[0], optimized_parameters=start))
+    changed = max(relative(a, b) for a, b in zip(host_f(start), untouched))
+    print(f"   cells written twice: the second write changes the result by {changed:.1e} (so the case is not empty)")
+    if changed < 1e-6:
+        FAILURES.append("the written-twice case did not change anything")
+    print(f"   cells written twice, gradient against finite differences: {directional('written twice, finite differences', host_f, start)}")
 
     print()
     if FAILURES:
