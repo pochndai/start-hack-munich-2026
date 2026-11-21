@@ -1,0 +1,5 @@
+# Snapshots of versions, per-sample logs and temporary files: all reproducible.
+.cache/
+
+# The root .gitignore ignores *.npz; the correctness oracle must be committed.
+!reference/*.npz
