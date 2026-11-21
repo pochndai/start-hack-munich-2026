@@ -1252,9 +1252,9 @@ def incidence_angle_right(alpha: float, refractive_index_left: float, refractive
     Related documentation:
     https://finesse.ifosim.org/docs/latest/physics/plane-waves/beam_splitter.html#beamsplitter-phase
     """
-    return jnp.cos(
-        jnp.arcsin(refractive_index_left / refractive_index_right * jnp.sin(jnp.radians(alpha)))
-    )
+    # Closed form of cos(arcsin(x)); it stays defined beyond total internal reflection,
+    # where the real arcsine would give NaN (see `cos_arcsin`).
+    return cos_arcsin(refractive_index_left / refractive_index_right * jnp.sin(jnp.radians(alpha)))
 
 
 def phase_shift(tuning: float, frequency: float, refractive_index: float) -> jnp.ndarray:
