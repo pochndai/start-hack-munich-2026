@@ -13,6 +13,8 @@ Official benchmark on the same machine, both versions with `PASS` (Apple M5, 10 
 
 A second pair of runs on the same Mac gave 10.5 s and 1.28 s. Reports: `benchmarks/mac-original.json` and `benchmarks/mac-candidate.json`.
 
+The original's Mac times are inflated by a shortage of memory. This Mac has 16 GB, and in the official benchmark the original asks for 18.4 GB at its peak (ours: 0.31 GB), so macOS was compressing and swapping throughout: about half of the original's processor time was spent inside the operating system. Its times also vary more from run to run (10.5 to 13.1 s). The one-core Linux comparison below is not affected, because that machine has no swap and the starter-script style fits in its memory; quote that one.
+
 Official benchmark (`python benchmark.py --cpus 1`), complete first run, one CPU core:
 
 | Machine | Original | Ours |
