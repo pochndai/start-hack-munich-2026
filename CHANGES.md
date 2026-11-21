@@ -100,6 +100,7 @@ Most of the code changes are in `differometor/simulate.py`. In `components.py` t
 - **What:** the noise calculation solved the signal system three times per frequency. The third solve is gone; the noise is computed directly from the result of the second.
 - **Why:** it was algebraically redundant. With `A` the signal matrix, `N` the noise matrix, `c` the detector selection and `w` the solution of `Aᴴw = c`, the code computed `y = A⁻¹Nw` and then `Re(cᴴy)`. Substituting gives `Re(wᴴA·A⁻¹Nw) = Re(wᴴNw)`, which needs no solve.
 - **What it is not:** nothing is skipped or stored. The signal and noise systems are still assembled and solved for every frequency from the current parameters; one internal solve whose result cancels out is removed.
+- **Step-by-step derivation:** [`docs/third-solve-algebra.pdf`](docs/third-solve-algebra.pdf) walks through the algebra with a small example that can be checked by hand.
 
 ### 6. Call each physics function once on whole arrays
 
