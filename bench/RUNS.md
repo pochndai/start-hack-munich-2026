@@ -45,6 +45,12 @@ Raw data: `bench/results/amd-epyc-9334-32-core-processor-504g-linux/`; the termi
 
 Why `v07` was unstable there is described in `CHANGES.md` ("The same on one pinned Linux core").
 
+Follow-up on a third instance of the same kind (21:55 UTC; a container with 16 CPUs and 55 GiB on the same 128-CPU host type), by hand, not through the harness:
+
+| Time | What | Result | Raw data |
+| --- | --- | --- | --- |
+| 21:58 | 96 runs of `benchmark.py --cpus 1` on the current code (`e44b489`): four settings, 8 rounds each, on a quiet machine, next to four memory-churning processes, and right after a 14 GB memory user | Quiet and after the memory user: 0.69 to 0.75 s in all 64 runs. Next to the churning processes: 0.93 to 1.51 s; lumps in the NumPy steps in 8 of 24 runs with NumPy's large-page request on, in 0 of 8 with it off | `diagnosis/runs.jsonl`, `diagnosis/diagnose.log`, `diagnosis/machine.txt` |
+
 ## 2. By hand, with a saved report
 
 All are complete runs of the unchanged `benchmark.py`. "Repeat" is the median of the repeat runs, with their number in brackets. "Reference" is the distance from the public reference sensitivities in log (limit 1e-5).

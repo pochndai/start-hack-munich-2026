@@ -1,0 +1,114 @@
+-- quiet
+   last-cpu        total  0.75 build 0.08 forward 0.07 gradient 0.11 | user 0.61 system 0.17 | large pages given 63, refused 0, compaction stalls 0
+   default         total  0.70 build 0.08 forward 0.08 gradient 0.09 | user 0.58 system 0.15 | large pages given 52, refused 0, compaction stalls 0
+   keep-memory     total  0.70 build 0.08 forward 0.07 gradient 0.10 | user 0.58 system 0.14 | large pages given 30, refused 0, compaction stalls 0
+   no-large-pages  total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.56 system 0.20 | large pages given 0, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.09 forward 0.07 gradient 0.11 | user 0.58 system 0.18 | large pages given 62, refused 0, compaction stalls 0
+   no-large-pages  total  0.73 build 0.09 forward 0.08 gradient 0.11 | user 0.57 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   default         total  0.71 build 0.08 forward 0.08 gradient 0.09 | user 0.59 system 0.15 | large pages given 69, refused 0, compaction stalls 0
+   keep-memory     total  0.69 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.15 | large pages given 30, refused 0, compaction stalls 0
+   default         total  0.72 build 0.08 forward 0.07 gradient 0.10 | user 0.60 system 0.15 | large pages given 58, refused 0, compaction stalls 0
+   keep-memory     total  0.70 build 0.08 forward 0.07 gradient 0.10 | user 0.56 system 0.16 | large pages given 31, refused 0, compaction stalls 0
+   no-large-pages  total  0.72 build 0.09 forward 0.08 gradient 0.09 | user 0.57 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   last-cpu        total  0.71 build 0.08 forward 0.08 gradient 0.09 | user 0.59 system 0.15 | large pages given 51, refused 0, compaction stalls 0
+   keep-memory     total  0.70 build 0.08 forward 0.07 gradient 0.10 | user 0.58 system 0.14 | large pages given 32, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.08 forward 0.07 gradient 0.10 | user 0.59 system 0.17 | large pages given 62, refused 0, compaction stalls 0
+   default         total  0.72 build 0.08 forward 0.08 gradient 0.10 | user 0.57 system 0.17 | large pages given 61, refused 0, compaction stalls 0
+   no-large-pages  total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.59 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.08 forward 0.08 gradient 0.11 | user 0.58 system 0.18 | large pages given 70, refused 0, compaction stalls 0
+   keep-memory     total  0.70 build 0.08 forward 0.06 gradient 0.10 | user 0.58 system 0.15 | large pages given 33, refused 0, compaction stalls 0
+   no-large-pages  total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.58 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   default         total  0.69 build 0.08 forward 0.07 gradient 0.09 | user 0.57 system 0.15 | large pages given 49, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.08 forward 0.07 gradient 0.11 | user 0.59 system 0.17 | large pages given 71, refused 0, compaction stalls 0
+   no-large-pages  total  0.75 build 0.09 forward 0.08 gradient 0.12 | user 0.59 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   keep-memory     total  0.69 build 0.08 forward 0.06 gradient 0.10 | user 0.59 system 0.13 | large pages given 30, refused 0, compaction stalls 0
+   default         total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.17 | large pages given 60, refused 0, compaction stalls 0
+   no-large-pages  total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.59 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   default         total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.16 | large pages given 63, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.18 | large pages given 61, refused 0, compaction stalls 0
+   keep-memory     total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.17 | large pages given 30, refused 0, compaction stalls 0
+   keep-memory     total  0.69 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.15 | large pages given 30, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.09 forward 0.07 gradient 0.10 | user 0.58 system 0.18 | large pages given 60, refused 0, compaction stalls 0
+   no-large-pages  total  0.75 build 0.09 forward 0.08 gradient 0.12 | user 0.59 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   default         total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.56 system 0.18 | large pages given 68, refused 0, compaction stalls 0
+-- noisy neighbour churning memory
+   no-large-pages  total  1.02 build 0.14 forward 0.12 gradient 0.13 | user 0.60 system 0.46 | large pages given 1955, refused 173, compaction stalls 4090
+   keep-memory     total  1.23 build 0.39 forward 0.09 gradient 0.27 | user 0.58 system 0.68 | large pages given 1638, refused 392, compaction stalls 3113
+   last-cpu        total  1.51 build 0.33 forward 0.23 gradient 0.40 | user 0.67 system 0.86 | large pages given 1466, refused 556, compaction stalls 3561
+   default         total  1.21 build 0.13 forward 0.11 gradient 0.30 | user 0.59 system 0.67 | large pages given 2365, refused 378, compaction stalls 5109
+   no-large-pages  total  1.21 build 0.17 forward 0.15 gradient 0.20 | user 0.60 system 0.66 | large pages given 2385, refused 176, compaction stalls 4248
+   default         total  1.12 build 0.30 forward 0.14 gradient 0.15 | user 0.59 system 0.56 | large pages given 1353, refused 274, compaction stalls 3309
+   keep-memory     total  0.94 build 0.14 forward 0.13 gradient 0.12 | user 0.57 system 0.40 | large pages given 3766, refused 0, compaction stalls 4771
+   last-cpu        total  1.00 build 0.15 forward 0.14 gradient 0.16 | user 0.67 system 0.36 | large pages given 4381, refused 86, compaction stalls 6010
+   no-large-pages  total  1.15 build 0.15 forward 0.13 gradient 0.19 | user 0.60 system 0.59 | large pages given 2320, refused 130, compaction stalls 4587
+   default         total  1.17 build 0.34 forward 0.20 gradient 0.13 | user 0.59 system 0.61 | large pages given 2665, refused 273, compaction stalls 4155
+   keep-memory     total  1.01 build 0.14 forward 0.12 gradient 0.10 | user 0.58 system 0.47 | large pages given 4091, refused 0, compaction stalls 5574
+   last-cpu        total  0.93 build 0.14 forward 0.10 gradient 0.16 | user 0.64 system 0.33 | large pages given 3693, refused 14, compaction stalls 5699
+   default         total  0.98 build 0.14 forward 0.13 gradient 0.15 | user 0.59 system 0.43 | large pages given 4206, refused 0, compaction stalls 5590
+   keep-memory     total  1.02 build 0.14 forward 0.11 gradient 0.15 | user 0.58 system 0.48 | large pages given 2263, refused 131, compaction stalls 4402
+   last-cpu        total  1.45 build 0.51 forward 0.24 gradient 0.17 | user 0.68 system 0.80 | large pages given 2843, refused 151, compaction stalls 4689
+   no-large-pages  total  1.14 build 0.17 forward 0.14 gradient 0.20 | user 0.59 system 0.60 | large pages given 1605, refused 274, compaction stalls 3851
+   keep-memory     total  1.13 build 0.14 forward 0.38 gradient 0.12 | user 0.59 system 0.57 | large pages given 2205, refused 156, compaction stalls 3868
+   default         total  1.11 build 0.14 forward 0.11 gradient 0.16 | user 0.59 system 0.57 | large pages given 4535, refused 0, compaction stalls 6451
+   last-cpu        total  0.94 build 0.14 forward 0.11 gradient 0.15 | user 0.64 system 0.33 | large pages given 3653, refused 0, compaction stalls 5828
+   no-large-pages  total  1.20 build 0.17 forward 0.16 gradient 0.18 | user 0.60 system 0.65 | large pages given 4020, refused 0, compaction stalls 6400
+   default         total  1.18 build 0.26 forward 0.13 gradient 0.12 | user 0.58 system 0.65 | large pages given 3884, refused 85, compaction stalls 6049
+   keep-memory     total  1.17 build 0.16 forward 0.11 gradient 0.15 | user 0.57 system 0.66 | large pages given 3824, refused 0, compaction stalls 5923
+   last-cpu        total  1.25 build 0.14 forward 0.10 gradient 0.47 | user 0.65 system 0.63 | large pages given 2752, refused 159, compaction stalls 5151
+   no-large-pages  total  1.23 build 0.18 forward 0.15 gradient 0.20 | user 0.60 system 0.67 | large pages given 3843, refused 0, compaction stalls 6274
+   keep-memory     total  1.15 build 0.15 forward 0.13 gradient 0.17 | user 0.59 system 0.61 | large pages given 3930, refused 0, compaction stalls 5568
+   last-cpu        total  0.94 build 0.14 forward 0.11 gradient 0.15 | user 0.65 system 0.33 | large pages given 3799, refused 0, compaction stalls 5701
+   no-large-pages  total  1.12 build 0.17 forward 0.13 gradient 0.15 | user 0.59 system 0.58 | large pages given 4245, refused 0, compaction stalls 6073
+   default         total  1.12 build 0.13 forward 0.12 gradient 0.17 | user 0.57 system 0.60 | large pages given 3975, refused 0, compaction stalls 6449
+   default         total  1.15 build 0.13 forward 0.15 gradient 0.16 | user 0.58 system 0.62 | large pages given 4430, refused 0, compaction stalls 6252
+   last-cpu        total  0.95 build 0.14 forward 0.11 gradient 0.15 | user 0.65 system 0.33 | large pages given 3683, refused 0, compaction stalls 5744
+   keep-memory     total  1.09 build 0.13 forward 0.12 gradient 0.16 | user 0.57 system 0.57 | large pages given 4746, refused 0, compaction stalls 6245
+   no-large-pages  total  1.17 build 0.17 forward 0.15 gradient 0.19 | user 0.60 system 0.61 | large pages given 4832, refused 0, compaction stalls 7639
+-- right after a large memory user
+   last-cpu        total  0.73 build 0.08 forward 0.07 gradient 0.10 | user 0.59 system 0.17 | large pages given 56, refused 0, compaction stalls 0
+   no-large-pages  total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.58 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   keep-memory     total  0.70 build 0.08 forward 0.07 gradient 0.10 | user 0.58 system 0.15 | large pages given 32, refused 0, compaction stalls 0
+   default         total  0.72 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.18 | large pages given 73, refused 0, compaction stalls 0
+   no-large-pages  total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.59 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   default         total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.58 system 0.17 | large pages given 57, refused 0, compaction stalls 0
+   keep-memory     total  0.70 build 0.08 forward 0.07 gradient 0.10 | user 0.56 system 0.16 | large pages given 31, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.09 forward 0.08 gradient 0.10 | user 0.57 system 0.20 | large pages given 69, refused 0, compaction stalls 0
+   default         total  0.72 build 0.08 forward 0.08 gradient 0.11 | user 0.57 system 0.19 | large pages given 64, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.09 forward 0.08 gradient 0.10 | user 0.60 system 0.16 | large pages given 55, refused 0, compaction stalls 0
+   no-large-pages  total  0.75 build 0.09 forward 0.08 gradient 0.12 | user 0.59 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   keep-memory     total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.59 system 0.15 | large pages given 34, refused 0, compaction stalls 0
+   no-large-pages  total  0.75 build 0.09 forward 0.08 gradient 0.12 | user 0.57 system 0.20 | large pages given 0, refused 0, compaction stalls 0
+   default         total  0.69 build 0.08 forward 0.07 gradient 0.09 | user 0.57 system 0.15 | large pages given 64, refused 0, compaction stalls 0
+   keep-memory     total  0.69 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.15 | large pages given 29, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.08 forward 0.08 gradient 0.10 | user 0.59 system 0.17 | large pages given 76, refused 0, compaction stalls 0
+   keep-memory     total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.60 system 0.14 | large pages given 32, refused 0, compaction stalls 0
+   no-large-pages  total  0.73 build 0.09 forward 0.08 gradient 0.11 | user 0.58 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   default         total  0.72 build 0.08 forward 0.08 gradient 0.10 | user 0.59 system 0.16 | large pages given 44, refused 0, compaction stalls 0
+   last-cpu        total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.58 system 0.18 | large pages given 64, refused 0, compaction stalls 0
+   no-large-pages  total  0.75 build 0.09 forward 0.08 gradient 0.12 | user 0.58 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   default         total  0.72 build 0.08 forward 0.08 gradient 0.10 | user 0.57 system 0.17 | large pages given 50, refused 0, compaction stalls 0
+   keep-memory     total  0.70 build 0.08 forward 0.07 gradient 0.10 | user 0.56 system 0.16 | large pages given 31, refused 0, compaction stalls 0
+   last-cpu        total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.60 system 0.16 | large pages given 65, refused 0, compaction stalls 0
+   default         total  0.72 build 0.08 forward 0.08 gradient 0.10 | user 0.58 system 0.17 | large pages given 62, refused 0, compaction stalls 0
+   no-large-pages  total  0.75 build 0.09 forward 0.08 gradient 0.11 | user 0.59 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.09 forward 0.08 gradient 0.10 | user 0.59 system 0.17 | large pages given 48, refused 0, compaction stalls 0
+   keep-memory     total  0.69 build 0.08 forward 0.07 gradient 0.08 | user 0.58 system 0.14 | large pages given 29, refused 0, compaction stalls 0
+   keep-memory     total  0.70 build 0.08 forward 0.06 gradient 0.10 | user 0.57 system 0.15 | large pages given 32, refused 0, compaction stalls 0
+   last-cpu        total  0.73 build 0.08 forward 0.08 gradient 0.11 | user 0.58 system 0.18 | large pages given 58, refused 0, compaction stalls 0
+   no-large-pages  total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.59 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   default         total  0.73 build 0.08 forward 0.07 gradient 0.10 | user 0.58 system 0.17 | large pages given 52, refused 0, compaction stalls 0
+
+== summary (complete first run, seconds)
+condition                         setting           runs  fastest  median  slowest  slow runs  system s  stalls
+quiet                             default              8     0.69    0.71     0.72       0/8       0.16       0
+quiet                             no-large-pages       8     0.72    0.74     0.75       0/8       0.19       0
+quiet                             keep-memory          8     0.69    0.70     0.71       0/8       0.15       0
+quiet                             last-cpu             8     0.71    0.73     0.75       0/8       0.17       0
+noisy neighbour churning memory   default              8     0.98    1.14     1.21       8/8       0.59   43364
+noisy neighbour churning memory   no-large-pages       8     1.02    1.16     1.23       8/8       0.60   43162
+noisy neighbour churning memory   keep-memory          8     0.94    1.11     1.23       8/8       0.56   39464
+noisy neighbour churning memory   last-cpu             8     0.93    0.98     1.51       8/8       0.50   42383
+right after a large memory user   default              8     0.69    0.72     0.73       0/8       0.17       0
+right after a large memory user   no-large-pages       8     0.73    0.75     0.75       0/8       0.19       0
+right after a large memory user   keep-memory          8     0.69    0.70     0.71       0/8       0.15       0
+right after a large memory user   last-cpu             8     0.73    0.73     0.74       0/8       0.17       0

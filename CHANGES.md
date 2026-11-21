@@ -102,7 +102,26 @@ A second AMD cloud instance (AMD EPYC 9334, 128 logical CPUs, 504 GB, Linux, a s
 - It comes and goes in time: the runs before 21:02 UTC and after about 21:20 were all fast, including all 18 scenarios in the second pass below (0.63 to 0.93 s).
 - It is not Python's garbage collector (measured on the Mac: 0.02 s per run).
 
-So the steps that run in NumPy and plain Python can become several times slower for minutes at a time on that machine, while compiled JAX code is unaffected. Our leading explanation, **not verified**: NumPy asks Linux for large memory pages for every array above 4 MB, and when the machine's memory is fragmented by other users the kernel does that work inside our process. JAX's own memory does not ask for large pages. If that is the cause, switching the request off (one line) would remove it; this needs a test on a Linux machine where the slow state can be reproduced. Until then, the first-run time of the current version on a busy shared Linux host is somewhere between 0.74 and 2.8 s, and `v06` (2.2 s, stable) is the fallback that does not have the problem in its forward and gradient steps.
+So the steps that run in NumPy and plain Python can become several times slower for minutes at a time on that machine, while compiled JAX code is unaffected.
+
+**A follow-up test on the same kind of instance** (`bench/results/amd-epyc-9334-32-core-processor-504g-linux/diagnosis/`: the scripts as they ran, `machine.txt`, and `runs.jsonl` with 96 runs of the unchanged `benchmark.py --cpus 1`, each with its phase times, its user and system CPU time, its page faults and the kernel's large-page counters). What it established:
+
+- The "machine" is a container with a quota of 16 CPUs and 55 GiB of memory on a 128-CPU host that other users keep busy (load average 18 before we started). Linux hands out large memory pages only to programs that ask for them (`transparent_hugepage/enabled` and `defrag` are both `madvise`). NumPy asks for every array above 4 MB; JAX does not.
+- On a quiet machine every run was fast: 0.69 to 0.75 s in 32 runs, also right after a program that used and freed 14 GB.
+- Next to four processes that keep allocating and freeing memory, every run got slower, and all of the extra time is the operating system's (user time is unchanged, system time goes from 0.16 to 0.59 s). Loading the packages goes from 0.29 to 0.48 s: under memory pressure every fresh page costs more, for any program.
+- On top of that, the lumps from the earlier run appeared again in the three NumPy steps, and only when NumPy asks for large pages:
+
+  | Setting, next to the memory-churning processes | The three NumPy steps together, 8 runs each (seconds, sorted) |
+  | --- | --- |
+  | Default | 0.42, 0.42, 0.43, 0.45, 0.52, 0.55, 0.58, 0.67 |
+  | Freed memory kept and reused (allocator setting) | 0.37, 0.39, 0.40, 0.41, 0.43, 0.45, 0.65, 0.75 |
+  | Pinned to the last CPU, as the harness does | 0.40, 0.41, 0.41, 0.41, 0.45, 0.71, 0.92, 0.96 |
+  | NumPy does not ask for large pages (`NUMPY_MADVISE_HUGEPAGE=0`) | 0.39, 0.46, 0.48, 0.51, 0.52, 0.52, 0.53, 0.54 |
+
+  With the request on, 8 of 24 runs have a step that takes two to five times its normal time (up to 0.51 s for the build step alone). With it off, 0 of 8 do, and no step exceeds 0.20 s.
+- The price of switching it off: memory then comes in small pages, about 6,000 more page faults per step. Quiet machine: 0.74 s against 0.71 s for the complete first run (4%). Under memory pressure: a median of 1.16 s against 1.14 s, with the worst run at 1.23 s against 1.51 s.
+
+So the cause of the lumps is the large-page request: when free large pages are scarce, the kernel tries to assemble them inside our process, at the moment NumPy first touches a new array. This fits the first observation (only the NumPy steps, only at times, compiled JAX code never). It is supported by 32 runs, not proven: the slow stretch of the first evening, where a step took ten times as long, did not come back on its own, and 0 of 8 against 8 of 24 would happen by chance about one time in 25. **Not decided yet:** switching the request off inside the package is one line (`numpy._core.multiarray._set_madvise_hugepage(False)`) and costs about 0.03 s of a calm run in exchange for no lumps on a busy one.
 
 The 18 scenarios on the same instance (`bench/results/amd-epyc-9334-32-core-processor-504g-linux/VARIATIONS.md`). "Ours" is from the second pass, when only our code ran; "ours, first pass" is the run made right after the original had run; the original's time is one run on this machine:
 
@@ -380,5 +399,5 @@ python tests/test_host.py             # NumPy version against the JAX version
 - The carrier system (286×286, solved once) still uses the dense solver.
 - A setup in amplitude-modulation mode has linking functions, so our code takes its JAX path there: correct, but 1.0 s where the NumPy path takes 0.34 s (Apple M5, case `amplitude-modulation`).
 - A negative reflectivity gives NaN in ours and a number in the original (seen while taking finite differences with too large a step). Reflectivities are bounded to 0..1 in the optimisation examples, so no setup we know has one.
-- **The current version's first-run time was unstable on a busy shared Linux host** (0.74 to 2.8 s on the second AMD instance; see "The same on one pinned Linux core"). The cause is not established. This is the largest open risk for the scored number.
+- **The current version's first-run time was unstable on a busy shared Linux host** (0.74 to 2.8 s on the second AMD instance; see "The same on one pinned Linux core"). The likely cause is NumPy's request for large memory pages (see the follow-up test there); whether to switch it off, at a cost of about 4% on a calm machine, is not decided.
 - `cos_arcsin` returns the same values as the complex arcsine route, but beyond total internal reflection its derivative has the opposite sign in the imaginary part. That only matters when a refractive index or an incidence angle is itself a design variable in such a setup; the benchmark's design variables are reflectivity, tuning, squeezing, angle of squeezing, power, mass and length.

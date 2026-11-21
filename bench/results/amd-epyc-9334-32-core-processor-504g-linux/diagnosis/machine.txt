@@ -1,0 +1,18 @@
+== machine
+model name	: AMD EPYC 9334 32-Core Processor
+logical CPUs: 128
+Mem:             503          21          72           0         409         477
+ 21:55:37 up 145 days, 12:10,  0 users,  load average: 18.28, 17.93, 18.63
+6.8.0-79-generic
+code: e44b489
+== large-page settings
+enabled: always [madvise] never
+defrag: always defer defer+madvise [madvise] never
+khugepaged/defrag: 1
+shmem_enabled: always within_size advise [never] deny force
+MemFree:        75712688 kB
+MemAvailable:   500958936 kB
+AnonHugePages:         0 kB
+HugePages_Total:       0
+cgroup memory limit: 59055800320
+cgroup cpu limit: 1600000 100000
