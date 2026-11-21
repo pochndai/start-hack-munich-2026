@@ -32,7 +32,7 @@ python tests/variations.py            # 19 other setups against the original
 python tests/test_host.py             # our NumPy path against our JAX path
 ```
 
-- **What we changed and why:** [CHANGES.md](CHANGES.md), twelve changes, each with its measurement and its correctness evidence.
+- **What we changed and why:** [CHANGES.md](CHANGES.md), thirteen changes, each with its measurement and its correctness evidence.
 - **Other setups:** the final evaluation uses a variation of the example, so [tests/variations/README.md](tests/variations/README.md) lists 19 varied setups (other values, frequencies, layouts, readouts, grid sizes, modulation modes) that are compared with the original code.
 - **Every run we made:** [bench/RUNS.md](bench/RUNS.md).
 - **One added dependency:** `klujax==0.5.3`, a JAX wrapper around the sparse solver KLU, pinned in `requirements.txt` and `pyproject.toml`.
