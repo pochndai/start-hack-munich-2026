@@ -1,0 +1,7 @@
+Probing 'unlimited' (small JAX workload, well under 1 GiB)...
+  matmul: 18.41 CPU-s per wall-s (0.13 s)   elementwise: 7.44 CPU-s per wall-s (0.60 s)   batched_solve: 15.99 CPU-s per wall-s (16.10 s)
+Probing 'limited' (small JAX workload, well under 1 GiB)...
+  matmul: 1.00 CPU-s per wall-s (1.09 s)   elementwise: 1.00 CPU-s per wall-s (3.32 s)   batched_solve: 0.99 CPU-s per wall-s (1.41 s)
+
+Limit stored in /workspace/feyer-run3/repo/bench/results/amd-epyc-9334-32-core-processor-504g-linux/machine.json
+OK: the limited run used at most 1.00 CPU-seconds per wall-second, i.e. one core.

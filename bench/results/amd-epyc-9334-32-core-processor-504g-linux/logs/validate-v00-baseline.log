@@ -1,0 +1,11 @@
+[validate] v00-baseline: full official run (3 warm repeats); this takes a while...
+[validate] baseline first-run total (40.787 s) stored in /workspace/feyer-run3/repo/bench/results/amd-epyc-9334-32-core-processor-504g-linux/baseline.json
+
+PASS: v00-baseline @ 02ec741d8a1b
+  official benchmark: PASS, first-run 40.787 s, warm median 19.089 s, max log sensitivity error vs public reference 5.374104176780747e-06
+  carrier      vs baseline: scale-relative 3.23e-12, worst element 1.23e-11
+  signal       vs baseline: scale-relative 1.21e-07, worst element 4.92e-07
+  noise        vs baseline: scale-relative 4.02e-08, worst element 6.12e-08
+  sensitivity  vs baseline: scale-relative 3.94e-09, worst element 5.22e-08, log 5.22e-08
+  powers       vs baseline: scale-relative 4.54e-12, worst element 1.11e-11
+  gradient     vs baseline: 0 of 193 entries outside tolerance, worst relative error 1.06e-03; closest to the limit: entry 158 (m01.reflectivity) at 0.34x the allowed error; scale-relative 1.01e-08

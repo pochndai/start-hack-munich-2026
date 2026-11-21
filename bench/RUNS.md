@@ -27,6 +27,24 @@ Raw data: `bench/results/apple-m5-16g-darwin/`. A Mac cannot pin a process to on
 
 Validation was switched off for the timing session because the harness leaves out versions with a `FAIL` verdict; the verdicts themselves were not changed. `SUMMARY.md` is regenerated from the sessions.
 
+### Through the harness on the second AMD cloud instance (AMD EPYC 9334, 128 logical CPUs, 504 GB, Linux, one pinned core)
+
+Raw data: `bench/results/amd-epyc-9334-32-core-processor-504g-linux/`; the terminal logs of every step are in its `logs/` folder. The host was shared: load average about 20 from other users throughout.
+
+| Time | What | Result | Raw data |
+| --- | --- | --- | --- |
+| 20:52 | `run.py selftest`, `doctor`, `calibrate` | `SELFTEST PASS`; one core verified (1.00 CPU-seconds per second) | `machine.json` |
+| 20:54 | `validate.py v00-baseline`: the original, once | First run 40.79 s, repeat 19.09 s, `PASS`; against the original's arrays from the Mac: signal 1.2e-07, entry 158 at 0.34 of the allowed difference | `baseline.json`, `official/v00-baseline.json` |
+| 20:55 | `validate.py` on `v01` to `v07` | `PASS` for all seven; first runs 31.06, 21.77, 13.45, 4.27, 3.93, 2.22 and 2.89 s | `validation/` |
+| 20:58 | `run.py full --no-validate`: 5 shuffled rounds | Medians 30.03, 21.49, 13.50, 4.66, 4.32, 2.23 and 1.46 s. `v07` ranged from 0.74 to 2.75 s | `sessions/2026-11-21T20-58-56Z_full.json`, `SUMMARY.md` |
+| 21:12 | `run.py aa`: `v07` against itself | 0.73 to 2.77 s; the "noise floor" of ±236% is this instability, not ordinary noise | `sessions/2026-11-21T21-12-08Z_aa.json` |
+| 21:15 | `run.py official --versions v07-numpy-host` | First run 2.45 s (a slow run), repeat 0.14 s, `PASS` | `official/v07-numpy-host.json` |
+| 21:15 | `tests/variations.py --time-original`: 18 scenarios, original and ours | 16 `PASS`, 2 `DEVIATION`; originals 24 to 73 s; ours 0.63 to 2.82 s (four slow runs) | `variations/2026-11-21T21-28-38Z.json` |
+| 21:29 | `tests/variations.py`: 18 scenarios, ours only | Same verdicts; ours 0.63 to 0.93 s, and 2.11 s on the JAX fallback | `variations/2026-11-21T21-29-17Z.json`, `VARIATIONS.md` |
+| 21:30 | `tests/test_host.py` | `ALL CHECKS PASSED` | `logs/test-host.log` |
+
+Why `v07` was unstable there is described in `CHANGES.md` ("The same on one pinned Linux core").
+
 ## 2. By hand, with a saved report
 
 All are complete runs of the unchanged `benchmark.py`. "Repeat" is the median of the repeat runs, with their number in brackets. "Reference" is the distance from the public reference sensitivities in log (limit 1e-5).

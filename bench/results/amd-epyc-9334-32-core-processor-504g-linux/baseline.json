@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "label": "v00-baseline",
+  "id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+  "measured_utc": "2026-11-21T20:55:49.407221+00:00",
+  "machine_id": "amd-epyc-9334-32-core-processor-504g-linux",
+  "limits": {
+    "strategy": "affinity",
+    "bench_cpu": 127,
+    "env": {}
+  },
+  "python": "3.12.15",
+  "note": "One complete official run. end_to_end is its scored first-run total; CPU time, peak resident size and memory_after also cover the warm repeats and validation that followed in the same process.",
+  "sample": {
+    "label": "v00-baseline",
+    "round": 0,
+    "canary": {
+      "seconds": 0.3003544043749571,
+      "attempts": 1,
+      "waited_seconds": 0.0
+    },
+    "load_before": 19.2,
+    "memory_before": {
+      "available_bytes": 506982920192,
+      "swap_used_bytes": 0,
+      "swapouts": 0,
+      "swapins": 0
+    },
+    "status": "ok",
+    "returncode": 0,
+    "passed": true,
+    "wall_to_first_run": 40.81492779403925,
+    "wall_total": 147.049649823457,
+    "cpu_seconds": 147.018304,
+    "cpu_per_wall": 0.9997868351030103,
+    "peak_rss_bytes": 15520722944,
+    "peak_footprint_bytes": null,
+    "end_to_end": 40.786686,
+    "phases": [
+      {
+        "key": "imports",
+        "label": "Python / library imports",
+        "seconds": 0.29677300000000173
+      },
+      {
+        "key": "initialize",
+        "label": "Initialize CPU backend",
+        "seconds": 0.002842
+      },
+      {
+        "key": "load",
+        "label": "Read and parse public inputs",
+        "seconds": 0.001401
+      },
+      {
+        "key": "build",
+        "label": "Build optical setup and prepare inputs",
+        "seconds": 0.764561
+      },
+      {
+        "key": "forward_lower",
+        "label": "Forward: trace / lower",
+        "seconds": 1.202045
+      },
+      {
+        "key": "forward_compile",
+        "label": "Forward: compile",
+        "seconds": 13.968698
+      },
+      {
+        "key": "forward",
+        "label": "Forward simulation + AD residuals",
+        "seconds": 14.848895
+      },
+      {
+        "key": "sensitivity_lower",
+        "label": "Sensitivity: trace / lower",
+        "seconds": 0.133844
+      },
+      {
+        "key": "sensitivity_compile",
+        "label": "Sensitivity: compile",
+        "seconds": 0.465404
+      },
+      {
+        "key": "sensitivity",
+        "label": "Sensitivity, powers and scalar loss",
+        "seconds": 0.001076
+      },
+      {
+        "key": "gradient_lower",
+        "label": "Gradient: trace / lower",
+        "seconds": 0.329534
+      },
+      {
+        "key": "gradient_compile",
+        "label": "Gradient: compile",
+        "seconds": 4.885212
+      },
+      {
+        "key": "gradient",
+        "label": "Reverse-mode gradient",
+        "seconds": 3.886005
+      },
+      {
+        "key": "host_transfer",
+        "label": "Transfer results to host",
+        "seconds": 0.000396
+      }
+    ],
+    "groups": {
+      "Setup": 1.0655770000000018,
+      "Compilation": 20.984737,
+      "Forward simulation": 14.848895,
+      "Sensitivity": 0.0014719999999999998,
+      "Gradient": 3.886005,
+      "Other": 0.0
+    },
+    "untimed_overhead": 0.028241794039246315,
+    "memory_after": {
+      "available_bytes": 510981836800,
+      "swap_used_bytes": 0,
+      "swapouts": 0,
+      "swapins": 0
+    }
+  }
+}

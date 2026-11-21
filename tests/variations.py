@@ -374,7 +374,6 @@ A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py 
 ## Not covered yet
 
 - `frequencies-201` and `size-4-full` need a machine with 32 GB and 48 GB for the original; on a smaller one the original is not started and the verdict is `NO_REFERENCE` until its results have been made on a large machine and committed.
-- One-core Linux times for these scenarios (the stored times are from the Mac).
 - Frequency-modulation mode, grids larger than 4x4, and a different set of design variables (for example refractive indices or beamsplitter angles).
 - Setups that are not grids (Voyager, aLIGO, the cavity sweep): `tests/test_host.py` compares our two code paths on them, but they are not timed here.
 """

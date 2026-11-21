@@ -79,6 +79,56 @@ All seven registered versions side by side, through the team's harness (`bench/R
 
 Read this table for the order of the versions, not for exact factors. The noise floor of the Mac in that hour was ±16% (the same version against itself, `bench/results/apple-m5-16g-darwin/sessions/2026-11-21T20-38-57Z_aa.json`), the original's single run was short of memory, and `v01` to `v03` used more than one core in spite of the thread limits (flagged by the harness). Changes 5–7 were each measured on their own on one pinned Linux core, where they add up to about 10% (table further down). The official "after" report from this machine is `bench/results/apple-m5-16g-darwin/official/v07-numpy-host.json` (0.66 s first run, 0.051 s repeat, `PASS`; one sample on the same noisy machine). The one-core AMD comparison at the top stays the one to quote.
 
+### The same on one pinned Linux core (AMD cloud), and a timing problem found there
+
+A second AMD cloud instance (AMD EPYC 9334, 128 logical CPUs, 504 GB, Linux, a shared host with a load average of about 20 from other users), one core pinned by the harness plus the official `--cpus 1`. Raw data: `bench/results/amd-epyc-9334-32-core-processor-504g-linux/`, logs in its `logs/` folder. All seven versions and the original get `PASS` from `bench/validate.py` there, and `tests/test_host.py` ends with `ALL CHECKS PASSED`.
+
+| Version | Changes | Median first run | Fastest | Against the version before |
+| --- | --- | ---: | ---: | --- |
+| `v00-baseline` (the original, one run) | | 40.79 s | | |
+| `v01-klujax-solver` | 1 | 30.03 s | 29.13 s | |
+| `v02-group-by-function` | 2 | 21.49 s | 20.94 s | 1.39x |
+| `v03-sparse-assembly` | 3 | 13.50 s | 12.68 s | 1.60x |
+| `v04-fast-compile-flags` | 4 | 4.66 s | 4.03 s | 2.88x |
+| `v05-two-solves-whole-arrays` | 5–7 | 4.32 s | 3.74 s | 1.09x, inside the noise |
+| `v06-real-parameters` | 8–11 | 2.23 s | 2.15 s | 1.92x |
+| `v07-numpy-host` (current) | 12 | 1.46 s | 0.74 s | see below |
+
+**The current version's time was not stable on this machine.** Its five runs took 0.74, 0.78, 2.31, 1.46 and 2.75 s, and ten more in the noise check took between 0.73 and 2.77 s. The earlier AMD instance gave 0.715 and 0.716 s for the same code. What the stored phase times show:
+
+- In a slow run, three steps carry extra time and nothing else does: the build step (0.09 s becomes 0.87 to 0.92 s), the forward simulation (0.08 s becomes 0.52 to 0.59 s) and the gradient (0.10 s becomes 0.38 to 0.83 s). Imports, tracing and compiling are identical to the millisecond.
+- The extra time is processor time of our own process, not waiting (CPU seconds equal wall seconds).
+- The older versions show the same thing in their build step only: `v03`, `v04` and `v05` take about 0.7 s longer there in some runs (for example `v05`: 0.32, 0.34, 1.02, 1.01, 1.03 s). Their forward and gradient steps, which run as compiled JAX code, never do.
+- It comes and goes in time: the runs before 21:02 UTC and after about 21:20 were all fast, including all 18 scenarios in the second pass below (0.63 to 0.93 s).
+- It is not Python's garbage collector (measured on the Mac: 0.02 s per run).
+
+So the steps that run in NumPy and plain Python can become several times slower for minutes at a time on that machine, while compiled JAX code is unaffected. Our leading explanation, **not verified**: NumPy asks Linux for large memory pages for every array above 4 MB, and when the machine's memory is fragmented by other users the kernel does that work inside our process. JAX's own memory does not ask for large pages. If that is the cause, switching the request off (one line) would remove it; this needs a test on a Linux machine where the slow state can be reproduced. Until then, the first-run time of the current version on a busy shared Linux host is somewhere between 0.74 and 2.8 s, and `v06` (2.2 s, stable) is the fallback that does not have the problem in its forward and gradient steps.
+
+The 18 scenarios on the same instance (`bench/results/amd-epyc-9334-32-core-processor-504g-linux/VARIATIONS.md`). "Ours" is from the second pass, when only our code ran; "ours, first pass" is the run made right after the original had run; the original's time is one run on this machine:
+
+| Case | Frequencies | Design variables | Path | Ours | Ours, first pass | Original | Faster | Sensitivity | Verdict |
+| --- | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- |
+| `amplitude-modulation` | 101 | 193 | JAX fallback | 2.11 s | 2.81 s | 36.8 s | 17x | 7.1e-09 | PASS |
+| `band-20-5000` | 101 | 193 | NumPy | 0.74 s | 0.74 s | 39.9 s | 54x | 6.8e-08 | DEVIATION |
+| `boundary-swap` | 101 | 193 | NumPy | 0.74 s | 2.82 s | 40.0 s | 54x | 3.3e-11 | PASS |
+| `center-swap` | 101 | 193 | NumPy | 0.73 s | 2.03 s | 39.3 s | 54x | 1.4e-10 | PASS |
+| `detector-moved` | 101 | 193 | NumPy | 0.73 s | 2.53 s | 39.8 s | 54x | 1.5e-07 | PASS |
+| `frequencies-201` | 201 | 193 | NumPy | 0.86 s | 0.96 s | 58.3 s | 68x | 6.6e-08 | PASS |
+| `frequencies-51` | 51 | 193 | NumPy | 0.67 s | 0.67 s | 29.8 s | 44x | 6.5e-08 | PASS |
+| `homodyne-readout` | 101 | 195 | NumPy | 0.74 s | 0.74 s | 37.4 s | 51x | 8.9e-08 | PASS |
+| `random-layout-1` | 101 | 193 | NumPy | 0.74 s | 0.80 s | 35.8 s | 48x | 3.0e-09 | PASS |
+| `random-layout-2` | 101 | 192 | NumPy | 0.73 s | 0.77 s | 35.5 s | 49x | 6.6e-10 | PASS |
+| `random-layout-3` | 101 | 197 | NumPy | 0.74 s | 0.80 s | 35.4 s | 48x | 2.3e-09 | PASS |
+| `size-2` | 101 | 102 | NumPy | 0.63 s | 0.63 s | 24.1 s | 38x | 2.1e-08 | PASS |
+| `size-4` | 21 | 315 | NumPy | 0.75 s | 0.84 s | 31.1 s | 41x | 1.4e-10 | PASS |
+| `size-4-full` | 101 | 315 | NumPy | 0.93 s | 1.10 s | 72.5 s | 78x | 1.4e-10 | PASS |
+| `supplied` | 101 | 193 | NumPy | 0.74 s | 0.73 s | 35.6 s | 48x | 6.5e-08 | PASS |
+| `uifo-20-5000` | 101 | 192 | NumPy | 0.73 s | 0.73 s | 36.6 s | 50x | 8.0e-07 | DEVIATION |
+| `values-random` | 101 | 193 | NumPy | 0.73 s | 0.73 s | 35.5 s | 49x | 7.3e-08 | PASS |
+| `values-shifted` | 101 | 193 | NumPy | 0.74 s | 0.74 s | 35.6 s | 48x | 8.8e-09 | PASS |
+
+The two scenarios that do not fit on the Mac (`frequencies-201` and `size-4-full`) got their reference here and pass. `uifo-20-5000` is `DEVIATION` here and `PASS` on the Mac: its readout signal is 1.4e-06 from the stored original, a hair over the 1e-6 limit, because the stored original was computed on the Mac and ours here on Linux. The original itself is not identical across the two machines either: on `band-20-5000`, the original on this machine and the original on the Mac disagree on two gradient entries by more than 0.1%.
+
 ## The twelve changes
 
 Most of the code changes are in `differometor/simulate.py`. In `components.py` the physics formulas are the same; only the mirror function was rewritten in an equivalent, shorter form (change 10).
@@ -330,5 +380,5 @@ python tests/test_host.py             # NumPy version against the JAX version
 - The carrier system (286×286, solved once) still uses the dense solver.
 - A setup in amplitude-modulation mode has linking functions, so our code takes its JAX path there: correct, but 1.0 s where the NumPy path takes 0.34 s (Apple M5, case `amplitude-modulation`).
 - A negative reflectivity gives NaN in ours and a number in the original (seen while taking finite differences with too large a step). Reflectivities are bounded to 0..1 in the optimisation examples, so no setup we know has one.
-- The times of the sixteen other setups are from the Mac only. One-core Linux times for them are missing.
+- **The current version's first-run time was unstable on a busy shared Linux host** (0.74 to 2.8 s on the second AMD instance; see "The same on one pinned Linux core"). The cause is not established. This is the largest open risk for the scored number.
 - `cos_arcsin` returns the same values as the complex arcsine route, but beyond total internal reflection its derivative has the opposite sign in the imaginary part. That only matters when a refractive index or an incidence angle is itself a design variable in such a setup; the benchmark's design variables are reflectivity, tuning, squeezing, angle of squeezing, power, mass and length.

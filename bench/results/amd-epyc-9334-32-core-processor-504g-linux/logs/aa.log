@@ -1,0 +1,37 @@
+Session 2026-11-21T21-12-08Z_aa on amd-epyc-9334-32-core-processor-504g-linux: 2 versions x 5 rounds
+CPU limit: pinned to CPU 127 (--cpus 1)
+  v07-numpy-host#A         commit   3d6516f91829  PASS
+  v07-numpy-host#B         commit   3d6516f91829  PASS
+  [round 1/5, 1/2] v07-numpy-host#B             2.194 s   peak 0.38 GiB   cpu/wall 1.01
+  [round 1/5, 2/2] v07-numpy-host#A             2.767 s   peak 0.38 GiB   cpu/wall 1.01   waited 20 s for a calm machine
+  [round 2/5, 1/2] v07-numpy-host#A             2.467 s   peak 0.38 GiB   cpu/wall 1.01
+  [round 2/5, 2/2] v07-numpy-host#B             0.734 s   peak 0.38 GiB   cpu/wall 1.03   waited 30 s for a calm machine
+  [round 3/5, 1/2] v07-numpy-host#B             1.010 s   peak 0.38 GiB   cpu/wall 1.02
+  [round 3/5, 2/2] v07-numpy-host#A             2.667 s   peak 0.38 GiB   cpu/wall 1.01   waited 30 s for a calm machine
+  [round 4/5, 1/2] v07-numpy-host#A             2.357 s   peak 0.35 GiB   cpu/wall 1.01
+  [round 4/5, 2/2] v07-numpy-host#B             0.735 s   peak 0.38 GiB   cpu/wall 1.03   waited 20 s for a calm machine
+  [round 5/5, 1/2] v07-numpy-host#B             1.177 s   peak 0.38 GiB   cpu/wall 1.02
+  [round 5/5, 2/2] v07-numpy-host#A             2.352 s   peak 0.35 GiB   cpu/wall 1.01
+findfont: Failed to find font weight semibold for DejaVu Sans, now using 700.
+findfont: Failed to find font weight semibold for DejaVu Sans, now using 700.
+
+| Version          | n   | median s | min s | spread | vs v07-numpy-host#A | vs parent | Setup | Compile | Forward | Sens. | Grad. | peak mem | cpu/wall | valid | flags |
+| ---------------- | --- | -------- | ----- | ------ | ------------------- | --------- | ----- | ------- | ------- | ----- | ----- | -------- | -------- | ----- | ----- |
+| v07-numpy-host#A | 5/5 | 2.47     | 2.35  | 16.8%  | -                   | -         | 1.20  | 0.18    | 0.57    | 0.00  | 0.49  | 0.38 GiB | 1.01     | PASS  | -     |
+| v07-numpy-host#B | 5/5 | 1.01     | 0.73  | 144.5% | 2.64x (1.26-3.36)~  | -         | 0.38  | 0.17    | 0.08    | 0.00  | 0.38  | 0.38 GiB | 1.02     | PASS  | -     |
+
+Reading the table
+- `median s` / `min s`: complete first-run total printed by the version's own benchmark.py (the scored number).
+- `vs X`: speed-up over X, median of the per-round ratios, with the lowest and highest round in brackets.
+  `~` = not distinguishable from noise. `*` = X ran under memory pressure, so the factor is overstated.
+  `(stored)` = X is the baseline, which ran once and is not rerun: every round is divided into that one
+  stored total, so the bracket shows only this version's own scatter.
+- `spread`: (max - min) / median of the totals. `cpu/wall`: CPU-seconds per wall-second, about 1.00 means one core.
+- Flags (count / samples): `memory` = swapping or heavy compression during the run, `slow-machine` = the canary
+  ran more than 5 % slower than the session's best, `multi-core` = more than one core was used,
+  `failed` / `timeout` = no result, `unofficial-benchmark` = benchmark.py differs from the baseline's.
+
+Noise floor from the latest A/A session: +/- 236.0 %
+
+Session: /workspace/feyer-run3/repo/bench/results/amd-epyc-9334-32-core-processor-504g-linux/sessions/2026-11-21T21-12-08Z_aa.json
+Summary: /workspace/feyer-run3/repo/bench/results/amd-epyc-9334-32-core-processor-504g-linux/SUMMARY.md

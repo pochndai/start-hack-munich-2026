@@ -1,0 +1,120 @@
+== selftest 1/4: three versions, three shuffled rounds ==
+Session 2026-11-21T20-51-24Z_run on amd-epyc-9334-32-core-processor-504g-linux: 3 versions x 3 rounds
+CPU limit: pinned to CPU 127 (--cpus 1)
+  slow                     path     c89251fcdae0  not validated
+  fast                     path     db0a84f85f30  not validated
+  broken                   path     c272771c6e25  not validated
+WARNING: CPU limit not calibrated on this machine: run `python bench/run.py calibrate`
+  [round 1/3, 1/3] broken                   FAILED: RuntimeError: simulated failure
+  [round 1/3, 2/3] slow                         1.063 s   peak 0.01 GiB   cpu/wall 0.02
+  [round 1/3, 3/3] fast                         0.533 s   peak 0.01 GiB   cpu/wall 0.05
+  [round 2/3, 1/3] slow                         1.063 s   peak 0.01 GiB   cpu/wall 0.02   waited 10 s for a calm machine
+  [round 2/3, 2/3] fast                         0.533 s   peak 0.01 GiB   cpu/wall 0.05
+  [round 2/3, 3/3] broken                   FAILED: RuntimeError: simulated failure
+  [round 3/3, 1/3] fast                         0.533 s   peak 0.01 GiB   cpu/wall 0.05
+  [round 3/3, 2/3] broken                   FAILED: RuntimeError: simulated failure
+  [round 3/3, 3/3] slow                         1.063 s   peak 0.01 GiB   cpu/wall 0.02
+findfont: Failed to find font weight semibold for DejaVu Sans, now using 700.
+findfont: Failed to find font weight semibold for DejaVu Sans, now using 700.
+
+| Version | n   | median s | min s | spread | vs slow           | vs parent         | Setup | Compile | Forward | Sens. | Grad. | peak mem | cpu/wall | valid | flags      |
+| ------- | --- | -------- | ----- | ------ | ----------------- | ----------------- | ----- | ------- | ------- | ----- | ----- | -------- | -------- | ----- | ---------- |
+| slow    | 3/3 | 1.06     | 1.06  | 0.0%   | -                 | -                 | 0.13  | 0.54    | 0.28    | 0.01  | 0.10  | 0.01 GiB | 0.02     | -     | -          |
+| fast    | 3/3 | 0.53     | 0.53  | 0.0%   | 1.99x (1.99-1.99) | 1.99x (1.99-1.99) | 0.07  | 0.27    | 0.14    | 0.00  | 0.05  | 0.01 GiB | 0.05     | -     | -          |
+| broken  | 0/3 | -        | -     | -      | -                 | -                 | -     | -       | -       | -     | -     | -        | -        | -     | failed 3/3 |
+
+Reading the table
+- `median s` / `min s`: complete first-run total printed by the version's own benchmark.py (the scored number).
+- `vs X`: speed-up over X, median of the per-round ratios, with the lowest and highest round in brackets.
+  `~` = not distinguishable from noise. `*` = X ran under memory pressure, so the factor is overstated.
+  `(stored)` = X is the baseline, which ran once and is not rerun: every round is divided into that one
+  stored total, so the bracket shows only this version's own scatter.
+- `spread`: (max - min) / median of the totals. `cpu/wall`: CPU-seconds per wall-second, about 1.00 means one core.
+- Flags (count / samples): `memory` = swapping or heavy compression during the run, `slow-machine` = the canary
+  ran more than 5 % slower than the session's best, `multi-core` = more than one core was used,
+  `failed` / `timeout` = no result, `unofficial-benchmark` = benchmark.py differs from the baseline's.
+
+Session: /tmp/bench-selftest-qshw8d41/results/amd-epyc-9334-32-core-processor-504g-linux/sessions/2026-11-21T20-51-24Z_run.json
+Summary: /tmp/bench-selftest-qshw8d41/results/amd-epyc-9334-32-core-processor-504g-linux/SUMMARY.md
+
+== selftest 2/4: A/A session gives about 1.00x and sets the noise floor ==
+Session 2026-11-21T20-51-43Z_aa on amd-epyc-9334-32-core-processor-504g-linux: 2 versions x 3 rounds
+CPU limit: pinned to CPU 126 (--cpus 1)
+  fast#A                   path     db0a84f85f30  not validated
+  fast#B                   path     db0a84f85f30  not validated
+WARNING: CPU limit not calibrated on this machine: run `python bench/run.py calibrate`
+  [round 1/3, 1/2] fast#A                       0.533 s   peak 0.01 GiB   cpu/wall 0.05
+  [round 1/3, 2/2] fast#B                       0.533 s   peak 0.01 GiB   cpu/wall 0.05
+  [round 2/3, 1/2] fast#B                       0.534 s   peak 0.01 GiB   cpu/wall 0.06
+  [round 2/3, 2/2] fast#A                       0.533 s   peak 0.01 GiB   cpu/wall 0.06
+  [round 3/3, 1/2] fast#A                       0.533 s   peak 0.01 GiB   cpu/wall 0.06   waited 10 s for a calm machine
+  [round 3/3, 2/2] fast#B                       0.533 s   peak 0.01 GiB   cpu/wall 0.05   waited 20 s for a calm machine
+
+| Version | n   | median s | min s | spread | vs fast#A          | vs parent | Setup | Compile | Forward | Sens. | Grad. | peak mem | cpu/wall | valid | flags            |
+| ------- | --- | -------- | ----- | ------ | ------------------ | --------- | ----- | ------- | ------- | ----- | ----- | -------- | -------- | ----- | ---------------- |
+| fast#A  | 3/3 | 0.53     | 0.53  | 0.0%   | -                  | -         | 0.07  | 0.27    | 0.14    | 0.00  | 0.05  | 0.01 GiB | 0.06     | -     | slow-machine 1/3 |
+| fast#B  | 3/3 | 0.53     | 0.53  | 0.1%   | 1.00x (1.00-1.00)~ | -         | 0.07  | 0.27    | 0.14    | 0.00  | 0.05  | 0.01 GiB | 0.05     | -     | slow-machine 2/3 |
+
+Reading the table
+- `median s` / `min s`: complete first-run total printed by the version's own benchmark.py (the scored number).
+- `vs X`: speed-up over X, median of the per-round ratios, with the lowest and highest round in brackets.
+  `~` = not distinguishable from noise. `*` = X ran under memory pressure, so the factor is overstated.
+  `(stored)` = X is the baseline, which ran once and is not rerun: every round is divided into that one
+  stored total, so the bracket shows only this version's own scatter.
+- `spread`: (max - min) / median of the totals. `cpu/wall`: CPU-seconds per wall-second, about 1.00 means one core.
+- Flags (count / samples): `memory` = swapping or heavy compression during the run, `slow-machine` = the canary
+  ran more than 5 % slower than the session's best, `multi-core` = more than one core was used,
+  `failed` / `timeout` = no result, `unofficial-benchmark` = benchmark.py differs from the baseline's.
+
+Noise floor from the latest A/A session: +/- 0.1 %
+
+Session: /tmp/bench-selftest-qshw8d41/results/amd-epyc-9334-32-core-processor-504g-linux/sessions/2026-11-21T20-51-43Z_aa.json
+Summary: /tmp/bench-selftest-qshw8d41/results/amd-epyc-9334-32-core-processor-504g-linux/SUMMARY.md
+
+== selftest 3/4: correctness checks ==
+[validate] slow: full official run (3 warm repeats); this takes a while...
+[validate] reference arrays written to /tmp/bench-selftest-qshw8d41/reference/baseline_arrays.npz
+[validate] baseline first-run total (1.063 s) stored in /tmp/bench-selftest-qshw8d41/results/amd-epyc-9334-32-core-processor-504g-linux/baseline.json
+[validate] fast: full official run (3 warm repeats); this takes a while...
+[validate] wrong: full official run (3 warm repeats); this takes a while...
+[validate] wrong: full official run (3 warm repeats); this takes a while...
+[validate] subtle: full official run (3 warm repeats); this takes a while...
+[validate] within: full official run (3 warm repeats); this takes a while...
+[validate] beyond: full official run (3 warm repeats); this takes a while...
+[validate] large: full official run (3 warm repeats); this takes a while...
+[validate] broken: full official run (3 warm repeats); this takes a while...
+validation verdicts: slow=PASS, fast=PASS, wrong=FAIL, wrong-allowed=PASS_WITH_DEVIATIONS, subtle=FAIL, within=PASS, beyond=FAIL, large=FAIL, broken=FAIL
+
+== selftest 4/4: the baseline is not rerun; its stored run is the reference ==
+Session 2026-11-21T20-52-34Z_run on amd-epyc-9334-32-core-processor-504g-linux: 1 versions x 3 rounds
+CPU limit: pinned to CPU 125 (--cpus 1)
+  fast                     path     db0a84f85f30  PASS
+Baseline: not rerun; stored run of slow from 2026-11-21, 1.063 s
+WARNING: CPU limit not calibrated on this machine: run `python bench/run.py calibrate`
+  [round 1/3, 1/1] fast                         0.533 s   peak 0.01 GiB   cpu/wall 0.06
+  [round 2/3, 1/1] fast                         0.533 s   peak 0.01 GiB   cpu/wall 0.05
+  [round 3/3, 1/1] fast                         0.533 s   peak 0.01 GiB   cpu/wall 0.05   waited 10 s for a calm machine
+
+| Version | n   | median s | min s | spread | vs slow (stored)  | vs parent | Setup | Compile | Forward | Sens. | Grad. | peak mem | cpu/wall | valid | flags |
+| ------- | --- | -------- | ----- | ------ | ----------------- | --------- | ----- | ------- | ------- | ----- | ----- | -------- | -------- | ----- | ----- |
+| fast    | 3/3 | 0.53     | 0.53  | 0.0%   | 1.99x (1.99-1.99) | -         | 0.07  | 0.27    | 0.14    | 0.00  | 0.05  | 0.01 GiB | 0.05     | PASS  | -     |
+
+Stored baseline: slow took 1.06 s in its single run on 2026-11-21. It is not rerun: each factor against it is this number divided by a new sample.
+
+Reading the table
+- `median s` / `min s`: complete first-run total printed by the version's own benchmark.py (the scored number).
+- `vs X`: speed-up over X, median of the per-round ratios, with the lowest and highest round in brackets.
+  `~` = not distinguishable from noise. `*` = X ran under memory pressure, so the factor is overstated.
+  `(stored)` = X is the baseline, which ran once and is not rerun: every round is divided into that one
+  stored total, so the bracket shows only this version's own scatter.
+- `spread`: (max - min) / median of the totals. `cpu/wall`: CPU-seconds per wall-second, about 1.00 means one core.
+- Flags (count / samples): `memory` = swapping or heavy compression during the run, `slow-machine` = the canary
+  ran more than 5 % slower than the session's best, `multi-core` = more than one core was used,
+  `failed` / `timeout` = no result, `unofficial-benchmark` = benchmark.py differs from the baseline's.
+
+Noise floor from the latest A/A session: +/- 0.1 %
+
+Session: /tmp/bench-selftest-qshw8d41/results/amd-epyc-9334-32-core-processor-504g-linux/sessions/2026-11-21T20-52-34Z_run.json
+Summary: /tmp/bench-selftest-qshw8d41/results/amd-epyc-9334-32-core-processor-504g-linux/SUMMARY.md
+
+SELFTEST PASS

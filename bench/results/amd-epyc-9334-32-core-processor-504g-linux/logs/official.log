@@ -1,0 +1,12 @@
+[validate] v07-numpy-host: full official run (10 warm repeats); this takes a while...
+
+PASS: v07-numpy-host @ 3d6516f91829
+  official benchmark: PASS, first-run 2.453 s, warm median 0.140 s, max log sensitivity error vs public reference 5.3747604553677775e-06
+  carrier      vs baseline: scale-relative 1.77e-12, worst element 5.05e-12
+  signal       vs baseline: scale-relative 1.23e-07, worst element 4.00e-07
+  noise        vs baseline: scale-relative 3.90e-08, worst element 5.63e-08
+  sensitivity  vs baseline: scale-relative 6.14e-09, worst element 6.47e-08, log 6.47e-08
+  powers       vs baseline: scale-relative 2.22e-12, worst element 4.63e-12
+  gradient     vs baseline: 0 of 193 entries outside tolerance, worst relative error 1.93e-03; closest to the limit: entry 158 (m01.reflectivity) at 0.29x the allowed error; scale-relative 7.59e-08
+
+Official reports and plots: /workspace/feyer-run3/repo/bench/results/amd-epyc-9334-32-core-processor-504g-linux/official

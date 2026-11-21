@@ -1,0 +1,10 @@
+[validate] v04-fast-compile-flags: full official run (3 warm repeats); this takes a while...
+
+PASS: v04-fast-compile-flags @ 73680c8eb289
+  official benchmark: PASS, first-run 4.274 s, warm median 0.272 s, max log sensitivity error vs public reference 5.3732118914240345e-06
+  carrier      vs baseline: scale-relative 3.23e-12, worst element 1.23e-11
+  signal       vs baseline: scale-relative 1.21e-07, worst element 3.99e-07
+  noise        vs baseline: scale-relative 4.06e-08, worst element 5.67e-08
+  sensitivity  vs baseline: scale-relative 5.69e-09, worst element 6.00e-08, log 6.00e-08
+  powers       vs baseline: scale-relative 4.54e-12, worst element 1.11e-11
+  gradient     vs baseline: 0 of 193 entries outside tolerance, worst relative error 1.93e-03; closest to the limit: entry 158 (m01.reflectivity) at 0.29x the allowed error; scale-relative 6.70e-08

@@ -1,0 +1,16 @@
+Machine id: amd-epyc-9334-32-core-processor-504g-linux
+
+[ok  ] Python: 3.12.15 (organizers used 3.12)
+[ok  ] Pinned packages: all match requirements.txt
+[ok  ] differometor installed: 0.0.6
+[ok  ] Baseline version: v00-baseline -> 02ec741d8a1b
+[ok  ] CPU: AMD EPYC 9334 32-Core Processor, 128 logical CPUs
+[ok  ] RAM: 504 GiB
+[ok  ] Free memory now: 472.71 GiB
+[WARN] One-CPU limit: pinned to CPU 127 + official --cpus 1; not verified here yet: run `python bench/run.py calibrate`
+[ok  ] Canary: 0.309 s
+[ok  ] Reference arrays: present
+[WARN] Stored baseline run: missing on this machine: run `python bench/validate.py v00-baseline --make-reference` once
+[WARN] Noise floor: not measured: run `python bench/run.py aa`
+
+0 session(s) on record for this machine.
