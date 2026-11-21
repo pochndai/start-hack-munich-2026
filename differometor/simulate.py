@@ -19,6 +19,8 @@ Conventions used throughout:
 
 import jax
 from time import time
+import numpy as np
+import klujax
 import jax.numpy as jnp
 from jax import lax, vmap, jit
 
@@ -28,6 +30,27 @@ from differometor.components import FUNCTIONS, UNIT_VACUUM, H_PLANCK, F0
 
 
 jax.config.update("jax_enable_x64", True)
+
+
+@jax.tree_util.register_static
+class Static:
+    """
+    Build-time NumPy array that `jax.jit` treats as part of the program, not as an input.
+
+    `simulate` needs to know which component function fills which matrix entry while it
+    is being traced. Passing that as a normal array hides the values from the tracer and
+    forces every function to be compiled for every entry.
+    """
+
+    def __init__(self, array):
+        self.array = np.asarray(array)
+        self._key = (self.array.shape, self.array.dtype.str, self.array.tobytes())
+
+    def __hash__(self):
+        return hash(self._key)
+
+    def __eq__(self, other):
+        return isinstance(other, Static) and self._key == other._key
 
 
 def solve(matrix: jnp.ndarray, right_hand_side: jnp.ndarray) -> jnp.ndarray:
@@ -59,55 +82,77 @@ def solve(matrix: jnp.ndarray, right_hand_side: jnp.ndarray) -> jnp.ndarray:
     return jnp.linalg.solve(matrix, right_hand_side)
 
 
+def evaluate(
+    parameters: jnp.ndarray,
+    function_input_indices: jnp.ndarray,
+    output_indices: tuple[jnp.ndarray, jnp.ndarray],
+    function_indices: Static,
+) -> jnp.ndarray:
+    """
+    Evaluate component functions and select the outputs that go into a system matrix.
+
+    Parameters
+    ----------
+    parameters : jnp.ndarray
+        Parameter values for one simulation instance, shape (P,).
+    function_input_indices : jnp.ndarray
+        Indices into `parameters` selecting inputs to the component functions,
+        shape (K, 7).
+    output_indices : tuple[jnp.ndarray, jnp.ndarray]
+        Pair of index arrays selecting entries from the evaluated output matrix.
+        Each element has shape (M,). Together they define M output positions.
+    function_indices : Static
+        Indices selecting which function to use for each input, shape (K,).
+        Values index into the global `FUNCTIONS` list. Known at trace time.
+
+    Returns
+    -------
+    outputs : jnp.ndarray
+        Selected function outputs, shape (M,).
+
+    Notes
+    -----
+    The function indices are known while tracing, so each component function is
+    traced once and only for the inputs that use it. Selecting with `lax.switch`
+    under `vmap` instead evaluates every function for every input and compiles
+    several times slower.
+    """
+    function_inputs = parameters[function_input_indices]
+    function_indices = function_indices.array
+    output_matrix = jnp.zeros((len(function_indices), 4), dtype=jnp.complex128)
+    for function_index in np.unique(function_indices):
+        inputs = np.nonzero(function_indices == function_index)[0]
+        output_matrix = output_matrix.at[inputs].set(vmap(FUNCTIONS[function_index])(function_inputs[inputs]))
+    return output_matrix[output_indices[0], output_indices[1]]
+
+
 def update(
     parameters: jnp.ndarray,
     matrix: jnp.ndarray,
     function_input_indices: jnp.ndarray,
     output_indices: tuple[jnp.ndarray, jnp.ndarray],
     matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
-    function_indices: jnp.ndarray,
+    function_indices: Static,
 ) -> jnp.ndarray:
     """
-    Update selected entries of a system matrix by evaluating component functions.
-
-    This function takes a parameter vector, selects the subset that serves as
-    inputs to component transfer functions, evaluates those functions, selects
-    certain outputs, and writes them into `matrix` at specified indices.
+    Update selected entries of a dense system matrix by evaluating component functions.
 
     Parameters
     ----------
-    parameters : jnp.ndarray
-        Parameter values for one simulation instance, shape (P,).
+    parameters, function_input_indices, output_indices, function_indices :
+        See `evaluate`.
     matrix : jnp.ndarray
         Base matrix to update, shape (N, N + 1) for augmented systems, or (N, N).
-        The function writes entries in-place (functionally) using `.at[...].set(...)`.
-    function_input_indices : jnp.ndarray
-        Indices into `parameters` selecting inputs to the component functions,
-        shape (K,).
-    output_indices : tuple[jnp.ndarray, jnp.ndarray]
-        Pair of index arrays selecting entries from the evaluated output matrix.
-        Each element has shape (M,). Together they define M output positions.
     matrix_indices : tuple[jnp.ndarray, jnp.ndarray]
         Pair of index arrays selecting where to write into `matrix`.
         Each element has shape (M,).
-    function_indices : jnp.ndarray
-        Indices selecting which function to use for each input, shape (K,).
-        Values index into the global `FUNCTIONS` list.
 
     Returns
     -------
     updated_matrix : jnp.ndarray
         Matrix with updated entries, same shape as `matrix`.
-
-    Notes
-    -----
-    `lax.switch` selects functions from the global `FUNCTIONS` list. In JAX, a
-    Python list of callables referenced as a global is treated as static during
-    tracing, which keeps the function jittable as long as the list is stable.
     """
-    function_inputs = parameters[function_input_indices]
-    output_matrix = vmap(lambda i, x: lax.switch(i, FUNCTIONS, x))(function_indices, function_inputs)
-    outputs = output_matrix[output_indices[0], output_indices[1]]
+    outputs = evaluate(parameters, function_input_indices, output_indices, function_indices)
     return matrix.at[matrix_indices[0], matrix_indices[1]].set(outputs)
 
 
@@ -171,21 +216,24 @@ def simulate(
     indices_to_link: jnp.ndarray,
     # carrier arrays
     carrier_function_input_indices: jnp.ndarray,
-    carrier_function_indices: jnp.ndarray,
+    carrier_function_indices: Static,
     carrier_output_indices: tuple[jnp.ndarray, jnp.ndarray],
     carrier_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
     # signal arrays
     signal_function_input_indices: jnp.ndarray,
-    signal_function_indices: jnp.ndarray,
+    signal_function_indices: Static,
     signal_output_indices: tuple[jnp.ndarray, jnp.ndarray],
     signal_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
     signal_carrier_indices: jnp.ndarray,
     signal_carrier_placing_indices: tuple[jnp.ndarray, jnp.ndarray],
     # noise arrays
     noise_function_input_indices: jnp.ndarray,
-    noise_function_indices: jnp.ndarray,
+    noise_function_indices: Static,
     noise_output_indices: tuple[jnp.ndarray, jnp.ndarray],
     noise_system_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
+    # sparse layouts
+    signal_sparse_indices: dict[str, jnp.ndarray],
+    noise_sparse_indices: dict[str, jnp.ndarray],
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """
     Run one full simulation pass: carrier, signal, and quantum noise.
@@ -251,6 +299,12 @@ def simulate(
     noise_system_matrix_indices :
         Indexing and function-selection arrays used by `update` to fill the noise matrix.
 
+    signal_sparse_indices : dict[str, jnp.ndarray]
+        Output of `sparse_layout` for the signal matrix: where its possibly non-zero
+        entries are and which of them each index array above refers to.
+    noise_sparse_indices : dict[str, jnp.ndarray]
+        Output of `sparse_layout` for the noise matrix.
+
     Returns
     -------
     carrier : jnp.ndarray
@@ -301,38 +355,36 @@ def simulate(
     # Signal solve
     # --------------------
     parameters = expand_parameters(parameters, signal_changing_parameter_indices, signal_changing_values)
-    signal_matrix = vmap(update, in_axes=(0, None, None, None, None, None))(
-        parameters,
-        signal_matrix,
-        signal_function_input_indices,
-        signal_output_indices,
-        signal_matrix_indices,
-        signal_function_indices,
+    signal_value_count = parameters.shape[0]
+
+    # The signal matrix is ~0.5% filled. Only its possibly non-zero entries are stored,
+    # shape (SV, NNZ + R): first the matrix entries row by row, then the right-hand side.
+    rows, columns = signal_sparse_indices["rows"], signal_sparse_indices["columns"]
+    right_hand_side_rows = signal_sparse_indices["right_hand_side_rows"]
+    signal_values = jnp.concatenate(
+        [signal_matrix[rows, columns], signal_matrix[right_hand_side_rows, -1]]
+    ).astype(jnp.complex128)
+    signal_values = jnp.broadcast_to(signal_values, (signal_value_count, signal_values.shape[0]))
+    signal_values = signal_values.at[:, signal_sparse_indices["update_slots"]].set(
+        vmap(evaluate, in_axes=(0, None, None, None))(
+            parameters, signal_function_input_indices, signal_output_indices, signal_function_indices
+        )
     )
 
     # Scale signal connector entries by the carrier solution at the respective spaces.
     # The minus sign matches the sign convention used by the referenced modeling tools.
-    signal_entries = (
-        -signal_matrix[:, signal_carrier_placing_indices[0], signal_carrier_placing_indices[1]]
-        * carrier[:, signal_carrier_indices.flatten()]
-    )
-    signal_matrix = signal_matrix.at[:, signal_carrier_placing_indices[0], signal_carrier_placing_indices[1]].set(
-        signal_entries
+    placing_slots = signal_sparse_indices["placing_slots"]
+    signal_values = signal_values.at[:, placing_slots].set(
+        -signal_values[:, placing_slots] * carrier[:, signal_carrier_indices.flatten()]
     )
 
     # Apply conjugation rules to enforce upper and lower sideband symmetry.
-    carrier_size = carrier.shape[1]
-    signal_matrix = signal_matrix.at[:, carrier_size : carrier_size * 2, carrier_size : carrier_size * 2].set(
-        jnp.conjugate(signal_matrix[:, carrier_size : carrier_size * 2, carrier_size : carrier_size * 2])
-    )
-    signal_matrix = signal_matrix.at[:, carrier_size * 2 :, :carrier_size].set(
-        jnp.conjugate(signal_matrix[:, carrier_size * 2 :, :carrier_size])
-    )
-    signal_matrix = signal_matrix.at[:, carrier_size : carrier_size * 2, carrier_size * 2 :].set(
-        jnp.conjugate(signal_matrix[:, carrier_size : carrier_size * 2, carrier_size * 2 :])
-    )
+    signal_values = jnp.where(signal_sparse_indices["conjugated"], jnp.conjugate(signal_values), signal_values)
 
-    signal = vmap(solve)(signal_matrix[:, :, :-1], signal_matrix[:, :, -1])
+    right_hand_side = jnp.zeros((signal_value_count, signal_matrix.shape[0]), dtype=jnp.complex128)
+    right_hand_side = right_hand_side.at[:, right_hand_side_rows].set(signal_values[:, rows.shape[0] :])
+    signal_values = signal_values[:, : rows.shape[0]]
+    signal = klujax.solve(rows, columns, signal_values, right_hand_side)
 
     # --------------------
     # Quantum noise solve
@@ -367,50 +419,106 @@ def simulate(
     ].set(lower_carrier_selections)
 
     # Back-propagate detector weights by solving the transposed conjugated signal system.
-    transposed_conjugated_signal_matrix = jnp.transpose(jnp.conjugate(signal_matrix[:, :, :-1]), (0, 2, 1))
-    carrier_selections = jnp.broadcast_to(
+    # Detectors become the trailing right-hand-side axis: shape (SV, SN, D).
+    carrier_selections = jnp.moveaxis(
+        jnp.broadcast_to(
+            carrier_selections,
+            (carrier_selections.shape[0], signal_value_count, carrier_selections.shape[2]),
+        ),
+        0,
+        -1,
+    )
+    transposed_order = signal_sparse_indices["transposed_order"]
+    noise_weights = klujax.solve(
+        columns[transposed_order],
+        rows[transposed_order],
+        jnp.conjugate(signal_values[:, transposed_order]),
         carrier_selections,
-        (carrier_selections.shape[0], transposed_conjugated_signal_matrix.shape[0], carrier_selections.shape[2]),
-    )
-    noise_weights = vmap(vmap(solve), in_axes=(None, 0))(transposed_conjugated_signal_matrix, carrier_selections)
-
-    # Update noise source matrix (may depend on current parameters).
-    noise_matrix = vmap(update, in_axes=(0, None, None, None, None, None))(
-        parameters,
-        noise_matrix,
-        noise_function_input_indices,
-        noise_output_indices,
-        noise_system_matrix_indices,
-        noise_function_indices,
     )
 
-    def matmul_single_batch(matrix_batch: jnp.ndarray, vector_batch: jnp.ndarray) -> jnp.ndarray:
-        """
-        Multiply a batch of matrices with a batch of vectors.
-
-        Parameters
-        ----------
-        matrix_batch : jnp.ndarray
-            Shape (B, N, N).
-        vector_batch : jnp.ndarray
-            Shape (B, N).
-
-        Returns
-        -------
-        product : jnp.ndarray
-            Shape (B, N).
-        """
-        return jnp.einsum("bij,bj->bi", matrix_batch, vector_batch)
+    # Update noise source matrix (may depend on current parameters), again only its
+    # possibly non-zero entries.
+    noise_rows, noise_columns = noise_sparse_indices["rows"], noise_sparse_indices["columns"]
+    noise_values = noise_matrix[noise_rows, noise_columns].astype(jnp.complex128)
+    noise_values = jnp.broadcast_to(noise_values, (signal_value_count, noise_values.shape[0]))
+    noise_values = noise_values.at[:, noise_sparse_indices["update_slots"]].set(
+        vmap(evaluate, in_axes=(0, None, None, None))(
+            parameters, noise_function_input_indices, noise_output_indices, noise_function_indices
+        )
+    )
 
     # Project noise sources into the system and propagate through the signal matrix.
-    noise_sources = vmap(matmul_single_batch, in_axes=(None, 0))(noise_matrix, noise_weights)
-    covariances = vmap(vmap(solve), in_axes=(None, 0))(signal_matrix[:, :, :-1], noise_sources)
+    noise_sources = jnp.zeros_like(noise_weights).at[:, noise_rows].add(
+        noise_values[:, :, None] * noise_weights[:, noise_columns]
+    )
+    covariances = klujax.solve(rows, columns, signal_values, noise_sources)
 
     # Convert propagated covariances into amplitude spectral density.
-    temporary_sum = jnp.sum(jnp.real(covariances * jnp.conjugate(carrier_selections)), axis=2)
+    temporary_sum = jnp.sum(jnp.real(covariances * jnp.conjugate(carrier_selections)), axis=1).T
     noise = jnp.sqrt(2 * temporary_sum * UNIT_VACUUM * H_PLANCK * F0 * 0.25)
 
     return carrier.T, signal.T, noise.squeeze()
+
+
+def sparse_layout(matrix, update_indices, placing_indices=None, carrier_size=None) -> dict[str, jnp.ndarray]:
+    """
+    Describe which entries of a system matrix can ever be non-zero.
+
+    `simulate` stores only these entries ("slots"): first the square part row by row,
+    then, for an augmented matrix, the entries of the right-hand-side column.
+
+    Parameters
+    ----------
+    matrix : jnp.ndarray
+        Base matrix, shape (N, N), or (N, N + 1) with the right-hand side as last column.
+    update_indices : tuple[jnp.ndarray, jnp.ndarray]
+        (rows, columns) that the component functions write into.
+    placing_indices : tuple[jnp.ndarray, jnp.ndarray] | None
+        (rows, columns) of the signal entries that are scaled by the carrier.
+    carrier_size : int | None
+        Size of the carrier system. Given for the signal matrix, whose lower-sideband
+        blocks are conjugated.
+
+    Returns
+    -------
+    layout : dict[str, jnp.ndarray]
+        rows, columns : slots of the square part, row-major and unique, shape (NNZ,).
+        transposed_order : order that makes the transposed slots row-major, shape (NNZ,).
+        right_hand_side_rows : rows of the right-hand-side slots, shape (R,).
+        update_slots : slot of each entry of `update_indices`.
+        placing_slots : slot of each entry of `placing_indices` (if given).
+        conjugated : whether each slot lies in a conjugated block, shape (NNZ + R,) (if
+        `carrier_size` is given).
+    """
+    base = np.asarray(matrix)
+    size = base.shape[0]
+    index_pairs = [tuple(np.asarray(index) for index in pair) for pair in (update_indices, placing_indices) if pair is not None]
+    pattern = base != 0
+    for pair in index_pairs:
+        pattern[pair] = True
+    rows, columns = np.nonzero(pattern[:, :size])
+    right_hand_side_rows = np.nonzero(pattern[:, size:].any(axis=1))[0]
+    slot_rows = np.concatenate([rows, right_hand_side_rows])
+    slot_columns = np.concatenate([columns, np.full(len(right_hand_side_rows), size)])
+    slots = np.zeros(pattern.shape, dtype=np.int64)
+    slots[slot_rows, slot_columns] = np.arange(len(slot_rows))
+    layout = {
+        "rows": rows,
+        "columns": columns,
+        "transposed_order": np.lexsort((rows, columns)),
+        "right_hand_side_rows": right_hand_side_rows,
+        "update_slots": slots[index_pairs[0]],
+    }
+    if placing_indices is not None:
+        layout["placing_slots"] = slots[index_pairs[1]]
+    if carrier_size is not None:
+        # Same blocks as in Finesse: lower-sideband rows from the lower-sideband column on
+        # (right-hand side included), and the rows below them in the upper-sideband columns.
+        lower_rows = (slot_rows >= carrier_size) & (slot_rows < 2 * carrier_size)
+        layout["conjugated"] = (lower_rows & (slot_columns >= carrier_size)) | (
+            (slot_rows >= 2 * carrier_size) & (slot_columns < carrier_size)
+        )
+    return {key: jnp.asarray(value) for key, value in layout.items()}
 
 
 def run_build_step(
@@ -470,6 +578,21 @@ def run_build_step(
     arg_names = simulate.__code__.co_varnames[:arg_count]
 
     all_arrays = (*prepared_arrays, *matrices, *carrier_arrays, *signal_arrays, *noise_arrays)
+    named = dict(zip(arg_names, all_arrays))
+    all_arrays = tuple(
+        Static(array) if name in ("carrier_function_indices", "signal_function_indices", "noise_function_indices")
+        else array
+        for name, array in named.items()
+    )
+    all_arrays += (
+        sparse_layout(
+            named["signal_matrix"],
+            named["signal_matrix_indices"],
+            named["signal_carrier_placing_indices"],
+            carrier_size=named["carrier_matrix"].shape[0],
+        ),
+        sparse_layout(named["noise_matrix"], named["noise_system_matrix_indices"]),
+    )
     if len(arg_names) != len(all_arrays):
         raise ValueError(
             "simulate signature does not match the number of prepared arrays and matrices. "
