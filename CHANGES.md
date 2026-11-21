@@ -166,6 +166,7 @@ Official benchmark on the Codespace, one core, each version run twice:
   - The reverse pass through the assembly and the solves is written out by hand in `_backward`. Each forward solve needs one adjoint solve, so the gradient stage now does two sparse solves, not four.
 - **Fallback:** the previous implementation is kept as `simulate_jax`. It is used when `differometor.simulate.HOST_SIMULATION` is set to `False`, or when a setup has linking functions other than the identity, which the NumPy version does not differentiate.
 - **Limit:** the NumPy version supports reverse-mode differentiation only. Forward mode (`jax.jvp`, `jax.jacfwd`) raises an error; use the fallback for that.
+- **Only the design variables are differentiated.** A gradient with respect to any other input array (for example the swept frequencies) comes back as NaN in the NumPy version, so that it cannot be mistaken for a valid zero; use the fallback for that.
 - **Checks, NumPy version against the JAX version:**
 
   | Setup | Outputs | Gradients for random directions on each output |
@@ -174,6 +175,8 @@ Official benchmark on the Codespace, one core, each version run twice:
   | Main example, every parameter shifted by 0.1% (reflectivities above 1) | 2e-12 | 1e-11 |
   | Second UIFO setup (homodyne detector, two signal detectors) | 6e-05 in the signal vector, 4e-15 in the noise | 3e-07 |
   | Second UIFO setup, shifted | 2e-10 | 7e-10 |
+
+- **Test file:** `python tests/test_host.py` repeats these checks and adds more. It compares the NumPy version with the JAX version (all outputs, and gradients for random directions on each output) on 13 cases: the two saved UIFO setups, aLIGO, Voyager with balanced homodyne detection, a cavity with a carrier sweep, three randomly generated UIFO layouts (two 2×2 grids and one 3×3), and shifted parameters for four of them. Gradients agree to 3e-07 or better in every case. It also checks `jit`, `vmap`, the switch to the fallback for linking functions, and finite differences for one design variable of every kind (reflectivity, tuning, mass, power, length, squeezing level, squeezing angle and a group of tied lengths), which agree with the gradient to 0.5% or better.
 
   Against the original code: Voyager, aLIGO and the cavity sweep agree as before (sensitivity to 5e-11 and 1e-11, cavity to 1e-14), and the official benchmark's saved arrays agree to 1.2e-07 (signal) and 9e-08 (gradient). The distance from the public reference is 5.376e-06 (limit 1e-5).
 

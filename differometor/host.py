@@ -639,11 +639,14 @@ def _simulate_backward(holder, residuals, cotangents):
         carrier_cotangent.T,
         vmap_method="sequential",
     )
-    zeros = jax.tree_util.tree_map(
-        lambda x: jnp.zeros_like(x) if jnp.issubdtype(x.dtype, jnp.inexact) else np.zeros(x.shape, dtype=jax.dtypes.float0),
+    # Only `optimized_parameters` is differentiated here. If a caller differentiates with
+    # respect to one of the other arrays, NaN makes that visible; zeros would look like a
+    # valid gradient. When those arrays are plain inputs, as usual, this is never computed.
+    unsupported = jax.tree_util.tree_map(
+        lambda x: jnp.full_like(x, jnp.nan) if jnp.issubdtype(x.dtype, jnp.inexact) else np.zeros(x.shape, dtype=jax.dtypes.float0),
         a,
     )
-    return cotangent, zeros
+    return cotangent, unsupported
 
 
 _simulate_differentiable.defvjp(_simulate_forward, _simulate_backward)
