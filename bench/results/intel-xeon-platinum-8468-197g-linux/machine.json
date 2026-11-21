@@ -1,0 +1,58 @@
+{
+  "machine": {
+    "system": "Linux",
+    "arch": "x86_64",
+    "platform": "Linux-6.11.0-1016-nvidia-x86_64-with-glibc2.39",
+    "logical_cpus": 16,
+    "cpu_model": "Intel(R) Xeon(R) Platinum 8468",
+    "ram_bytes": 211069939712,
+    "machine_id": "intel-xeon-platinum-8468-197g-linux"
+  },
+  "limits": {
+    "strategy": "affinity",
+    "bench_cpu": 8,
+    "env": {}
+  },
+  "calibration": {
+    "utc": "2026-11-21T22:49:32.219330+00:00",
+    "python": "3.12.3",
+    "results": {
+      "unlimited": {
+        "matmul": {
+          "wall": 0.3150337149999132,
+          "cpu": 2.8,
+          "cpu_per_wall": 8.887937597411666
+        },
+        "elementwise": {
+          "wall": 1.176294975000019,
+          "cpu": 3.3099999999999996,
+          "cpu_per_wall": 2.8139200373613313
+        },
+        "batched_solve": {
+          "wall": 0.7683662580000146,
+          "cpu": 6.37,
+          "cpu_per_wall": 8.29031719401697
+        }
+      },
+      "limited": {
+        "matmul": {
+          "wall": 1.5173688879999645,
+          "cpu": 1.52,
+          "cpu_per_wall": 1.0017339962752918
+        },
+        "elementwise": {
+          "wall": 3.0603050260000373,
+          "cpu": 3.07,
+          "cpu_per_wall": 1.0031679763675827
+        },
+        "batched_solve": {
+          "wall": 1.3391974799999389,
+          "cpu": 1.3399999999999996,
+          "cpu_per_wall": 1.0005992544132183
+        }
+      }
+    },
+    "worst_cpu_per_wall": 1.0031679763675827,
+    "single_core": true
+  }
+}

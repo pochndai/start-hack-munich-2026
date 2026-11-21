@@ -1,0 +1,111 @@
+{
+  "schema": 1,
+  "label": "v00-baseline",
+  "id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+  "measured_utc": "2026-11-21T22:42:11.154726+00:00",
+  "machine_id": "intel-xeon-platinum-8468-197g-linux",
+  "limits": {
+    "strategy": "affinity",
+    "bench_cpu": 8,
+    "env": {}
+  },
+  "python": "3.12.3",
+  "note": "Imported from a hand-made run, not made by validate.py: the organizers unmodified repository at 02ec741, official command `benchmark.py --cpus 1` (10 warm repeats), pinned to logical CPU 8, inside a 32 GiB memory cap with swap off. peak_rss_bytes is the memory cgroup peak of the whole process. Report: results/nebius-xeon-8468-200g-linux/original-reproduction/original-1cpu-32g.json",
+  "sample": {
+    "label": "v00-baseline",
+    "round": 0,
+    "status": "ok",
+    "returncode": 0,
+    "passed": true,
+    "end_to_end": 43.135353,
+    "phases": [
+      {
+        "key": "imports",
+        "label": "Python / library imports",
+        "seconds": 0.3332890000000006
+      },
+      {
+        "key": "initialize",
+        "label": "Initialize CPU backend",
+        "seconds": 0.003131
+      },
+      {
+        "key": "load",
+        "label": "Read and parse public inputs",
+        "seconds": 0.001817
+      },
+      {
+        "key": "build",
+        "label": "Build optical setup and prepare inputs",
+        "seconds": 0.873398
+      },
+      {
+        "key": "forward_lower",
+        "label": "Forward: trace / lower",
+        "seconds": 1.507229
+      },
+      {
+        "key": "forward_compile",
+        "label": "Forward: compile",
+        "seconds": 15.806134
+      },
+      {
+        "key": "forward",
+        "label": "Forward simulation + AD residuals",
+        "seconds": 13.817093
+      },
+      {
+        "key": "sensitivity_lower",
+        "label": "Sensitivity: trace / lower",
+        "seconds": 0.089956
+      },
+      {
+        "key": "sensitivity_compile",
+        "label": "Sensitivity: compile",
+        "seconds": 0.322507
+      },
+      {
+        "key": "sensitivity",
+        "label": "Sensitivity, powers and scalar loss",
+        "seconds": 0.001022
+      },
+      {
+        "key": "gradient_lower",
+        "label": "Gradient: trace / lower",
+        "seconds": 0.397547
+      },
+      {
+        "key": "gradient_compile",
+        "label": "Gradient: compile",
+        "seconds": 5.513958
+      },
+      {
+        "key": "gradient",
+        "label": "Reverse-mode gradient",
+        "seconds": 4.467917
+      },
+      {
+        "key": "host_transfer",
+        "label": "Transfer results to host",
+        "seconds": 0.000355
+      }
+    ],
+    "groups": {
+      "Setup": 1.2116350000000007,
+      "Compilation": 23.637331,
+      "Forward simulation": 13.817093,
+      "Sensitivity": 0.001377,
+      "Gradient": 4.467917,
+      "Other": 0.0
+    },
+    "peak_rss_bytes": 15342907392,
+    "peak_footprint_bytes": null,
+    "cpu_per_wall": null,
+    "cpu_seconds": null,
+    "canary": {
+      "seconds": null,
+      "attempts": 0,
+      "waited_seconds": 0.0
+    }
+  }
+}
