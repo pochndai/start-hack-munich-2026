@@ -1,0 +1,67 @@
+{
+  "machine": {
+    "system": "Darwin",
+    "arch": "arm64",
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "logical_cpus": 10,
+    "cpu_model": "Apple M5",
+    "ram_bytes": 17179869184,
+    "model": "Mac17,3",
+    "performance_cpus": 4,
+    "efficiency_cpus": 6,
+    "machine_id": "apple-m5-16g-darwin"
+  },
+  "limits": {
+    "strategy": "thread-env",
+    "env": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "NPROC": "1"
+    }
+  },
+  "calibration": {
+    "utc": "2026-11-21T19:29:02.062829+00:00",
+    "python": "3.12.16",
+    "results": {
+      "unlimited": {
+        "matmul": {
+          "wall": 0.11687541590072215,
+          "cpu": 1.0899999999999999,
+          "cpu_per_wall": 9.326170021297568
+        },
+        "elementwise": {
+          "wall": 0.32393541699275374,
+          "cpu": 1.2100000000000004,
+          "cpu_per_wall": 3.7353124620734737
+        },
+        "batched_solve": {
+          "wall": 0.256775583839044,
+          "cpu": 0.3099999999999998,
+          "cpu_per_wall": 1.2072798954059385
+        }
+      },
+      "limited": {
+        "matmul": {
+          "wall": 0.7206960408948362,
+          "cpu": 0.7199999999999998,
+          "cpu_per_wall": 0.9990342101866243
+        },
+        "elementwise": {
+          "wall": 1.0649271248839796,
+          "cpu": 1.0599999999999998,
+          "cpu_per_wall": 0.9953732750637594
+        },
+        "batched_solve": {
+          "wall": 0.2693929998204112,
+          "cpu": 0.26000000000000023,
+          "cpu_per_wall": 0.9651327249532365
+        }
+      }
+    },
+    "worst_cpu_per_wall": 0.9990342101866243,
+    "single_core": true
+  }
+}

@@ -9,6 +9,55 @@
       "parent": null,
       "summary": "Unmodified upstream Differometor (b0dc7c7) with the official benchmark.py, as shipped by the organizers.",
       "enabled": true
+    },
+    {
+      "name": "v01-klujax-solver",
+      "ref": "v01-klujax-solver",
+      "parent": "v00-baseline",
+      "summary": "Solve the signal system with the sparse KLU solver (klujax)",
+      "enabled": true
+    },
+    {
+      "name": "v02-group-by-function",
+      "ref": "v02-group-by-function",
+      "parent": "v01-klujax-solver",
+      "summary": "Trace each component function once, only for the entries that use it",
+      "enabled": true
+    },
+    {
+      "name": "v03-sparse-assembly",
+      "ref": "v03-sparse-assembly",
+      "parent": "v02-group-by-function",
+      "summary": "Assemble the signal and noise systems from their non-zero entries only",
+      "enabled": true
+    },
+    {
+      "name": "v04-fast-compile-flags",
+      "ref": "v04-fast-compile-flags",
+      "parent": "v03-sparse-assembly",
+      "summary": "Lower the XLA optimisation level and add three fast-compile flags",
+      "enabled": true
+    },
+    {
+      "name": "v05-two-solves-whole-arrays",
+      "ref": "v05-two-solves-whole-arrays",
+      "parent": "v04-fast-compile-flags",
+      "summary": "Drop the redundant noise solve, call each function on whole arrays, build constants with NumPy",
+      "enabled": true
+    },
+    {
+      "name": "v06-real-parameters",
+      "ref": "v06-real-parameters",
+      "parent": "v05-two-solves-whole-arrays",
+      "summary": "Real parameters, compact function outputs, shared mirror terms, host-side build",
+      "enabled": true
+    },
+    {
+      "name": "v07-numpy-host",
+      "ref": "v07-numpy-host",
+      "parent": "v06-real-parameters",
+      "summary": "Do the simulation in NumPy behind one JAX callback, with a hand-written reverse pass",
+      "enabled": true
     }
   ]
 }

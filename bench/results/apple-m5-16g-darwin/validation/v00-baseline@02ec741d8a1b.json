@@ -1,0 +1,108 @@
+{
+  "schema": 1,
+  "name": "v00-baseline",
+  "id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+  "kind": "commit",
+  "validated_utc": "2026-11-21T19:30:02.125972+00:00",
+  "machine_id": "apple-m5-16g-darwin",
+  "benchmark_sha256": "d5950bbd872e5b00ad63f0bd7081e5096fb14ba9c96c80a6854a3b714719bd4e",
+  "limits": {
+    "strategy": "thread-env",
+    "env": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "NPROC": "1"
+    }
+  },
+  "repeats": 3,
+  "tolerances": {
+    "outputs_scale_rel": 1e-06,
+    "log_sensitivity_abs": 1e-06,
+    "gradient_rtol": 0.0001,
+    "gradient_floor_scale_rel": 1e-12
+  },
+  "official": {
+    "passed": true,
+    "status": "ok",
+    "returncode": 0,
+    "end_to_end": 16.414232164854184,
+    "warm_median": 9.667254958301783,
+    "max_log_sensitivity_error": 5.373748315662397e-06,
+    "gradient_check": {
+      "parameter": "mb11.tuning",
+      "autodiff": 7.616169012873238e-05,
+      "finite_differences": [
+        {
+          "step": 0.001,
+          "central_difference": 7.589874600465784e-05,
+          "absolute_error": 2.6294412407453893e-07
+        },
+        {
+          "step": 0.0005,
+          "central_difference": 7.658062002829604e-05,
+          "absolute_error": 4.1892989956366364e-07
+        }
+      ],
+      "rtol": 0.01,
+      "atol": 1e-06,
+      "passed": true
+    },
+    "loss": 9.792142998826053e-08,
+    "gradient_norm": 70517.10616807306
+  },
+  "run": {
+    "end_to_end": 16.414232,
+    "wall_total": 59.661591542186216,
+    "cpu_per_wall": 1.0266949877910587,
+    "peak_rss_bytes": 4874452992,
+    "peak_footprint_bytes": 14541761768
+  },
+  "arrays": {
+    "carrier": {
+      "max_abs": 0.0,
+      "scale_rel": 0.0,
+      "max_elementwise_rel": 0.0
+    },
+    "signal": {
+      "max_abs": 0.0,
+      "scale_rel": 0.0,
+      "max_elementwise_rel": 0.0
+    },
+    "noise": {
+      "max_abs": 0.0,
+      "scale_rel": 0.0,
+      "max_elementwise_rel": 0.0
+    },
+    "sensitivity": {
+      "max_abs": 0.0,
+      "scale_rel": 0.0,
+      "max_elementwise_rel": 0.0,
+      "max_log_abs": 0.0
+    },
+    "powers": {
+      "max_abs": 0.0,
+      "scale_rel": 0.0,
+      "max_elementwise_rel": 0.0
+    },
+    "gradient": {
+      "max_abs": 0.0,
+      "scale_rel": 0.0,
+      "max_elementwise_rel": 0.0,
+      "floor": 5.758565030533091e-08,
+      "entries": 193,
+      "entries_outside": 0,
+      "worst_index": 0,
+      "worst_ours": 3381.063143268246,
+      "worst_baseline": 3381.063143268246,
+      "worst_error_over_allowed": 0.0,
+      "worst_parameter": "ml11.reflectivity"
+    }
+  },
+  "problems": [],
+  "deviations": [],
+  "deviations_allowed": false,
+  "verdict": "PASS"
+}
