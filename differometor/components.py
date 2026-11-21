@@ -34,8 +34,28 @@ to match phase conventions and signs.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 import jax.numpy as jnp
 import numpy as np
+
+
+@contextmanager
+def numpy_backend():
+    """
+    Evaluate the functions of this module with NumPy instead of JAX.
+
+    The build step evaluates component functions on plain numbers to fill in the
+    constant matrix entries. With JAX every such scalar operation is dispatched to,
+    and at first use compiled for, the device, which made up about half of the build
+    time. Nothing computed inside this context is traced or differentiated.
+    """
+    global jnp
+    jax_numpy, jnp = jnp, np
+    try:
+        yield
+    finally:
+        jnp = jax_numpy
 
 
 # -----------------------------------------------------------------------------
@@ -101,14 +121,14 @@ def standardize_output(output: list) -> jnp.ndarray:
     Parameters
     ----------
     output:
-        Python list of scalars (real or complex). If shorter than 4, it is padded
-        with zeros to length 4.
+        Python list of scalars or equally shaped arrays (real or complex). If shorter
+        than 4, it is padded with zeros to length 4.
 
     Returns
     -------
     jax.numpy.ndarray
-        A length-4 complex vector (`complex128`) suitable for stacking into a
-        global simulation matrix.
+        A complex array (`complex128`) of shape (4, ...) suitable for stacking into a
+        global simulation matrix. For scalar entries this is a length-4 vector.
 
     Rationale
     ---------
@@ -119,7 +139,9 @@ def standardize_output(output: list) -> jnp.ndarray:
     output_length = len(output)
     if output_length < 4:
         output.extend([0] * (4 - output_length))
-    return jnp.array(output, dtype=jnp.complex128)
+    # Broadcasting lets a component function be called once on whole arrays of inputs.
+    shape = jnp.broadcast_shapes(*(jnp.shape(entry) for entry in output))
+    return jnp.stack([jnp.broadcast_to(jnp.asarray(entry, dtype=jnp.complex128), shape) for entry in output])
 
 
 # -----------------------------------------------------------------------------

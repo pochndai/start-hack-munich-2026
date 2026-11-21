@@ -26,7 +26,7 @@ from jax import lax, vmap, jit
 
 from differometor.setups import Setup
 from differometor.build import build, pairs_to_arrays, prepare_arrays, LINKING_FUNCTIONS
-from differometor.components import FUNCTIONS, UNIT_VACUUM, H_PLANCK, F0
+from differometor.components import FUNCTIONS, UNIT_VACUUM, H_PLANCK, F0, numpy_backend
 
 
 jax.config.update("jax_enable_x64", True)
@@ -94,7 +94,7 @@ def evaluate(
     Parameters
     ----------
     parameters : jnp.ndarray
-        Parameter values for one simulation instance, shape (P,).
+        Parameter values, shape (P,) for one simulation instance or (V, P) for V of them.
     function_input_indices : jnp.ndarray
         Indices into `parameters` selecting inputs to the component functions,
         shape (K, 7).
@@ -108,7 +108,7 @@ def evaluate(
     Returns
     -------
     outputs : jnp.ndarray
-        Selected function outputs, shape (M,).
+        Selected function outputs, shape (M,) or (V, M).
 
     Notes
     -----
@@ -116,14 +116,19 @@ def evaluate(
     traced once and only for the inputs that use it. Selecting with `lax.switch`
     under `vmap` instead evaluates every function for every input and compiles
     several times slower.
+
+    The component functions work elementwise on their seven inputs, so each one is
+    called once on arrays of shape (7, ..., K_f) instead of under `vmap`, which is
+    slower to trace.
     """
-    function_inputs = parameters[function_input_indices]
     function_indices = function_indices.array
-    output_matrix = jnp.zeros((len(function_indices), 4), dtype=jnp.complex128)
+    output_matrix = jnp.zeros((*parameters.shape[:-1], len(function_indices), 4), dtype=jnp.complex128)
     for function_index in np.unique(function_indices):
         inputs = np.nonzero(function_indices == function_index)[0]
-        output_matrix = output_matrix.at[inputs].set(vmap(FUNCTIONS[function_index])(function_inputs[inputs]))
-    return output_matrix[output_indices[0], output_indices[1]]
+        function_inputs = jnp.moveaxis(parameters[..., function_input_indices[inputs]], -1, 0)
+        function_outputs = jnp.moveaxis(FUNCTIONS[function_index](function_inputs), 0, -1)
+        output_matrix = output_matrix.at[..., inputs, :].set(function_outputs)
+    return output_matrix[..., output_indices[0], output_indices[1]]
 
 
 def update(
@@ -140,7 +145,7 @@ def update(
     Parameters
     ----------
     parameters, function_input_indices, output_indices, function_indices :
-        See `evaluate`.
+        See `evaluate`. `parameters` has shape (P,) here.
     matrix : jnp.ndarray
         Base matrix to update, shape (N, N + 1) for augmented systems, or (N, N).
     matrix_indices : tuple[jnp.ndarray, jnp.ndarray]
@@ -341,14 +346,13 @@ def simulate(
     # Carrier solve
     # --------------------
     parameters = expand_parameters(parameters, carrier_changing_parameter_indices, carrier_changing_values)
-    carrier_matrix = vmap(update, in_axes=(0, None, None, None, None, None))(
-        parameters,
-        carrier_matrix,
-        carrier_function_input_indices,
-        carrier_output_indices,
-        carrier_matrix_indices,
-        carrier_function_indices,
+    carrier_outputs = evaluate(
+        parameters, carrier_function_input_indices, carrier_output_indices, carrier_function_indices
     )
+    carrier_matrix = jnp.broadcast_to(
+        carrier_matrix.astype(jnp.complex128), (parameters.shape[0], *carrier_matrix.shape)
+    )
+    carrier_matrix = carrier_matrix.at[:, carrier_matrix_indices[0], carrier_matrix_indices[1]].set(carrier_outputs)
     carrier = vmap(solve)(carrier_matrix[:, :, :-1], carrier_matrix[:, :, -1])
 
     # --------------------
@@ -366,9 +370,7 @@ def simulate(
     ).astype(jnp.complex128)
     signal_values = jnp.broadcast_to(signal_values, (signal_value_count, signal_values.shape[0]))
     signal_values = signal_values.at[:, signal_sparse_indices["update_slots"]].set(
-        vmap(evaluate, in_axes=(0, None, None, None))(
-            parameters, signal_function_input_indices, signal_output_indices, signal_function_indices
-        )
+        evaluate(parameters, signal_function_input_indices, signal_output_indices, signal_function_indices)
     )
 
     # Scale signal connector entries by the carrier solution at the respective spaces.
@@ -442,19 +444,17 @@ def simulate(
     noise_values = noise_matrix[noise_rows, noise_columns].astype(jnp.complex128)
     noise_values = jnp.broadcast_to(noise_values, (signal_value_count, noise_values.shape[0]))
     noise_values = noise_values.at[:, noise_sparse_indices["update_slots"]].set(
-        vmap(evaluate, in_axes=(0, None, None, None))(
-            parameters, noise_function_input_indices, noise_output_indices, noise_function_indices
+        evaluate(parameters, noise_function_input_indices, noise_output_indices, noise_function_indices)
+    )
+
+    # Propagating the noise sources N w through the signal matrix A and projecting on the
+    # selections c = A^H w gives Re(c^H A^-1 N w) = Re(w^H N w), so no further solve is needed.
+    temporary_sum = jnp.real(
+        jnp.sum(
+            noise_values[:, :, None] * noise_weights[:, noise_columns] * jnp.conjugate(noise_weights[:, noise_rows]),
+            axis=1,
         )
-    )
-
-    # Project noise sources into the system and propagate through the signal matrix.
-    noise_sources = jnp.zeros_like(noise_weights).at[:, noise_rows].add(
-        noise_values[:, :, None] * noise_weights[:, noise_columns]
-    )
-    covariances = klujax.solve(rows, columns, signal_values, noise_sources)
-
-    # Convert propagated covariances into amplitude spectral density.
-    temporary_sum = jnp.sum(jnp.real(covariances * jnp.conjugate(carrier_selections)), axis=1).T
+    ).T
     noise = jnp.sqrt(2 * temporary_sum * UNIT_VACUUM * H_PLANCK * F0 * 0.25)
 
     return carrier.T, signal.T, noise.squeeze()
@@ -568,7 +568,8 @@ def run_build_step(
     """
     start = time()
 
-    instructions, matrices, metadata = build(setup)
+    with numpy_backend():
+        instructions, matrices, metadata = build(setup)
     arrays_to_prepare, carrier_arrays, signal_arrays, noise_arrays = pairs_to_arrays(
         *instructions, optimization_pairs, changing_pairs
     )

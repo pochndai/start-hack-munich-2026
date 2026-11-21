@@ -9,24 +9,26 @@ Official benchmark (`python benchmark.py --cpus 1`), complete first run, one CPU
 | Machine | Original | Ours |
 | --- | ---: | ---: |
 | Intel Xeon Platinum 8468 (Feyer's published baseline) | 44.2 s | not measured yet |
-| AMD EPYC 7763, GitHub Codespace, Python 3.12 | does not fit in 16 GB of RAM | **5.8 s** |
+| AMD EPYC 7763, GitHub Codespace, Python 3.12 | does not fit in 16 GB of RAM | **5.1 s** |
 
 Same Codespace, one core, both versions in the style of `start_here.py` (one compile, one run):
 
 | | Original | Ours |
 | --- | ---: | ---: |
-| Setup | 1.4 s | 1.2 s |
-| Compile | 22.6 s | 4.0 s |
+| Setup | 1.4 s | 0.8 s |
+| Compile | 22.6 s | 3.8 s |
 | First run | 11.7 s | 0.3 s |
-| **Total** | **35.8 s** | **5.6 s** |
+| **Total** | **35.8 s** | **4.8 s** |
 
-A repeat run, once compiled, takes 0.34 s in the official benchmark (the published baseline is 17.7 s).
+A repeat run, once compiled, takes 0.25 s in the official benchmark (the published baseline is 17.7 s).
+
+The two machines in the first table are different, so 44.2 s and 5.1 s are not a same-hardware comparison. The second table is.
 
 The report and chart of our run are in `benchmarks/codespace-candidate.json` and `benchmarks/codespace-candidate.png`.
 
-## The four changes
+## The seven changes
 
-All code changes are in `differometor/simulate.py` and `differometor/__init__.py`. The physics functions in `components.py` and the builder in `build.py` are untouched.
+Most of the code changes are in `differometor/simulate.py`. The formulas of the physics functions in `components.py` are untouched.
 
 ### 1. Solve the signal system with a sparse solver
 
@@ -67,7 +69,34 @@ All code changes are in `differometor/simulate.py` and `differometor/__init__.py
 - **Safety:** XLA stops with an error on a flag it does not know. The second and fourth flag exist in the pinned jaxlib 0.9.0 but not in every release, so they are only added when jaxlib is a 0.9 version.
 - **Transparency:** the benchmark records the flags in its report under `environment.xla_flags`.
 
-## Step by step (Apple M5, official benchmark without CPU pinning)
+### 5. Drop the third signal solve
+
+- **What:** the noise calculation solved the signal system three times per frequency. The third solve is gone; the noise is computed directly from the result of the second.
+- **Why:** it was algebraically redundant. With `A` the signal matrix, `N` the noise matrix, `c` the detector selection and `w` the solution of `Aᴴw = c`, the code computed `y = A⁻¹Nw` and then `Re(cᴴy)`. Substituting gives `Re(wᴴA·A⁻¹Nw) = Re(wᴴNw)`, which needs no solve.
+- **What it is not:** nothing is skipped or stored. The signal and noise systems are still assembled and solved for every frequency from the current parameters; one internal solve whose result cancels out is removed.
+
+### 6. Call each physics function once on whole arrays
+
+- **What:** `evaluate()` calls each physics function once with all its inputs as arrays, instead of wrapping it in `vmap` per entry. `standardize_output()` in `components.py` now broadcasts its entries so this works; for single numbers it behaves as before.
+- **Why:** tracing through two layers of `vmap` is slow in Python. All 19 functions work elementwise and give identical results when called this way (checked for each one).
+
+### 7. Fill in the build step's constants with NumPy
+
+- **What:** `components.numpy_backend()` makes the physics functions use NumPy while the build step evaluates them on plain numbers to fill in constant matrix entries.
+- **Why:** with JAX, each of those scalar operations was sent to the device and compiled on first use: 65 small compilations, about half the build time. The built arrays are bit-for-bit the same.
+
+### Changes 5–7 measured one at a time
+
+Official benchmark on the Codespace, one core, each version run twice:
+
+| Version | Total | Build | Forward trace | Repeat run |
+| --- | ---: | ---: | ---: | ---: |
+| Changes 1–4 | 5.75 s, 5.70 s | 0.77 s | 1.2 s | 0.34 s |
+| + change 7 | 5.36 s, 5.35 s | 0.40 s | 1.2 s | 0.35 s |
+| + change 5 | 5.28 s, 5.20 s | 0.39 s | 1.2 s | 0.29 s |
+| + change 6 | 5.15 s, 5.09 s | 0.40 s | 1.0 s | 0.27 s |
+
+## Step by step, changes 1–3 (Apple M5, official benchmark without CPU pinning)
 
 | Version | Total | Compile | Forward | Gradient |
 | --- | ---: | ---: | ---: | ---: |
@@ -87,12 +116,13 @@ Change 4 was measured on Linux only (table above).
   | Output | Largest difference, relative to its largest value |
   | --- | ---: |
   | Carrier, powers | below 1e-19 |
-  | Signal | 5.7e-08 |
+  | Signal | 5.9e-08 |
   | Noise | 1.5e-08 |
-  | Sensitivity | 2.0e-09 |
-  | Gradient (193 values) | 2.4e-08 |
+  | Sensitivity | 2.6e-09 |
+  | Gradient (193 values) | 2.7e-08 |
 
   The remaining differences come from using a different solver on a matrix that is very sensitive to rounding.
+- **Other parameter values:** at three parameter sets with every design variable moved randomly by about 0.1%, original and ours agree to 2e-07 or better in log sensitivity and 5e-08 or better in the gradient (Apple M5).
 - **Other public setups:** `examples/aligo.py` still passes its own comparison with Finesse (limit 1e-6). `examples/cavity.py` and `examples/voyager.py` run.
 - **What is computed:** all 101 frequencies, all 193 design variables, double precision. No answers are stored and no calculation is skipped.
 

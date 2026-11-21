@@ -1285,7 +1285,7 @@ def build(setup: Setup):
             target_output_index = target_index
 
         # Initialize the carrier matrix with the space propagation entry.
-        space_entry = space(jnp.array([F, data["properties"]["length"], data["properties"]["refractive_index"]]))[0]
+        space_entry = space(np.array([F, data["properties"]["length"], data["properties"]["refractive_index"]]))[0]
         carrier_matrix[source_input_index, target_output_index] = space_entry
         carrier_matrix[target_input_index, source_output_index] = space_entry
 
