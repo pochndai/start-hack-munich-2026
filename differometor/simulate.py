@@ -82,45 +82,33 @@ def solve(matrix: jnp.ndarray, right_hand_side: jnp.ndarray) -> jnp.ndarray:
     return jnp.linalg.solve(matrix, right_hand_side)
 
 
-def update(
+def evaluate(
     parameters: jnp.ndarray,
-    matrix: jnp.ndarray,
     function_input_indices: jnp.ndarray,
     output_indices: tuple[jnp.ndarray, jnp.ndarray],
-    matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
-    function_indices: jnp.ndarray,
+    function_indices: Static,
 ) -> jnp.ndarray:
     """
-    Update selected entries of a system matrix by evaluating component functions.
-
-    This function takes a parameter vector, selects the subset that serves as
-    inputs to component transfer functions, evaluates those functions, selects
-    certain outputs, and writes them into `matrix` at specified indices.
+    Evaluate component functions and select the outputs that go into a system matrix.
 
     Parameters
     ----------
     parameters : jnp.ndarray
         Parameter values for one simulation instance, shape (P,).
-    matrix : jnp.ndarray
-        Base matrix to update, shape (N, N + 1) for augmented systems, or (N, N).
-        The function writes entries in-place (functionally) using `.at[...].set(...)`.
     function_input_indices : jnp.ndarray
         Indices into `parameters` selecting inputs to the component functions,
-        shape (K,).
+        shape (K, 7).
     output_indices : tuple[jnp.ndarray, jnp.ndarray]
         Pair of index arrays selecting entries from the evaluated output matrix.
         Each element has shape (M,). Together they define M output positions.
-    matrix_indices : tuple[jnp.ndarray, jnp.ndarray]
-        Pair of index arrays selecting where to write into `matrix`.
-        Each element has shape (M,).
     function_indices : Static
         Indices selecting which function to use for each input, shape (K,).
         Values index into the global `FUNCTIONS` list. Known at trace time.
 
     Returns
     -------
-    updated_matrix : jnp.ndarray
-        Matrix with updated entries, same shape as `matrix`.
+    outputs : jnp.ndarray
+        Selected function outputs, shape (M,).
 
     Notes
     -----
@@ -135,7 +123,36 @@ def update(
     for function_index in np.unique(function_indices):
         inputs = np.nonzero(function_indices == function_index)[0]
         output_matrix = output_matrix.at[inputs].set(vmap(FUNCTIONS[function_index])(function_inputs[inputs]))
-    outputs = output_matrix[output_indices[0], output_indices[1]]
+    return output_matrix[output_indices[0], output_indices[1]]
+
+
+def update(
+    parameters: jnp.ndarray,
+    matrix: jnp.ndarray,
+    function_input_indices: jnp.ndarray,
+    output_indices: tuple[jnp.ndarray, jnp.ndarray],
+    matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
+    function_indices: Static,
+) -> jnp.ndarray:
+    """
+    Update selected entries of a dense system matrix by evaluating component functions.
+
+    Parameters
+    ----------
+    parameters, function_input_indices, output_indices, function_indices :
+        See `evaluate`.
+    matrix : jnp.ndarray
+        Base matrix to update, shape (N, N + 1) for augmented systems, or (N, N).
+    matrix_indices : tuple[jnp.ndarray, jnp.ndarray]
+        Pair of index arrays selecting where to write into `matrix`.
+        Each element has shape (M,).
+
+    Returns
+    -------
+    updated_matrix : jnp.ndarray
+        Matrix with updated entries, same shape as `matrix`.
+    """
+    outputs = evaluate(parameters, function_input_indices, output_indices, function_indices)
     return matrix.at[matrix_indices[0], matrix_indices[1]].set(outputs)
 
 
@@ -214,8 +231,9 @@ def simulate(
     noise_function_indices: Static,
     noise_output_indices: tuple[jnp.ndarray, jnp.ndarray],
     noise_system_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
-    # sparse solve arrays
-    signal_solve_indices: jnp.ndarray,
+    # sparse layouts
+    signal_sparse_indices: dict[str, jnp.ndarray],
+    noise_sparse_indices: dict[str, jnp.ndarray],
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """
     Run one full simulation pass: carrier, signal, and quantum noise.
@@ -281,9 +299,11 @@ def simulate(
     noise_system_matrix_indices :
         Indexing and function-selection arrays used by `update` to fill the noise matrix.
 
-    signal_solve_indices : jnp.ndarray
-        Output of `signal_solve_pattern`, shape (3, NNZ): rows and columns of the signal
-        matrix entries that can be non-zero, and the order that sorts its transpose.
+    signal_sparse_indices : dict[str, jnp.ndarray]
+        Output of `sparse_layout` for the signal matrix: where its possibly non-zero
+        entries are and which of them each index array above refers to.
+    noise_sparse_indices : dict[str, jnp.ndarray]
+        Output of `sparse_layout` for the noise matrix.
 
     Returns
     -------
@@ -335,41 +355,36 @@ def simulate(
     # Signal solve
     # --------------------
     parameters = expand_parameters(parameters, signal_changing_parameter_indices, signal_changing_values)
-    signal_matrix = vmap(update, in_axes=(0, None, None, None, None, None))(
-        parameters,
-        signal_matrix,
-        signal_function_input_indices,
-        signal_output_indices,
-        signal_matrix_indices,
-        signal_function_indices,
+    signal_value_count = parameters.shape[0]
+
+    # The signal matrix is ~0.5% filled. Only its possibly non-zero entries are stored,
+    # shape (SV, NNZ + R): first the matrix entries row by row, then the right-hand side.
+    rows, columns = signal_sparse_indices["rows"], signal_sparse_indices["columns"]
+    right_hand_side_rows = signal_sparse_indices["right_hand_side_rows"]
+    signal_values = jnp.concatenate(
+        [signal_matrix[rows, columns], signal_matrix[right_hand_side_rows, -1]]
+    ).astype(jnp.complex128)
+    signal_values = jnp.broadcast_to(signal_values, (signal_value_count, signal_values.shape[0]))
+    signal_values = signal_values.at[:, signal_sparse_indices["update_slots"]].set(
+        vmap(evaluate, in_axes=(0, None, None, None))(
+            parameters, signal_function_input_indices, signal_output_indices, signal_function_indices
+        )
     )
 
     # Scale signal connector entries by the carrier solution at the respective spaces.
     # The minus sign matches the sign convention used by the referenced modeling tools.
-    signal_entries = (
-        -signal_matrix[:, signal_carrier_placing_indices[0], signal_carrier_placing_indices[1]]
-        * carrier[:, signal_carrier_indices.flatten()]
-    )
-    signal_matrix = signal_matrix.at[:, signal_carrier_placing_indices[0], signal_carrier_placing_indices[1]].set(
-        signal_entries
+    placing_slots = signal_sparse_indices["placing_slots"]
+    signal_values = signal_values.at[:, placing_slots].set(
+        -signal_values[:, placing_slots] * carrier[:, signal_carrier_indices.flatten()]
     )
 
     # Apply conjugation rules to enforce upper and lower sideband symmetry.
-    carrier_size = carrier.shape[1]
-    signal_matrix = signal_matrix.at[:, carrier_size : carrier_size * 2, carrier_size : carrier_size * 2].set(
-        jnp.conjugate(signal_matrix[:, carrier_size : carrier_size * 2, carrier_size : carrier_size * 2])
-    )
-    signal_matrix = signal_matrix.at[:, carrier_size * 2 :, :carrier_size].set(
-        jnp.conjugate(signal_matrix[:, carrier_size * 2 :, :carrier_size])
-    )
-    signal_matrix = signal_matrix.at[:, carrier_size : carrier_size * 2, carrier_size * 2 :].set(
-        jnp.conjugate(signal_matrix[:, carrier_size : carrier_size * 2, carrier_size * 2 :])
-    )
+    signal_values = jnp.where(signal_sparse_indices["conjugated"], jnp.conjugate(signal_values), signal_values)
 
-    # The signal matrix is ~0.5% filled, so all three solves below use the sparse KLU solver.
-    rows, columns, transposed_order = signal_solve_indices
-    signal_values = signal_matrix[:, rows, columns]
-    signal = klujax.solve(rows, columns, signal_values, signal_matrix[:, :, -1])
+    right_hand_side = jnp.zeros((signal_value_count, signal_matrix.shape[0]), dtype=jnp.complex128)
+    right_hand_side = right_hand_side.at[:, right_hand_side_rows].set(signal_values[:, rows.shape[0] :])
+    signal_values = signal_values[:, : rows.shape[0]]
+    signal = klujax.solve(rows, columns, signal_values, right_hand_side)
 
     # --------------------
     # Quantum noise solve
@@ -408,11 +423,12 @@ def simulate(
     carrier_selections = jnp.moveaxis(
         jnp.broadcast_to(
             carrier_selections,
-            (carrier_selections.shape[0], signal_matrix.shape[0], carrier_selections.shape[2]),
+            (carrier_selections.shape[0], signal_value_count, carrier_selections.shape[2]),
         ),
         0,
         -1,
     )
+    transposed_order = signal_sparse_indices["transposed_order"]
     noise_weights = klujax.solve(
         columns[transposed_order],
         rows[transposed_order],
@@ -420,18 +436,21 @@ def simulate(
         carrier_selections,
     )
 
-    # Update noise source matrix (may depend on current parameters).
-    noise_matrix = vmap(update, in_axes=(0, None, None, None, None, None))(
-        parameters,
-        noise_matrix,
-        noise_function_input_indices,
-        noise_output_indices,
-        noise_system_matrix_indices,
-        noise_function_indices,
+    # Update noise source matrix (may depend on current parameters), again only its
+    # possibly non-zero entries.
+    noise_rows, noise_columns = noise_sparse_indices["rows"], noise_sparse_indices["columns"]
+    noise_values = noise_matrix[noise_rows, noise_columns].astype(jnp.complex128)
+    noise_values = jnp.broadcast_to(noise_values, (signal_value_count, noise_values.shape[0]))
+    noise_values = noise_values.at[:, noise_sparse_indices["update_slots"]].set(
+        vmap(evaluate, in_axes=(0, None, None, None))(
+            parameters, noise_function_input_indices, noise_output_indices, noise_function_indices
+        )
     )
 
     # Project noise sources into the system and propagate through the signal matrix.
-    noise_sources = jnp.einsum("bij,bjd->bid", noise_matrix, noise_weights)
+    noise_sources = jnp.zeros_like(noise_weights).at[:, noise_rows].add(
+        noise_values[:, :, None] * noise_weights[:, noise_columns]
+    )
     covariances = klujax.solve(rows, columns, signal_values, noise_sources)
 
     # Convert propagated covariances into amplitude spectral density.
@@ -441,30 +460,65 @@ def simulate(
     return carrier.T, signal.T, noise.squeeze()
 
 
-def signal_solve_pattern(signal_matrix, *index_pairs) -> jnp.ndarray:
+def sparse_layout(matrix, update_indices, placing_indices=None, carrier_size=None) -> dict[str, jnp.ndarray]:
     """
-    Find which signal matrix entries can ever be non-zero, for the sparse solver.
+    Describe which entries of a system matrix can ever be non-zero.
+
+    `simulate` stores only these entries ("slots"): first the square part row by row,
+    then, for an augmented matrix, the entries of the right-hand-side column.
 
     Parameters
     ----------
-    signal_matrix : jnp.ndarray
-        Base signal augmented matrix, shape (SN, SN + 1).
-    index_pairs : tuple[jnp.ndarray, jnp.ndarray]
-        Every (rows, columns) pair that `simulate` writes into the signal matrix.
+    matrix : jnp.ndarray
+        Base matrix, shape (N, N), or (N, N + 1) with the right-hand side as last column.
+    update_indices : tuple[jnp.ndarray, jnp.ndarray]
+        (rows, columns) that the component functions write into.
+    placing_indices : tuple[jnp.ndarray, jnp.ndarray] | None
+        (rows, columns) of the signal entries that are scaled by the carrier.
+    carrier_size : int | None
+        Size of the carrier system. Given for the signal matrix, whose lower-sideband
+        blocks are conjugated.
 
     Returns
     -------
-    signal_solve_indices : jnp.ndarray
-        Shape (3, NNZ): rows, columns (row-major, unique), and the order that makes
-        the transposed entries row-major.
+    layout : dict[str, jnp.ndarray]
+        rows, columns : slots of the square part, row-major and unique, shape (NNZ,).
+        transposed_order : order that makes the transposed slots row-major, shape (NNZ,).
+        right_hand_side_rows : rows of the right-hand-side slots, shape (R,).
+        update_slots : slot of each entry of `update_indices`.
+        placing_slots : slot of each entry of `placing_indices` (if given).
+        conjugated : whether each slot lies in a conjugated block, shape (NNZ + R,) (if
+        `carrier_size` is given).
     """
-    pattern = np.asarray(signal_matrix)[:, :-1] != 0
-    for rows, columns in index_pairs:
-        rows, columns = np.asarray(rows), np.asarray(columns)
-        inside = columns < pattern.shape[1]  # the last column is the right-hand side
-        pattern[rows[inside], columns[inside]] = True
-    rows, columns = np.nonzero(pattern)
-    return jnp.asarray(np.stack([rows, columns, np.lexsort((rows, columns))]))
+    base = np.asarray(matrix)
+    size = base.shape[0]
+    index_pairs = [tuple(np.asarray(index) for index in pair) for pair in (update_indices, placing_indices) if pair is not None]
+    pattern = base != 0
+    for pair in index_pairs:
+        pattern[pair] = True
+    rows, columns = np.nonzero(pattern[:, :size])
+    right_hand_side_rows = np.nonzero(pattern[:, size:].any(axis=1))[0]
+    slot_rows = np.concatenate([rows, right_hand_side_rows])
+    slot_columns = np.concatenate([columns, np.full(len(right_hand_side_rows), size)])
+    slots = np.zeros(pattern.shape, dtype=np.int64)
+    slots[slot_rows, slot_columns] = np.arange(len(slot_rows))
+    layout = {
+        "rows": rows,
+        "columns": columns,
+        "transposed_order": np.lexsort((rows, columns)),
+        "right_hand_side_rows": right_hand_side_rows,
+        "update_slots": slots[index_pairs[0]],
+    }
+    if placing_indices is not None:
+        layout["placing_slots"] = slots[index_pairs[1]]
+    if carrier_size is not None:
+        # Same blocks as in Finesse: lower-sideband rows from the lower-sideband column on
+        # (right-hand side included), and the rows below them in the upper-sideband columns.
+        lower_rows = (slot_rows >= carrier_size) & (slot_rows < 2 * carrier_size)
+        layout["conjugated"] = (lower_rows & (slot_columns >= carrier_size)) | (
+            (slot_rows >= 2 * carrier_size) & (slot_columns < carrier_size)
+        )
+    return {key: jnp.asarray(value) for key, value in layout.items()}
 
 
 def run_build_step(
@@ -531,9 +585,13 @@ def run_build_step(
         for name, array in named.items()
     )
     all_arrays += (
-        signal_solve_pattern(
-            named["signal_matrix"], named["signal_matrix_indices"], named["signal_carrier_placing_indices"]
+        sparse_layout(
+            named["signal_matrix"],
+            named["signal_matrix_indices"],
+            named["signal_carrier_placing_indices"],
+            carrier_size=named["carrier_matrix"].shape[0],
         ),
+        sparse_layout(named["noise_matrix"], named["noise_system_matrix_indices"]),
     )
     if len(arg_names) != len(all_arrays):
         raise ValueError(
