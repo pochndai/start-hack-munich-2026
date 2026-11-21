@@ -62,7 +62,7 @@ The signal matrix is 751×751 in the example, but only 0.46% of its entries can 
 
 **Why it is still correct**
 
-`python bench/validate.py v01-klujax-solver` (Apple M5, `results/apple-m5-16g-darwin/validation/v01-klujax-solver@25051f259a15.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 3.8e-08 (relative to the largest value), sensitivity 6.1e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL` until the team decides on it (see "The one gradient value" under v01).
+`python bench/validate.py v01-klujax-solver` (Apple M5, `results/apple-m5-16g-darwin/validation/v01-klujax-solver@25051f259a15.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 3.8e-08 (relative to the largest value), sensitivity 6.1e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL`. The cause is rounding in the original, not in this version (see "The one gradient value" under v01).
 
 **The one gradient value.** The example's gradient spans thirteen orders of magnitude: the largest entry is 5.8e+04, and entry 158 is 4.9e-04, a hundred-millionth of that. It belongs to a mirror with reflectivity 4.5e-06 in front of a laser of 1e-12 W. On this entry the original and ours differ by 0.03%; on the other 192 they agree within 0.01%. What we know: (1) every version from v01 to v07 gives the same value to 8 digits, although v01–v06 differentiate with JAX and v07 with a hand-written reverse pass; (2) the experiment with SciPy's SuperLU solver, a third independent solver, gave -4.890100920e-04, also the same to 8 digits; (3) only the original's dense solver gives -4.8885e-04. (4) the original's own value moves in the fifth digit (-4.888495e-04 to -4.888760e-04) when its loss is shifted by a constant, which leaves the true gradient unchanged, while ours stays the same to 7 digits; (5) the decisive check: `python tests/refined_solves.py supplied` repeats the calculation with every sparse solve refined to a rounding-free result (exact residuals in 100-digit arithmetic). The refined value is -4.890100922e-04. Ours is 1e-08 away from it, the original 3e-04. With refined solves no gradient entry of ours is off by more than 0.01% and one of the original's is. **The deviation is rounding in the original's dense solver; the harness reports it as a failure of ours because its reference arrays come from the original.** Finite differences could not settle this (the loss changes by only 1e-9 over the usable step), the refined solves can.
 
@@ -70,7 +70,7 @@ The signal matrix is 751×751 in the example, but only 0.46% of its entries can 
 
 **Result**
 
-Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 7.07 s, warm median 3.32 s. Shuffled-round session: not run yet, because `python bench/run.py full` leaves out versions whose validation is `FAIL`.
+Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 7.07 s, warm median 3.32 s. Session `results/apple-m5-16g-darwin/sessions/2026-11-21T20-21-55Z_full.json` (5 shuffled rounds, same machine and limits): median 8.62 s, fastest 8.12 s; 1.90x (1.55 to 2.02) against the stored baseline run of 16.41 s, which was memory-pressured, so that factor is overstated; against the version before it: -. The noise floor of this machine in that hour was ±16% (`results/apple-m5-16g-darwin/sessions/2026-11-21T20-38-57Z_aa.json`).
 
 **Dead ends and notes**
 
@@ -93,11 +93,11 @@ Before, the function was picked with `lax.switch` inside `vmap` from a value JAX
 
 **Why it is still correct**
 
-Outputs are bit-for-bit those of v01. `python bench/validate.py v02-group-by-function` (Apple M5, `results/apple-m5-16g-darwin/validation/v02-group-by-function@59705c9af4bb.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 3.8e-08 (relative to the largest value), sensitivity 6.1e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL` until the team decides on it (see "The one gradient value" under v01).
+Outputs are bit-for-bit those of v01. `python bench/validate.py v02-group-by-function` (Apple M5, `results/apple-m5-16g-darwin/validation/v02-group-by-function@59705c9af4bb.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 3.8e-08 (relative to the largest value), sensitivity 6.1e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL`. The cause is rounding in the original, not in this version (see "The one gradient value" under v01).
 
 **Result**
 
-Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 5.36 s, warm median 3.28 s. Shuffled-round session: not run yet, because `python bench/run.py full` leaves out versions whose validation is `FAIL`.
+Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 5.36 s, warm median 3.28 s. Session `results/apple-m5-16g-darwin/sessions/2026-11-21T20-21-55Z_full.json` (5 shuffled rounds, same machine and limits): median 6.86 s, fastest 5.97 s; 2.39x (2.25 to 2.75) against the stored baseline run of 16.41 s, which was memory-pressured, so that factor is overstated; against the version before it: 1.40x (1.16 to 1.54). The noise floor of this machine in that hour was ±16% (`results/apple-m5-16g-darwin/sessions/2026-11-21T20-38-57Z_aa.json`).
 
 **Dead ends and notes**
 
@@ -120,11 +120,11 @@ After v01 the solver was fast, but the code still filled 57 million numbers per 
 
 **Why it is still correct**
 
-`python bench/validate.py v03-sparse-assembly` (Apple M5, `results/apple-m5-16g-darwin/validation/v03-sparse-assembly@7938724845d8.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 3.8e-08 (relative to the largest value), sensitivity 6.1e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL` until the team decides on it (see "The one gradient value" under v01).
+`python bench/validate.py v03-sparse-assembly` (Apple M5, `results/apple-m5-16g-darwin/validation/v03-sparse-assembly@7938724845d8.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 3.8e-08 (relative to the largest value), sensitivity 6.1e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL`. The cause is rounding in the original, not in this version (see "The one gradient value" under v01).
 
 **Result**
 
-Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 2.30 s, warm median 0.08 s. Shuffled-round session: not run yet, because `python bench/run.py full` leaves out versions whose validation is `FAIL`.
+Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 2.30 s, warm median 0.08 s. Session `results/apple-m5-16g-darwin/sessions/2026-11-21T20-21-55Z_full.json` (5 shuffled rounds, same machine and limits): median 2.68 s, fastest 2.64 s; 6.12x (6.02 to 6.21) against the stored baseline run of 16.41 s, which was memory-pressured, so that factor is overstated; against the version before it: 2.56x (2.22 to 2.71). The noise floor of this machine in that hour was ±16% (`results/apple-m5-16g-darwin/sessions/2026-11-21T20-38-57Z_aa.json`).
 
 **Dead ends and notes**
 
@@ -147,11 +147,11 @@ After v03, compiling is about 85% of a first run and the compiled program runs i
 
 **Why it is still correct**
 
-`python bench/validate.py v04-fast-compile-flags` (Apple M5, `results/apple-m5-16g-darwin/validation/v04-fast-compile-flags@73680c8eb289.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 3.8e-08 (relative to the largest value), sensitivity 6.1e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL` until the team decides on it (see "The one gradient value" under v01). The flags are recorded in every report under `environment.xla_flags`.
+`python bench/validate.py v04-fast-compile-flags` (Apple M5, `results/apple-m5-16g-darwin/validation/v04-fast-compile-flags@73680c8eb289.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 3.8e-08 (relative to the largest value), sensitivity 6.1e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL`. The cause is rounding in the original, not in this version (see "The one gradient value" under v01). The flags are recorded in every report under `environment.xla_flags`.
 
 **Result**
 
-Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 1.63 s, warm median 0.12 s. Shuffled-round session: not run yet, because `python bench/run.py full` leaves out versions whose validation is `FAIL`.
+Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 1.63 s, warm median 0.12 s. Session `results/apple-m5-16g-darwin/sessions/2026-11-21T20-21-55Z_full.json` (5 shuffled rounds, same machine and limits): median 1.69 s, fastest 1.65 s; 9.74x (8.28 to 9.96) against the stored baseline run of 16.41 s, which was memory-pressured, so that factor is overstated; against the version before it: 1.58x (1.35 to 1.63). The noise floor of this machine in that hour was ±16% (`results/apple-m5-16g-darwin/sessions/2026-11-21T20-38-57Z_aa.json`).
 
 **Dead ends and notes**
 
@@ -174,11 +174,11 @@ The third solve computed `Re(cᴴA⁻¹Nw)` with `c = Aᴴw`, which equals `Re(w
 
 **Why it is still correct**
 
-`python bench/validate.py v05-two-solves-whole-arrays` (Apple M5, `results/apple-m5-16g-darwin/validation/v05-two-solves-whole-arrays@0a42262cb682.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 3.9e-08 (relative to the largest value), sensitivity 6.2e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL` until the team decides on it (see "The one gradient value" under v01). Nothing is skipped or stored: both systems are assembled and solved for every frequency.
+`python bench/validate.py v05-two-solves-whole-arrays` (Apple M5, `results/apple-m5-16g-darwin/validation/v05-two-solves-whole-arrays@0a42262cb682.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 3.9e-08 (relative to the largest value), sensitivity 6.2e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL`. The cause is rounding in the original, not in this version (see "The one gradient value" under v01). Nothing is skipped or stored: both systems are assembled and solved for every frequency.
 
 **Result**
 
-Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 1.46 s, warm median 0.09 s. Shuffled-round session: not run yet, because `python bench/run.py full` leaves out versions whose validation is `FAIL`.
+Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 1.46 s, warm median 0.09 s. Session `results/apple-m5-16g-darwin/sessions/2026-11-21T20-21-55Z_full.json` (5 shuffled rounds, same machine and limits): median 1.79 s, fastest 1.49 s; 9.15x (8.94 to 11.03) against the stored baseline run of 16.41 s, which was memory-pressured, so that factor is overstated; against the version before it: 0.94x (0.90 to 1.33), not distinguishable from noise on this machine. The noise floor of this machine in that hour was ±16% (`results/apple-m5-16g-darwin/sessions/2026-11-21T20-38-57Z_aa.json`).
 
 **Dead ends and notes**
 
@@ -201,11 +201,11 @@ Complex parameters turned every sine, cosine and square root into complex arithm
 
 **Why it is still correct**
 
-`python bench/validate.py v06-real-parameters` (Apple M5, `results/apple-m5-16g-darwin/validation/v06-real-parameters@490a15f91da7.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 4.0e-08 (relative to the largest value), sensitivity 6.1e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL` until the team decides on it (see "The one gradient value" under v01). Square roots of reflectivity, transmissivity and power are still taken as complex, so a reflectivity slightly above 1 gives the same result as in the original.
+`python bench/validate.py v06-real-parameters` (Apple M5, `results/apple-m5-16g-darwin/validation/v06-real-parameters@490a15f91da7.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 4.0e-08 (relative to the largest value), sensitivity 6.1e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL`. The cause is rounding in the original, not in this version (see "The one gradient value" under v01). Square roots of reflectivity, transmissivity and power are still taken as complex, so a reflectivity slightly above 1 gives the same result as in the original.
 
 **Result**
 
-Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 0.96 s, warm median 0.07 s. Shuffled-round session: not run yet, because `python bench/run.py full` leaves out versions whose validation is `FAIL`.
+Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 0.96 s, warm median 0.07 s. Session `results/apple-m5-16g-darwin/sessions/2026-11-21T20-21-55Z_full.json` (5 shuffled rounds, same machine and limits): median 1.27 s, fastest 0.92 s; 12.93x (12.03 to 17.89) against the stored baseline run of 16.41 s, which was memory-pressured, so that factor is overstated; against the version before it: 1.34x (1.17 to 1.94). The noise floor of this machine in that hour was ±16% (`results/apple-m5-16g-darwin/sessions/2026-11-21T20-38-57Z_aa.json`).
 
 **Dead ends and notes**
 
@@ -228,11 +228,11 @@ After v06 most of a first run was JAX tracing and compiling the physics function
 
 **Why it is still correct**
 
-`python bench/validate.py v07-numpy-host` (Apple M5, `results/apple-m5-16g-darwin/validation/v07-numpy-host@3d6516f91829.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 4.0e-08 (relative to the largest value), sensitivity 5.8e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL` until the team decides on it (see "The one gradient value" under v01). The reverse pass is new hand-written code; `tests/test_host.py` compares it with the JAX version on 15 cases and `tests/handwritten_jacobians.py` checks the 19 derivative rules.
+`python bench/validate.py v07-numpy-host` (Apple M5, `results/apple-m5-16g-darwin/validation/v07-numpy-host@3d6516f91829.json`): official benchmark `PASS`, distance from the public reference 5.37e-06 (limit 1e-5). Against the original's arrays: carrier and powers identical, signal 1.2e-07, noise 4.0e-08 (relative to the largest value), sensitivity 5.8e-08 in log (harness limit 1e-6). One gradient value out of 193 is outside the harness tolerance: entry 158 (`m01.reflectivity`) is -4.890101e-04 here and -4.888495e-04 in the original, 1.5 times the allowed difference, so the harness verdict is `FAIL`. The cause is rounding in the original, not in this version (see "The one gradient value" under v01). The reverse pass is new hand-written code; `tests/test_host.py` compares it with the JAX version on 15 cases and `tests/handwritten_jacobians.py` checks the 19 derivative rules.
 
 **Result**
 
-Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 0.36 s, warm median 0.05 s. Shuffled-round session: not run yet, because `python bench/run.py full` leaves out versions whose validation is `FAIL`.
+Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete first run 0.36 s, warm median 0.05 s. Session `results/apple-m5-16g-darwin/sessions/2026-11-21T20-21-55Z_full.json` (5 shuffled rounds, same machine and limits): median 0.50 s, fastest 0.35 s; 33.11x (23.97 to 46.83) against the stored baseline run of 16.41 s, which was memory-pressured, so that factor is overstated; against the version before it: 2.03x (1.91 to 3.81). The noise floor of this machine in that hour was ±16% (`results/apple-m5-16g-darwin/sessions/2026-11-21T20-38-57Z_aa.json`).
 
 **Dead ends and notes**
 

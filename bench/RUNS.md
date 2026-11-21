@@ -19,8 +19,12 @@ Raw data: `bench/results/apple-m5-16g-darwin/`. A Mac cannot pin a process to on
 | 19:28 | `run.py selftest`, `doctor`, `calibrate` | `SELFTEST PASS`; doctor warned about 2.8 GB of free memory (other apps were open) | `machine.json` |
 | 19:30 | The one baseline run: `validate.py v00-baseline --make-reference` | First run 16.41 s, repeat 9.67 s, `PASS`. Peak memory 14.5 GB, so it swapped | `baseline.json`, `official/v00-baseline.json`, `bench/reference/baseline_arrays.npz` |
 | 19:31 | `validate.py` on `v01` to `v07`, one full run each | First runs 7.07, 5.36, 2.30, 1.63, 1.46, 0.96 and 0.36 s. Official `PASS` for all; harness verdict `FAIL` for all on one gradient value out of 193 (see `VERSIONS.md`, v01) | `validation/<version>@<commit>.json` |
+| 19:57 | `run.py full --no-validate`, first try | Stopped after 19 of 35 runs: Chrome and other apps were busy and `v01` took 16.7 and 19.7 s. Kept, marked incomplete, ignored by the summary | `sessions/2026-11-21T19-57-35Z_full.json` |
+| 20:21 | `run.py full --no-validate`: `v01` to `v07`, 5 shuffled rounds | Medians 8.62, 6.86, 2.68, 1.69, 1.79, 1.27 and 0.50 s | `sessions/2026-11-21T20-21-55Z_full.json`, `SUMMARY.md` |
+| 20:38 | `run.py aa`: `v07` against itself, 5 rounds | Noise floor ±16%; medians 0.66 and 0.69 s, fastest 0.34 s | `sessions/2026-11-21T20-38-57Z_aa.json` |
+| 20:42 | `run.py official --versions v07-numpy-host` | First run 0.66 s, repeat 0.051 s, `PASS` | `official/v07-numpy-host.json` |
 
-Timing sessions in shuffled rounds are listed in `bench/results/apple-m5-16g-darwin/SUMMARY.md` once they exist.
+Validation was switched off for the timing session because the harness leaves out versions with a `FAIL` verdict; the verdicts themselves were not changed. `SUMMARY.md` is regenerated from the sessions.
 
 ## 2. By hand, with a saved report
 

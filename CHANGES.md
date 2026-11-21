@@ -64,6 +64,21 @@ The machines in the table above are different, so 44.2 s and 3.2 s are not a sam
 
 The report and chart of our run are in `benchmarks/codespace-candidate.json` and `benchmarks/codespace-candidate.png`.
 
+All seven registered versions side by side, through the team's harness (`bench/README.md`): Apple M5 MacBook Air, 16 GB, every numerical library limited to one thread (a Mac cannot pin a core), each version run 5 times in shuffled order, a fresh process per run. Raw data: `bench/results/apple-m5-16g-darwin/sessions/2026-11-21T20-21-55Z_full.json`.
+
+| Version | Changes | Median first run | Fastest | Against the version before |
+| --- | --- | ---: | ---: | --- |
+| `v00-baseline` (the original, one stored run) | | 16.41 s | | |
+| `v01-klujax-solver` | 1 | 8.62 s | 8.12 s | |
+| `v02-group-by-function` | 2 | 6.86 s | 5.97 s | 1.40x |
+| `v03-sparse-assembly` | 3 | 2.68 s | 2.64 s | 2.56x |
+| `v04-fast-compile-flags` | 4 | 1.69 s | 1.65 s | 1.58x |
+| `v05-two-solves-whole-arrays` | 5–7 | 1.79 s | 1.49 s | 0.94x, inside the noise |
+| `v06-real-parameters` | 8–11 | 1.27 s | 0.92 s | 1.34x |
+| `v07-numpy-host` (current) | 12 | 0.50 s | 0.35 s | 2.03x |
+
+Read this table for the order of the versions, not for exact factors. The noise floor of the Mac in that hour was ±16% (the same version against itself, `bench/results/apple-m5-16g-darwin/sessions/2026-11-21T20-38-57Z_aa.json`), the original's single run was short of memory, and `v01` to `v03` used more than one core in spite of the thread limits (flagged by the harness). Changes 5–7 were each measured on their own on one pinned Linux core, where they add up to about 10% (table further down). The official "after" report from this machine is `bench/results/apple-m5-16g-darwin/official/v07-numpy-host.json` (0.66 s first run, 0.051 s repeat, `PASS`; one sample on the same noisy machine). The one-core AMD comparison at the top stays the one to quote.
+
 ## The twelve changes
 
 Most of the code changes are in `differometor/simulate.py`. In `components.py` the physics formulas are the same; only the mirror function was rewritten in an equivalent, shorter form (change 10).
