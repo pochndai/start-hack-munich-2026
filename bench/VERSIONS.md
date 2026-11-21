@@ -240,6 +240,8 @@ SciPy's SuperLU in place of KLU passed the official benchmark but was 7e-03 off 
 
 ## v08-no-large-pages
 
+**Withdrawn on 22 November 2026: this version is not the submitted code.** The submitted simulator is `v07-numpy-host`. The switch costs 4% on a quiet machine and its benefit showed in one of two test sessions; the decision and the way to reinstate it are in `CHANGES.md` ("Withdrawn"). The entry is disabled in `versions.json`, so timing sessions leave it out; the tag stays.
+
 - **Date:** 2026-11-21
 - **Commit:** `487e6efc9f04` (tag `v08-no-large-pages`)
 - **Builds on:** v07-numpy-host

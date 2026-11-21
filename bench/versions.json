@@ -64,7 +64,7 @@
       "ref": "v08-no-large-pages",
       "parent": "v07-numpy-host",
       "summary": "Switch off NumPy's request for large memory pages, for a steady first-run time on a busy Linux machine",
-      "enabled": true
+      "enabled": false
     }
   ]
 }

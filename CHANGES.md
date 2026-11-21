@@ -121,7 +121,7 @@ So the steps that run in NumPy and plain Python can become several times slower 
   With the request on, 8 of 24 runs have a step that takes two to five times its normal time (up to 0.51 s for the build step alone). With it off, 0 of 8 do, and no step exceeds 0.20 s.
 - The price of switching it off: memory then comes in small pages, about 6,000 more page faults per step. Quiet machine: 0.74 s against 0.71 s for the complete first run (4%). Under memory pressure: a median of 1.16 s against 1.14 s, with the worst run at 1.23 s against 1.51 s.
 
-So the cause of the lumps is the large-page request: when free large pages are scarce, the kernel tries to assemble them inside our process, at the moment NumPy first touches a new array. This fits the first observation (only the NumPy steps, only at times, compiled JAX code never). It is supported by 32 runs, not proven: the slow stretch of the first evening, where a step took ten times as long, did not come back on its own, and 0 of 8 against 8 of 24 would happen by chance about one time in 25. The request is now switched off inside the package: change 13 below.
+So the cause of the lumps is the large-page request: when free large pages are scarce, the kernel tries to assemble them inside our process, at the moment NumPy first touches a new array. This fits the first observation (only the NumPy steps, only at times, compiled JAX code never). It is supported by 32 runs, not proven: the slow stretch of the first evening, where a step took ten times as long, did not come back on its own, and 0 of 8 against 8 of 24 would happen by chance about one time in 25. Switching the request off inside the package was tried as change 13 and withdrawn again; see "Withdrawn" further down for the measurements and the decision.
 
 The 18 scenarios on the same instance (`bench/results/amd-epyc-9334-32-core-processor-504g-linux/VARIATIONS.md`). "Ours" is from the second pass, when only our code ran; "ours, first pass" is the run made right after the original had run; the original's time is one run on this machine:
 
@@ -148,7 +148,7 @@ The 18 scenarios on the same instance (`bench/results/amd-epyc-9334-32-core-proc
 
 The two scenarios that do not fit on the Mac (`frequencies-201` and `size-4-full`) got their reference here and pass. `uifo-20-5000` is `DEVIATION` here and `PASS` on the Mac: its readout signal is 1.4e-06 from the stored original, a hair over the 1e-6 limit, because the stored original was computed on the Mac and ours here on Linux. The original itself is not identical across the two machines either: on `band-20-5000`, the original on this machine and the original on the Mac disagree on two gradient entries by more than 0.1%.
 
-## The thirteen changes
+## The twelve changes
 
 Most of the code changes are in `differometor/simulate.py`. In `components.py` the physics formulas are the same; only the mirror function was rewritten in an equivalent, shorter form (change 10).
 
@@ -269,38 +269,6 @@ Official benchmark on the Codespace, one core, each version run twice:
 
   Against the original code: Voyager, aLIGO and the cavity sweep agree as before (sensitivity to 5e-11 and 1e-11, cavity to 1e-14), and the official benchmark's saved arrays agree to 1.2e-07 (signal) and 9e-08 (gradient). The distance from the public reference is 5.376e-06 (limit 1e-5).
 
-### 13. Do not ask Linux for large memory pages
-
-- **What:** when the package is imported it switches off NumPy's request for large memory pages (`numpy._core.multiarray._set_madvise_hugepage(False)` in `differometor/__init__.py`). No calculation changes; every output is bit-for-bit the same.
-- **Why:** this is a change for a steady time, not for a faster one. By default NumPy asks Linux for 2 MB pages for every array above 4 MB. Where large pages are only given on request (the usual Linux setting, and the one on the AMD cloud host), the kernel then tries to assemble such a page inside our process at the moment the array is first touched. On a machine whose memory other programs keep busy, that made single steps of our NumPy path take two to five times as long in a third of the runs, and up to ten times in one session ("The same on one pinned Linux core" above). JAX's own memory never makes that request, which is why only the NumPy steps were affected.
-- **Effect, measured with the equivalent environment variable** (`NUMPY_MADVISE_HUGEPAGE=0`, AMD EPYC 9334 container, one core, 8 runs per setting and condition, `bench/results/amd-epyc-9334-32-core-processor-504g-linux/diagnosis/`):
-
-  | | Request on (before) | Request off (this change) |
-  | --- | ---: | ---: |
-  | Complete first run, quiet machine, median | 0.71 s | 0.74 s |
-  | Complete first run next to memory-churning processes, median | 1.14 s | 1.16 s |
-  | Same, slowest run | 1.51 s | 1.23 s |
-  | Runs with a NumPy step at more than twice its normal time | 8 of 24 | 0 of 8 |
-
-  So it costs about 0.03 s (4%) on a quiet machine and removes the outliers on a busy one. The scored number is a single run, where an outlier costs far more than 0.03 s.
-- **Second test, with the switch itself** (commit `8ff051a`, same kind of AMD container, 72 runs, `bench/results/amd-epyc-9334-32-core-processor-504g-linux/diagnosis-change-13/`). The package as committed against the same package with `NUMPY_MADVISE_HUGEPAGE=1`, which leaves NumPy's request on:
-
-  | | Request on | Request off (this change) |
-  | --- | ---: | ---: |
-  | Large pages handed to our process per run, quiet machine | 54 to 64 | 0 |
-  | Complete first run, quiet machine, median of 24 | 0.71 s | 0.74 s |
-  | Complete first run next to memory-churning processes, median of 12 | 1.11 s | 1.16 s |
-  | Same, slowest run | 1.15 s | 1.26 s |
-  | Runs with a NumPy step at more than twice its normal time | 0 of 12 | 0 of 12 |
-
-  The switch works (no large pages are handed out any more) and its cost is confirmed: 0.03 s on a quiet machine, about 0.05 s under memory pressure. **The benefit did not show in this session:** the outliers did not occur with either setting, so there was nothing for the switch to remove. Both tests together give outliers in 8 of 36 runs with the request on and 0 of 20 with it off, which would happen by chance about one time in 50.
-- **Where that leaves the change:** a certain cost of about 4% against a protection that is likely but not demonstrated. It is worth keeping if the scoring machine is shared with other work, and worth removing if it is dedicated and quiet. That question is open with the organizers.
-- **What is not shown:** the worst state we saw (0.74 s becoming 2.8 s) did not occur again during the test, so there is no measurement of this change against it. 0 of 8 against 8 of 24 would happen by chance about one time in 25.
-- **Why the run-time switch and not the environment variable:** `benchmark.py` imports NumPy (through JAX) before it imports this package, and NumPy reads `NUMPY_MADVISE_HUGEPAGE` only when it is imported. The switch does the same thing afterwards.
-- **A dependency to know about:** the switch is private to NumPy. It exists in the pinned `numpy==2.5.5`; if a future NumPy removes it, the call is skipped and the behaviour is as before this change. A user who sets `NUMPY_MADVISE_HUGEPAGE` themselves keeps their choice.
-- **How it stays general:** it does not depend on the setup. On macOS and Windows it has no effect.
-- **Checks after the change (Apple M5):** official benchmark `PASS`; `bench/validate.py WORKTREE` `PASS` with the same differences from the original as before the change (sensitivity 5.8e-08 in log, gradient 9.2e-08 of the largest entry); `tests/test_host.py` ends with `ALL CHECKS PASSED`; `tests/handwritten_jacobians.py` agrees on all 19 rules; `tests/variations.py` gives 18 `PASS` and the one known `DEVIATION` on 19 scenarios. The Linux timing comparison with the switch itself is the second test above.
-
 ### Changes 8–11 measured one at a time
 
 Official benchmark on the Codespace, one core, each version run three times:
@@ -323,6 +291,46 @@ The Codespace was a little slower in this session than when changes 5–7 were m
 - **Reusing one factorisation for the solves:** change 12 already cut the sparse factorisations from six per frequency to four (two forward, two in the gradient). Going further was measured on the main example (Apple M5): the two forward solves take 12.2 ms when each factors from scratch and 7.4 ms when they share one factorisation. Over both stages that is about 10 ms per evaluation, roughly 3% of the complete first run. It needs the solver's factorisations to be kept in memory that Python does not manage and released by hand, where a mistake means a crash or a leak, not a wrong number. Not adopted.
 - **One extra refinement step in every sparse solve** (solve, compute the residual in double precision, solve again for the correction): it brings entry 17 of the 20 to 5000 Hz scenario from 0.1% to 0.002% of the refined value, and the supplied setup's gradient from 1e-08 to 1e-09. It costs a second solve per system: a compiled evaluation of loss and gradient goes from 52 to 79 ms on the supplied setup (Apple M5), about 8% of a complete first run. The judges' limit is 1e-5 in log sensitivity, where ours is at 3e-08 without it, and the supplied setup's gradient is already within 2e-07. Not adopted; it is the change to make if a gradient accurate to 0.01% outside the design band is ever required.
 - **SciPy's sparse solver (SuperLU) in place of KLU** (branch `scipy-host`): it would make klujax unnecessary except for the fallback, and it factors each matrix once per stage. The official benchmark passes, a little slower (Apple M5: 0.42 s against 0.33 s). But `tests/test_host.py` fails on the two setups with a homodyne detector: the noise differs from the KLU result by 2e-05 (second UIFO) and 6e-05 (Voyager), and the Voyager example's sensitivity ends up 7e-03 away from the original code in log, where KLU is 6e-11 away. The matrices there have entries from 5e-20 to 1e+13; SuperLU matches the dense reference solver in the large entries of the solution (1e-09) but is less accurate in the small ones that the noise depends on. Not adopted.
+
+### Withdrawn: do not ask Linux for large memory pages (was change 13, version `v08`)
+
+**Decision (22 November 2026): not in the submitted code.** This change was added, measured twice on Linux and then taken out again. Its cost is reproducible (about 0.03 s, 4%, on a quiet machine); its benefit appeared in one test session and not in the next; and the severe slow state it was aimed at has never been reproduced, so we cannot claim it protects against that. The remaining uncertainty is about the scoring machine, not something more runs of ours would settle. The measurements stay here, and it can be put back in either of two ways if the scoring machine turns out to be a shared, busy host:
+
+- without touching the code: set `NUMPY_MADVISE_HUGEPAGE=0` in the environment before starting `benchmark.py`;
+- in the code: `git cherry-pick 487e6ef` (tag `v08-no-large-pages` holds that state).
+
+What it was, as written while it was in:
+
+
+- **What:** when the package was imported it switched off NumPy's request for large memory pages (`numpy._core.multiarray._set_madvise_hugepage(False)` in `differometor/__init__.py`). No calculation changes; every output is bit-for-bit the same.
+- **Why:** this is a change for a steady time, not for a faster one. By default NumPy asks Linux for 2 MB pages for every array above 4 MB. Where large pages are only given on request (the usual Linux setting, and the one on the AMD cloud host), the kernel then tries to assemble such a page inside our process at the moment the array is first touched. On a machine whose memory other programs keep busy, that made single steps of our NumPy path take two to five times as long in a third of the runs, and up to ten times in one session ("The same on one pinned Linux core" above). JAX's own memory never makes that request, which is why only the NumPy steps were affected.
+- **Effect, measured with the equivalent environment variable** (`NUMPY_MADVISE_HUGEPAGE=0`, AMD EPYC 9334 container, one core, 8 runs per setting and condition, `bench/results/amd-epyc-9334-32-core-processor-504g-linux/diagnosis/`):
+
+  | | Request on (before) | Request off (this change) |
+  | --- | ---: | ---: |
+  | Complete first run, quiet machine, median | 0.71 s | 0.74 s |
+  | Complete first run next to memory-churning processes, median | 1.14 s | 1.16 s |
+  | Same, slowest run | 1.51 s | 1.23 s |
+  | Runs with a NumPy step at more than twice its normal time | 8 of 24 | 0 of 8 |
+
+  So it costs about 0.03 s (4%) on a quiet machine and removes the outliers on a busy one. The scored number is a single run, where an outlier costs far more than 0.03 s.
+- **Second test, with the switch itself** (commit `8ff051a`, same kind of AMD container, 72 runs, `bench/results/amd-epyc-9334-32-core-processor-504g-linux/diagnosis-change-13/`). The package as committed against the same package with `NUMPY_MADVISE_HUGEPAGE=1`, which leaves NumPy's request on:
+
+  | | Request on | Request off (this change) |
+  | --- | ---: | ---: |
+  | Large pages handed to our process per run, quiet machine | 54 to 64 | 0 |
+  | Complete first run, quiet machine, median of 24 | 0.71 s | 0.74 s |
+  | Complete first run next to memory-churning processes, median of 12 | 1.11 s | 1.16 s |
+  | Same, slowest run | 1.15 s | 1.26 s |
+  | Runs with a NumPy step at more than twice its normal time | 0 of 12 | 0 of 12 |
+
+  The switch works (no large pages are handed out any more) and its cost is confirmed: 0.03 s on a quiet machine, about 0.05 s under memory pressure. **The benefit did not show in this session:** the outliers did not occur with either setting, so there was nothing for the switch to remove. Both tests together give outliers in 8 of 36 runs with the request on and 0 of 20 with it off, which would happen by chance about one time in 50.
+- **A caution on the statistics:** all eight outliers came from one session. Counting every run as independent, as the "one time in 50" figure does, makes the evidence look stronger than it is at the level of sessions: one session showed the effect and one did not.
+- **What is not shown:** the worst state we saw (0.74 s becoming 2.8 s) did not occur again during the test, so there is no measurement of this change against it. 0 of 8 against 8 of 24 would happen by chance about one time in 25.
+- **Why the run-time switch and not the environment variable:** `benchmark.py` imports NumPy (through JAX) before it imports this package, and NumPy reads `NUMPY_MADVISE_HUGEPAGE` only when it is imported. The switch does the same thing afterwards.
+- **A dependency to know about:** the switch is private to NumPy. It exists in the pinned `numpy==2.5.5`; if a future NumPy removes it, the call is skipped and the behaviour is as before this change. A user who sets `NUMPY_MADVISE_HUGEPAGE` themselves keeps their choice.
+- **How it stays general:** it does not depend on the setup. On macOS and Windows it has no effect.
+- **Checks after the change (Apple M5):** official benchmark `PASS`; `bench/validate.py WORKTREE` `PASS` with the same differences from the original as before the change (sensitivity 5.8e-08 in log, gradient 9.2e-08 of the largest entry); `tests/test_host.py` ends with `ALL CHECKS PASSED`; `tests/handwritten_jacobians.py` agrees on all 19 rules; `tests/variations.py` gives 18 `PASS` and the one known `DEVIATION` on 19 scenarios. The Linux timing comparison with the switch itself is the second test above.
 
 ## Step by step, changes 1–3 (Apple M5, official benchmark without CPU pinning)
 
@@ -431,5 +439,5 @@ python tests/test_host.py             # NumPy version against the JAX version
 - The carrier system (286×286, solved once) still uses the dense solver.
 - A setup in amplitude-modulation mode has linking functions, so our code takes its JAX path there: correct, but 1.0 s where the NumPy path takes 0.34 s (Apple M5, case `amplitude-modulation`).
 - A negative reflectivity gives NaN in ours and a number in the original (seen while taking finite differences with too large a step). Reflectivities are bounded to 0..1 in the optimisation examples, so no setup we know has one.
-- **The current version's first-run time was unstable on a busy shared Linux host** (0.74 to 2.8 s on the second AMD instance; see "The same on one pinned Linux core"). The likely cause is NumPy's request for large memory pages, which change 13 switches off. The change has not been measured against the worst state we saw (2.8 s), because that state did not come back during the test; under ordinary memory pressure every program gets slower, ours included (1.16 s against 0.74 s in the test).
+- **The current version's first-run time was unstable on a busy shared Linux host** (0.74 to 2.8 s on the second AMD instance; see "The same on one pinned Linux core"). The likely cause is NumPy's request for large memory pages. Switching it off was tried and withdrawn ("Withdrawn" above): it costs 4% on a quiet machine and its benefit showed in only one of two test sessions. On a shared scoring machine, `NUMPY_MADVISE_HUGEPAGE=0` is the setting to try. Under ordinary memory pressure every program gets slower, ours included (about 1.1 s against 0.71 s in the tests).
 - `cos_arcsin` returns the same values as the complex arcsine route, but beyond total internal reflection its derivative has the opposite sign in the imaginary part. That only matters when a refractive index or an incidence angle is itself a design variable in such a setup; the benchmark's design variables are reflectivity, tuning, squeezing, angle of squeezing, power, mass and length.

@@ -19,20 +19,6 @@ os.environ["XLA_FLAGS"] = " ".join(
     [_xla_flags] + [f"--{name}={value}" for name, value in _FAST_COMPILE_FLAGS.items() if name not in _xla_flags]
 ).strip()
 
-# NumPy asks Linux for large memory pages for every array above 4 MB. On a machine whose memory is
-# busy, the kernel then assembles those pages inside our process when the array is first touched, and
-# single steps took several times as long in some runs (change 13 in CHANGES.md). Switching the request
-# off costs about 0.03 s on a quiet machine. NumPy is already imported by now, so its environment
-# variable NUMPY_MADVISE_HUGEPAGE would come too late; this is the same switch at run time. It is
-# private to NumPy and present in the pinned 2.5.5; without it nothing changes. A user who sets the
-# environment variable keeps their choice.
-if "NUMPY_MADVISE_HUGEPAGE" not in os.environ:
-    try:
-        from numpy._core.multiarray import _set_madvise_hugepage
-        _set_madvise_hugepage(False)
-    except (ImportError, AttributeError):
-        pass
-
 from differometor.setups import Setup
 from differometor.simulate import run, run_build_step, run_simulation_step, simulate
 from differometor.plot import visualize_setup
