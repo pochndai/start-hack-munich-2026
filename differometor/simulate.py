@@ -32,6 +32,27 @@ from differometor.components import FUNCTIONS, UNIT_VACUUM, H_PLANCK, F0
 jax.config.update("jax_enable_x64", True)
 
 
+@jax.tree_util.register_static
+class Static:
+    """
+    Build-time NumPy array that `jax.jit` treats as part of the program, not as an input.
+
+    `simulate` needs to know which component function fills which matrix entry while it
+    is being traced. Passing that as a normal array hides the values from the tracer and
+    forces every function to be compiled for every entry.
+    """
+
+    def __init__(self, array):
+        self.array = np.asarray(array)
+        self._key = (self.array.shape, self.array.dtype.str, self.array.tobytes())
+
+    def __hash__(self):
+        return hash(self._key)
+
+    def __eq__(self, other):
+        return isinstance(other, Static) and self._key == other._key
+
+
 def solve(matrix: jnp.ndarray, right_hand_side: jnp.ndarray) -> jnp.ndarray:
     """
     Solve a dense linear system for each batch item.
@@ -92,9 +113,9 @@ def update(
     matrix_indices : tuple[jnp.ndarray, jnp.ndarray]
         Pair of index arrays selecting where to write into `matrix`.
         Each element has shape (M,).
-    function_indices : jnp.ndarray
+    function_indices : Static
         Indices selecting which function to use for each input, shape (K,).
-        Values index into the global `FUNCTIONS` list.
+        Values index into the global `FUNCTIONS` list. Known at trace time.
 
     Returns
     -------
@@ -103,12 +124,17 @@ def update(
 
     Notes
     -----
-    `lax.switch` selects functions from the global `FUNCTIONS` list. In JAX, a
-    Python list of callables referenced as a global is treated as static during
-    tracing, which keeps the function jittable as long as the list is stable.
+    The function indices are known while tracing, so each component function is
+    traced once and only for the inputs that use it. Selecting with `lax.switch`
+    under `vmap` instead evaluates every function for every input and compiles
+    several times slower.
     """
     function_inputs = parameters[function_input_indices]
-    output_matrix = vmap(lambda i, x: lax.switch(i, FUNCTIONS, x))(function_indices, function_inputs)
+    function_indices = function_indices.array
+    output_matrix = jnp.zeros((len(function_indices), 4), dtype=jnp.complex128)
+    for function_index in np.unique(function_indices):
+        inputs = np.nonzero(function_indices == function_index)[0]
+        output_matrix = output_matrix.at[inputs].set(vmap(FUNCTIONS[function_index])(function_inputs[inputs]))
     outputs = output_matrix[output_indices[0], output_indices[1]]
     return matrix.at[matrix_indices[0], matrix_indices[1]].set(outputs)
 
@@ -173,19 +199,19 @@ def simulate(
     indices_to_link: jnp.ndarray,
     # carrier arrays
     carrier_function_input_indices: jnp.ndarray,
-    carrier_function_indices: jnp.ndarray,
+    carrier_function_indices: Static,
     carrier_output_indices: tuple[jnp.ndarray, jnp.ndarray],
     carrier_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
     # signal arrays
     signal_function_input_indices: jnp.ndarray,
-    signal_function_indices: jnp.ndarray,
+    signal_function_indices: Static,
     signal_output_indices: tuple[jnp.ndarray, jnp.ndarray],
     signal_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
     signal_carrier_indices: jnp.ndarray,
     signal_carrier_placing_indices: tuple[jnp.ndarray, jnp.ndarray],
     # noise arrays
     noise_function_input_indices: jnp.ndarray,
-    noise_function_indices: jnp.ndarray,
+    noise_function_indices: Static,
     noise_output_indices: tuple[jnp.ndarray, jnp.ndarray],
     noise_system_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
     # sparse solve arrays
@@ -499,6 +525,11 @@ def run_build_step(
 
     all_arrays = (*prepared_arrays, *matrices, *carrier_arrays, *signal_arrays, *noise_arrays)
     named = dict(zip(arg_names, all_arrays))
+    all_arrays = tuple(
+        Static(array) if name in ("carrier_function_indices", "signal_function_indices", "noise_function_indices")
+        else array
+        for name, array in named.items()
+    )
     all_arrays += (
         signal_solve_pattern(
             named["signal_matrix"], named["signal_matrix_indices"], named["signal_carrier_placing_indices"]
