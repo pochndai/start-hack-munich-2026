@@ -199,7 +199,8 @@ The Codespace was a little slower in this session than when changes 5–7 were m
 ### Tried and not adopted
 
 - **`cos(x) + 1j*sin(x)` instead of `exp(1j*x)`:** no measurable difference in compile time (about 3 ms per use either way).
-- **Reusing one factorisation for both remaining solves:** the whole repeat run is 0.2 s, so there is little to gain, and it would need a hand-written gradient rule.
+- **Reusing one factorisation for the solves:** change 12 already cut the sparse factorisations from six per frequency to four (two forward, two in the gradient). Going further was measured on the main example (Apple M5): the two forward solves take 12.2 ms when each factors from scratch and 7.4 ms when they share one factorisation. Over both stages that is about 10 ms per evaluation, roughly 3% of the complete first run. It needs the solver's factorisations to be kept in memory that Python does not manage and released by hand, where a mistake means a crash or a leak, not a wrong number. Not adopted.
+- **SciPy's sparse solver (SuperLU) in place of KLU** (branch `scipy-host`): it would make klujax unnecessary except for the fallback, and it factors each matrix once per stage. The official benchmark passes, a little slower (Apple M5: 0.42 s against 0.33 s). But `tests/test_host.py` fails on the two setups with a homodyne detector: the noise differs from the KLU result by 2e-05 (second UIFO) and 6e-05 (Voyager), and the Voyager example's sensitivity ends up 7e-03 away from the original code in log, where KLU is 6e-11 away. The matrices there have entries from 5e-20 to 1e+13; SuperLU matches the dense reference solver in the large entries of the solution (1e-09) but is less accurate in the small ones that the noise depends on. Not adopted.
 
 ## Step by step, changes 1–3 (Apple M5, official benchmark without CPU pinning)
 
