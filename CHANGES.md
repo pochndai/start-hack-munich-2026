@@ -4,6 +4,20 @@ Everything we changed in Differometor for the Feyer "Faster Physics" challenge, 
 
 ## Result so far
 
+Official benchmark, one CPU core (`--cpus 1`), both versions on the same Linux machine (AMD EPYC 9334 on the AMD Radeon Cloud, 55 GB RAM, Python 3.12, 10 repeats). This is the cleanest comparison we have:
+
+| Step | Original | Ours |
+| --- | ---: | ---: |
+| Imports | 0.29 s | 0.29 s |
+| Build the setup | 0.70 s | 0.08 s |
+| Trace and compile | 19.30 s | 1.58 s |
+| Forward simulation | 12.31 s | 0.08 s |
+| Gradient | 2.97 s | 0.09 s |
+| **Complete first run** | **35.58 s** | **2.13 s** |
+| Repeat run, once compiled (median) | 15.70 s | 0.13 s |
+
+That is about 17 times faster for the scored first run. The benchmark's validation ran and raised no error for either version, but the run stopped right after it, while writing the report: our run script had not pip-installed the package, and the report asks for its installed version. So there are no report files, no `PASS` line and no saved arrays from this machine, only the printed timings above. The imports figure is the reported total minus the other printed phases.
+
 Official benchmark on the same machine, both versions with `PASS` (Apple M5, 10 repeats; a Mac cannot pin to one core, so all cores are used):
 
 | | Original | Ours |
@@ -21,6 +35,7 @@ Official benchmark (`python benchmark.py --cpus 1`), complete first run, one CPU
 | --- | ---: | ---: |
 | Intel Xeon Platinum 8468 (Feyer's published baseline) | 44.2 s | not measured yet |
 | AMD EPYC 7763, GitHub Codespace, Python 3.12 | does not fit in 16 GB of RAM | **3.2 s** |
+| AMD EPYC 9334, AMD Radeon Cloud, Python 3.12 | 35.6 s | **2.13 s** |
 
 Same Codespace, one core, both versions in the style of `start_here.py` (one compile, one run):
 
@@ -33,7 +48,7 @@ Same Codespace, one core, both versions in the style of `start_here.py` (one com
 
 A repeat run, once compiled, takes 0.20 s in the official benchmark (the published baseline is 17.7 s).
 
-The two machines in the first table are different, so 44.2 s and 3.2 s are not a same-hardware comparison. The second table is.
+The machines in the table above are different, so 44.2 s and 3.2 s are not a same-hardware comparison. The AMD EPYC 9334 table at the top and the Codespace table just above are.
 
 The report and chart of our run are in `benchmarks/codespace-candidate.json` and `benchmarks/codespace-candidate.png`.
 
@@ -200,7 +215,8 @@ For the original, run the same commands on the `main` branch. It needs about 16 
 
 ## Known limits
 
-- No run yet on the contest's Intel Xeon; the Linux numbers are from an AMD EPYC Codespace.
+- No run yet on the contest's Intel Xeon; the Linux numbers are from two AMD EPYC machines.
 - The original could not complete the official benchmark on the 16 GB Codespace, so the official-style "before" on that machine is missing.
+- The AMD EPYC 9334 run has printed timings for both versions but no saved reports or arrays, so the array-by-array comparison on that machine is missing. The comparisons on the Mac and the Codespace cover it.
 - The carrier system (286×286, solved once) still uses the dense solver.
 - `cos_arcsin` returns the same values as the complex arcsine route, but beyond total internal reflection its derivative has the opposite sign in the imaginary part. That only matters when a refractive index or an incidence angle is itself a design variable in such a setup; the benchmark's design variables are reflectivity, tuning, squeezing, angle of squeezing, power, mass and length.
