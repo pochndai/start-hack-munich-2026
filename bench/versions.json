@@ -58,6 +58,13 @@
       "parent": "v06-real-parameters",
       "summary": "Do the simulation in NumPy behind one JAX callback, with a hand-written reverse pass",
       "enabled": true
+    },
+    {
+      "name": "v08-no-large-pages",
+      "ref": "v08-no-large-pages",
+      "parent": "v07-numpy-host",
+      "summary": "Switch off NumPy's request for large memory pages, for a steady first-run time on a busy Linux machine",
+      "enabled": true
     }
   ]
 }

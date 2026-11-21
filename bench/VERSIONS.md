@@ -237,3 +237,30 @@ Validation run, one sample (Apple M5, 16 GB, thread limits set to one): complete
 **Dead ends and notes**
 
 SciPy's SuperLU in place of KLU passed the official benchmark but was 7e-03 off on the Voyager setup: not adopted. Sharing one factorisation between solves was worth about 3% of a first run and needs memory managed by hand: not adopted. Forward-mode differentiation is not supported on this path.
+
+## v08-no-large-pages
+
+- **Date:** 2026-11-21
+- **Commit:** `487e6efc9f04` (tag `v08-no-large-pages`)
+- **Builds on:** v07-numpy-host
+- **Summary:** Switch off NumPy's request for large memory pages, for a steady first-run time on a busy Linux machine
+
+**What changed**
+
+At import the package switches off NumPy's request for large memory pages (`numpy._core.multiarray._set_madvise_hugepage(False)` in `differometor/__init__.py`), unless the user has set `NUMPY_MADVISE_HUGEPAGE` themselves. No calculation changes. Change 13 in `CHANGES.md`.
+
+**Why it is faster**
+
+It is not faster; it is steadier. NumPy asks Linux for 2 MB pages for every array above 4 MB. On a host whose memory other programs keep busy, the kernel assembles those pages inside our process when an array is first touched. In the test on the AMD cloud (`results/amd-epyc-9334-32-core-processor-504g-linux/diagnosis/`, 96 runs of the unchanged benchmark, the request toggled with the equivalent environment variable) a step of the NumPy path took more than twice its normal time in 8 of 24 runs with the request on and in 0 of 8 with it off. On a quiet machine the complete first run is 0.74 s with the request off against 0.71 s with it on. The scored number is a single run, so an outlier costs more than 0.03 s.
+
+**Why it is still correct**
+
+Only where memory comes from changes, so the outputs are bit-for-bit those of v07. `python bench/validate.py v08-no-large-pages` (Apple M5): `PASS`, with the same differences from the original as v07 (sensitivity 5.8e-08 in log, gradient 9.2e-08 of the largest entry, entry 158 at 0.29 of the allowed difference). `tests/test_host.py`: `ALL CHECKS PASSED`. `tests/handwritten_jacobians.py`: all 19 rules agree. `tests/variations.py`: 18 `PASS` and the one known `DEVIATION` on 19 scenarios.
+
+**Result**
+
+On the Mac the switch has no effect (macOS has no such request), so there is no Mac timing to quote: the validation run took 0.37 s, like v07. The Linux numbers are those of the test above, made with the environment variable. A comparison with the switch itself on Linux, quiet and under memory pressure, is still owed.
+
+**Dead ends and notes**
+
+The switch is private to NumPy and exists in the pinned 2.5.5; if it is missing the call is skipped. Setting the environment variable inside the package would be too late, because `benchmark.py` imports NumPy before this package. Not shown: the worst state we observed (0.74 s becoming 2.8 s on a busy shared host) did not occur again during the test, so this version has not been measured against it. Two other settings were tried in the same test and did not remove the outliers: keeping freed memory in the allocator, and pinning to a different CPU.
