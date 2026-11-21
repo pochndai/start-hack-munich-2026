@@ -4,28 +4,31 @@ Everything we changed in Differometor for the Feyer "Faster Physics" challenge, 
 
 ## Result so far
 
-**This branch (`numpy-host`) adds change 12**, which does the work in NumPy and keeps JAX as the interface. Official benchmark, one core, Linux Codespace (AMD EPYC 7763), three runs each, all `PASS`:
+Official benchmark, one CPU core (`--cpus 1`), original and current version on the same Linux machine (AMD EPYC 9334 on the AMD Radeon Cloud, 55 GB RAM, Python 3.12.15, 10 repeats). Both print `PASS`. This is the comparison to quote:
+
+| Step | Original | Ours (changes 1–12) |
+| --- | ---: | ---: |
+| Imports | 0.29 s | 0.28 s |
+| Build the setup | 0.70 s | 0.08 s |
+| Trace and compile | 19.28 s | 0.17 s |
+| Forward simulation | 12.35 s | 0.07 s |
+| Gradient | 3.00 s | 0.10 s |
+| **Complete first run** | **35.62 s** | **0.72 s** |
+| Repeat run, once compiled (median of 10) | 15.67 s | 0.12 s |
+| Distance from the public reference, in log (limit 1e-5) | 5.374e-06 | 5.375e-06 |
+
+That is about 50 times faster for the scored first run. A second run of our version on the same machine gave 0.716 s against 0.715 s. On that machine `tests/test_host.py` ends with `ALL CHECKS PASSED` and `tests/handwritten_jacobians.py` with all 19 rules agreeing with JAX. The reports and charts are `benchmarks/amd-epyc-9334-original.*` and `benchmarks/amd-epyc-9334-candidate.*`; the file fingerprints inside them match the upstream code and the code on `main`. The saved output arrays of the two runs were compared on the machine but not brought back; the array comparisons recorded below are from the Apple M5 and the Codespace.
+
+How the total came down on that machine: an earlier run of changes 1–11 there took 2.13 s (printed timings only, no report saved), so change 12 accounts for the step from 2.13 s to 0.72 s.
+
+Change 12 on a second machine. Official benchmark, one core, Linux Codespace (AMD EPYC 7763), three runs each, all `PASS`:
 
 | Version | Complete first run | Trace and compile | Repeat run |
 | --- | ---: | ---: | ---: |
-| Changes 1–11 (`main`) | 3.23, 3.52, 4.22 s | about 2.5 s | 0.19 s |
-| + change 12 (this branch) | 1.01, 1.05, 1.33 s | about 0.2 s | 0.16 s |
+| Changes 1–11 | 3.23, 3.52, 4.22 s | about 2.5 s | 0.19 s |
+| Changes 1–12 | 1.01, 1.05, 1.33 s | about 0.2 s | 0.16 s |
 
-On an Apple M5 the official benchmark goes from 1.0 s to 0.33 s. The numbers further down this section are for changes 1–11.
-
-Official benchmark, one CPU core (`--cpus 1`), both versions on the same Linux machine (AMD EPYC 9334 on the AMD Radeon Cloud, 55 GB RAM, Python 3.12, 10 repeats). This is the cleanest comparison we have:
-
-| Step | Original | Ours |
-| --- | ---: | ---: |
-| Imports | 0.29 s | 0.29 s |
-| Build the setup | 0.70 s | 0.08 s |
-| Trace and compile | 19.30 s | 1.58 s |
-| Forward simulation | 12.31 s | 0.08 s |
-| Gradient | 2.97 s | 0.09 s |
-| **Complete first run** | **35.58 s** | **2.13 s** |
-| Repeat run, once compiled (median) | 15.70 s | 0.13 s |
-
-That is about 17 times faster for the scored first run. The benchmark's validation ran and raised no error for either version, but the run stopped right after it, while writing the report: our run script had not pip-installed the package, and the report asks for its installed version. So there are no report files, no `PASS` line and no saved arrays from this machine, only the printed timings above. The imports figure is the reported total minus the other printed phases.
+The numbers in the rest of this section are for changes 1–11.
 
 Official benchmark on the same machine, both versions with `PASS` (Apple M5, 10 repeats; a Mac cannot pin to one core, so all cores are used):
 
@@ -254,6 +257,6 @@ For the original, run the same commands on the `main` branch. It needs about 16 
 - Change 12 is new code for the whole reverse pass. It is verified against the JAX version on the setups listed above; a setup that uses a feature none of them has would be new ground, and `HOST_SIMULATION = False` switches back.
 - No run yet on the contest's Intel Xeon; the Linux numbers are from two AMD EPYC machines.
 - The original could not complete the official benchmark on the 16 GB Codespace, so the official-style "before" on that machine is missing.
-- The AMD EPYC 9334 run has printed timings for both versions but no saved reports or arrays, so the array-by-array comparison on that machine is missing. The comparisons on the Mac and the Codespace cover it.
+- On the AMD EPYC 9334 both versions have saved reports, but their output arrays were not brought back, so there is no array-by-array comparison from that machine. The comparisons on the Mac and the Codespace cover it.
 - The carrier system (286×286, solved once) still uses the dense solver.
 - `cos_arcsin` returns the same values as the complex arcsine route, but beyond total internal reflection its derivative has the opposite sign in the imaginary part. That only matters when a refractive index or an incidence angle is itself a design variable in such a setup; the benchmark's design variables are reflectivity, tuning, squeezing, angle of squeezing, power, mass and length.
