@@ -67,7 +67,7 @@ def as_complex(value):
     square root then has to give an imaginary number, as it did when all parameters
     were stored as complex, and not NaN.
     """
-    return jnp.asarray(value, dtype=jnp.complex128)
+    return value + 0j
 
 
 def cos_arcsin(value):
@@ -292,8 +292,7 @@ def space_lower(parameters: jnp.ndarray) -> jnp.ndarray:
     jax.numpy.ndarray
         Same as `space` but evaluated at negative frequency.
     """
-    parameters = jnp.array([-parameters[0], parameters[1], parameters[2]])
-    return space(parameters)
+    return space([-parameters[0], parameters[1], parameters[2]])
 
 
 # -----------------------------------------------------------------------------
@@ -478,8 +477,7 @@ def laser_frequency_modulation_lower(parameters: jnp.ndarray) -> jnp.ndarray:
     jax.numpy.ndarray
         Same as `laser_frequency_modulation` but evaluated at negative frequency.
     """
-    parameters = jnp.array([-parameters[0]])
-    return laser_frequency_modulation(parameters)
+    return laser_frequency_modulation([-parameters[0]])
 
 
 def space_modulation(parameters: jnp.ndarray) -> jnp.ndarray:
@@ -540,8 +538,7 @@ def space_modulation_lower(parameters: jnp.ndarray) -> jnp.ndarray:
     jax.numpy.ndarray
         Same as `space_modulation` but evaluated at negative frequency.
     """
-    parameters = jnp.array([-parameters[0], parameters[1], parameters[2]])
-    return space_modulation(parameters)
+    return space_modulation([-parameters[0], parameters[1], parameters[2]])
 
 
 # -----------------------------------------------------------------------------

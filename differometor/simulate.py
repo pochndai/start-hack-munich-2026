@@ -27,6 +27,7 @@ from jax import lax, vmap, jit
 from differometor.setups import Setup
 from differometor.build import build, pairs_to_arrays, prepare_arrays, LINKING_FUNCTIONS
 from differometor.components import FUNCTIONS, UNIT_VACUUM, H_PLANCK, F0, numpy_backend, raw_outputs
+from differometor import host
 
 
 jax.config.update("jax_enable_x64", True)
@@ -212,7 +213,7 @@ def expand_parameters(array: jnp.ndarray, indices: jnp.ndarray, values: jnp.ndar
     return tiled_array.at[row_indices, column_indices].set(flat_values)
 
 
-def simulate(
+def simulate_jax(
     # prepared arrays
     optimized_parameters: jnp.ndarray,
     optimized_parameter_indices: jnp.ndarray,
@@ -254,7 +255,9 @@ def simulate(
     noise_sparse_indices: dict[str, jnp.ndarray],
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """
-    Run one full simulation pass: carrier, signal, and quantum noise.
+    Run one full simulation pass: carrier, signal, and quantum noise, expressed in JAX.
+
+    `simulate` calls this when `differometor.host` does not cover a setup.
 
     Parameters
     ----------
@@ -473,6 +476,30 @@ def simulate(
     return carrier.T, signal.T, noise.squeeze()
 
 
+SIMULATE_ARGUMENTS = simulate_jax.__code__.co_varnames[: simulate_jax.__code__.co_argcount]
+
+HOST_SIMULATION = True
+"""Run `simulate` in NumPy on the host (see `differometor.host`) where that is supported."""
+
+
+def simulate(*args, **arrays) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
+    """
+    Run one full simulation pass: carrier, signal, and quantum noise.
+
+    Takes the arguments of `simulate_jax`, which `run_build_step` produces, and returns
+    the same results. By default the work is done in NumPy on the host, which avoids
+    almost all XLA compilation; `simulate_jax` is used when `HOST_SIMULATION` is off or
+    the setup uses linking functions other than the identity.
+
+    The host version supports reverse-mode differentiation with respect to
+    `optimized_parameters` (`jax.grad`, `jax.vjp`), not forward mode.
+    """
+    arrays.update(zip(SIMULATE_ARGUMENTS, args))
+    if HOST_SIMULATION and host.supported(LINKING_FUNCTIONS):
+        return host.simulate_host(**arrays)
+    return simulate_jax(**arrays)
+
+
 def sparse_layout(matrix, update_indices, placing_indices=None, carrier_size=None) -> dict[str, jnp.ndarray]:
     """
     Describe which entries of a system matrix can ever be non-zero.
@@ -588,8 +615,7 @@ def run_build_step(
     )
     prepared_arrays = prepare_arrays(*arrays_to_prepare, changing_values, parameters=matrices[0])
 
-    arg_count = simulate.__code__.co_argcount
-    arg_names = simulate.__code__.co_varnames[:arg_count]
+    arg_names = SIMULATE_ARGUMENTS
 
     all_arrays = (*prepared_arrays, *matrices, *carrier_arrays, *signal_arrays, *noise_arrays)
     named = dict(zip(arg_names, all_arrays))
