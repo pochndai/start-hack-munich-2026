@@ -235,6 +235,8 @@ def generate():
     for seed in (1, 2, 3):
         cases[f"random-layout-{seed}"] = (f"A random 3x3 layout (uifo with random_seed={seed}) with random design values.",
                                           revalued(layout(3, random=True, random_seed=seed), drawn, 10 + seed), band)
+    cases["frequency-modulation"] = ("Supplied layout and design values in frequency-modulation mode (the signal is applied to the lasers' frequency, not to the lengths).",
+                                     layout(3, centers=supplied["centers"], boundaries=supplied["boundaries"], values=supplied, mode="frequency_modulation"), band)
     cases["size-2"] = ("A random 2x2 layout with random design values.", revalued(layout(2, random=True, random_seed=4), drawn, 14), band)
     # shortcut: 21 frequencies, because the original needs about 140 MB per frequency at this size; use all 101 on a machine with 64 GB.
     cases["size-4"] = ("A random 4x4 layout with random design values, at 21 frequencies (the original would not fit in 16 GB with 101).",
@@ -362,7 +364,7 @@ Centers are listed row by row (B = beamsplitter, D = directional beamsplitter). 
 
 The `DEVIATION` limits are those of `bench/validate.py`. The loss is `mean(log10(sensitivity))`; there is no public reference for these setups. The scenario `supplied` also has to reproduce the public reference sensitivities and the arrays that `benchmark.py` itself produced with the original code.
 
-A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py <scenario>` answers that: it repeats our calculation with every sparse solve refined to a near-exact result and shows how far ours and the original are from it.
+A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py <scenario>` answers that: it repeats our calculation with every sparse solve refined to a high-accuracy reference (iterative refinement with residuals computed in 100-digit arithmetic, stopped when the correction is below 1e-20 of the solution) and shows how far ours and the original are from it.
 
 ## Add a scenario
 
@@ -374,7 +376,7 @@ A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py 
 ## Not covered yet
 
 - `frequencies-201` and `size-4-full` need a machine with 32 GB and 48 GB for the original; on a smaller one the original is not started and the verdict is `NO_REFERENCE` until its results have been made on a large machine and committed.
-- Frequency-modulation mode, grids larger than 4x4, and a different set of design variables (for example refractive indices or beamsplitter angles).
+- Grids larger than 4x4, and a different set of design variables (for example refractive indices or beamsplitter angles).
 - Setups that are not grids (Voyager, aLIGO, the cavity sweep): `tests/test_host.py` compares our two code paths on them, but they are not timed here.
 """
 

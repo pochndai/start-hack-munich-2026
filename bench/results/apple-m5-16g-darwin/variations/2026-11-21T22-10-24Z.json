@@ -1,0 +1,171 @@
+{
+  "schema": 1,
+  "id": "2026-11-21T22-10-24Z",
+  "git_head": "ba8fd7d28b439c841b1d3bb66cc128fe44308991",
+  "dirty": true,
+  "machine": {
+    "system": "Darwin",
+    "arch": "arm64",
+    "platform": "macOS-26.6-arm64-arm-64bit",
+    "logical_cpus": 10,
+    "cpu_model": "Apple M5",
+    "ram_bytes": 17179869184,
+    "model": "Mac17,3",
+    "performance_cpus": 4,
+    "efficiency_cpus": 6,
+    "machine_id": "apple-m5-16g-darwin"
+  },
+  "limits": {
+    "strategy": "thread-env",
+    "env": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "NPROC": "1"
+    }
+  },
+  "calibrated": true,
+  "tolerances": {
+    "outputs_scale_rel": 1e-06,
+    "log_sensitivity_abs": 1e-06,
+    "gradient_rtol": 0.001,
+    "gradient_floor_scale_rel": 1e-12,
+    "gradient_scale_rel": 1e-06
+  },
+  "judges_log_limit": 1e-05,
+  "cases": [
+    {
+      "case": "frequency-modulation",
+      "description": "Supplied layout and design values in frequency-modulation mode (the signal is applied to the lasers' frequency, not to the lengths).",
+      "case_sha256": "f3cc7ee6e074d061836d99027de9055bd2109ffdbd0d1e476ef2b3780dca640a",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.38990529044531286,
+        "phases": {
+          "imports": 0.22561670816503465,
+          "initialize": 0.002314500045031309,
+          "load": 0.0008073339704424143,
+          "build": 0.038269124925136566,
+          "forward_lower": 0.010606833035126328,
+          "forward_compile": 0.010585250100120902,
+          "forward": 0.022030916064977646,
+          "sensitivity_lower": 0.011304582934826612,
+          "sensitivity_compile": 0.008146082982420921,
+          "sensitivity": 0.00026100012473762035,
+          "gradient_lower": 0.012493333080783486,
+          "gradient_compile": 0.016675290884450078,
+          "gradient": 0.0307067499961704,
+          "host_transfer": 8.758413605391979e-05
+        },
+        "path": "NumPy",
+        "loss": -2.494631402413493,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 687,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 8.293201477928049e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 184,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "frequency-modulation",
+        "case_sha256": "f3cc7ee6e074d061836d99027de9055bd2109ffdbd0d1e476ef2b3780dca640a",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T22:10:23.274524+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 12.945670961169526,
+          "phases": {
+            "imports": 0.189163165865466,
+            "initialize": 0.007654624991118908,
+            "load": 0.0006818340625613928,
+            "build": 0.48210841696709394,
+            "forward_lower": 0.5370125828776509,
+            "forward_compile": 1.2895924590993673,
+            "forward": 6.935971250059083,
+            "sensitivity_lower": 0.02613729191944003,
+            "sensitivity_compile": 0.03861120902001858,
+            "sensitivity": 0.000378916971385479,
+            "gradient_lower": 0.13737216708250344,
+            "gradient_compile": 0.9383392501622438,
+            "gradient": 2.3611162090674043,
+            "host_transfer": 0.0015315830241888762
+          },
+          "path": "original",
+          "loss": -2.494631402364465,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 687,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 6.227922278777594e-12,
+          "scale_rel": 2.365282394385268e-15,
+          "max_elementwise_rel": 3.721643077636903e-14
+        },
+        "signal": {
+          "max_abs": 6.646151169903544e-14,
+          "scale_rel": 1.1289119853262548e-08,
+          "max_elementwise_rel": 1.4580948012285973e-08
+        },
+        "noise": {
+          "max_abs": 9.049541810172794e-18,
+          "scale_rel": 4.586258971417186e-09,
+          "max_elementwise_rel": 5.980178404251251e-09
+        },
+        "sensitivity": {
+          "max_abs": 1.68791760082887e-11,
+          "scale_rel": 2.509673685394023e-10,
+          "max_elementwise_rel": 6.193236891101672e-09,
+          "max_log_abs": 6.193236146145864e-09
+        },
+        "powers": {
+          "max_abs": 8.381903171539307e-09,
+          "scale_rel": 2.417977555406365e-15,
+          "max_elementwise_rel": 6.720075459817903e-15
+        },
+        "gradient": {
+          "max_abs": 0.006651699542999268,
+          "scale_rel": 3.2779607716805394e-11,
+          "max_elementwise_rel": 1.2716502506072133e-07,
+          "floor": 0.0002029218775424541,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 76,
+          "worst_ours": 51.83314314693155,
+          "worst_baseline": 51.83314973829533,
+          "worst_error_over_allowed": 0.00012666912741046132
+        }
+      },
+      "verdict": "PASS"
+    }
+  ]
+}

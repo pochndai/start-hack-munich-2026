@@ -5,13 +5,16 @@
     python tests/refined_solves.py band-20-5000
 
 Our calculation is repeated with every sparse solve A x = b done by iterative
-refinement: solve in double precision, compute the residual b - A x exactly
-(decimal arithmetic, 100 digits), solve for the correction, repeat until the
-correction is below 1e-20 of the solution. That gives the correctly rounded solution of each system,
-so the result is free of solver rounding. The script then prints how far our
-normal result (KLU) and the original's stored result (dense solver,
-bench/reference/variation-<scenario>.npz) are from it, and lists the gradient
-entries on which ours and the original differ by more than 0.1%.
+refinement: solve in double precision, compute the residual b - A x in decimal
+arithmetic with 100 digits, solve for the correction, repeat until the
+correction is below 1e-20 of the solution. That gives a reference far more
+accurate than a plain double-precision solve. It is numerical evidence, not a
+formal proof that every digit is right: the stopping rule bounds the last
+correction, not the error. The script then prints how far our normal result
+(KLU) and the original's stored result (dense solver,
+bench/reference/variation-<scenario>.npz) are from that reference, and lists
+the gradient entries on which ours and the original differ by more than the
+per-entry tolerance of bench/validate.py.
 
 The last column repeats the refined calculation with every design variable
 moved by one unit in its last digit. It shows how much of a difference is

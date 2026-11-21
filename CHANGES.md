@@ -32,7 +32,7 @@ The numbers in the rest of this section are for changes 1–11.
 
 Official benchmark on the same machine, both versions with `PASS` (Apple M5, 10 repeats; a Mac cannot pin to one core, so all cores are used):
 
-| | Original | Ours |
+| | Original | Ours (changes 1–11) |
 | --- | ---: | ---: |
 | Complete first run | 13.1 s | **1.01 s** |
 | Repeat run, once compiled | 6.00 s | 0.054 s |
@@ -43,15 +43,15 @@ The original's Mac times are inflated by a shortage of memory. This Mac has 16 G
 
 Official benchmark (`python benchmark.py --cpus 1`), complete first run, one CPU core:
 
-| Machine | Original | Ours |
+| Machine | Original | Ours (changes 1–11, an earlier state) |
 | --- | ---: | ---: |
-| Intel Xeon Platinum 8468 (Feyer's published baseline) | 44.2 s | not measured yet |
+| Intel Xeon Platinum 8468 (Feyer's published baseline) | 44.2 s | not measured |
 | AMD EPYC 7763, GitHub Codespace, Python 3.12 | does not fit in 16 GB of RAM | **3.2 s** |
 | AMD EPYC 9334, AMD Radeon Cloud, Python 3.12 | 35.6 s | **2.13 s** |
 
 Same Codespace, one core, both versions in the style of `start_here.py` (one compile, one run):
 
-| | Original | Ours |
+| | Original | Ours (changes 1–11) |
 | --- | ---: | ---: |
 | Setup | 1.4 s | 0.5 s |
 | Compile | 22.6 s | 2.4 s |
@@ -346,7 +346,7 @@ Change 4 was measured on Linux only (table above).
   All sixteen are far inside the judges' limit. The two `DEVIATION` verdicts are about single gradient values, described next.
 - **The stricter gradient check of the harness, the values it flags, and which code is right:** `bench/validate.py` compares each gradient entry with the original's. Its tolerance was 0.01% of the entry's own size when this was investigated; the team has since set it to 0.1%, and with that all seven versions get `PASS` from the harness (rerun 21 November, 21:50 UTC). At 0.01% the picture was this. On the supplied setup 192 of 193 entries pass and one does not: entry 158 (`m01.reflectivity`), -4.8901e-04 in ours and -4.8885e-04 in the original, 0.03% apart. On the supplied setup at 20 to 5000 Hz three entries differ, by 0.03%, 0.3% and 0.65%. These entries are tiny next to the largest gradient entry (between one part in 100,000 and one part in a billion), and two of them belong to a laser set to 1e-12 W and the mirror in front of it.
 
-  To find out which code is right, `python tests/refined_solves.py <scenario>` repeats our calculation with every sparse solve refined until it is free of rounding: solve, compute the residual exactly in 100-digit arithmetic, correct, repeat. Results (Apple M5):
+  To find out which code is right, `python tests/refined_solves.py <scenario>` repeats our calculation with every sparse solve refined by iterative refinement: solve, compute the residual in 100-digit arithmetic, correct, repeat until the correction is below 1e-20 of the solution. That gives a reference far more accurate than either code's own solve. It is numerical evidence, not a formal proof that every digit of the reference is right; the last column of the script's output (inputs moved by one unit in the last digit) shows how far the reference itself can be trusted. Results (Apple M5):
 
   | Distance from the refined result | Ours (KLU) | Original (dense solver) |
   | --- | ---: | ---: |

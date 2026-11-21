@@ -32,6 +32,7 @@ Results: one session file per run in `bench/results/<machine>/variations/`, and 
 | `detector-moved` | Supplied layout with the detector moved from boundary 03 to boundary 30. |
 | `frequencies-201` | Supplied setup at 201 frequencies from 800 to 3000 Hz (the original needs about 29 GB). |
 | `frequencies-51` | Supplied setup at 51 frequencies from 800 to 3000 Hz. |
+| `frequency-modulation` | Supplied layout and design values in frequency-modulation mode (the signal is applied to the lasers' frequency, not to the lengths). |
 | `homodyne-readout` | Supplied layout with the detector replaced by a balanced homodyne readout. |
 | `random-layout-1` | A random 3x3 layout (uifo with random_seed=1) with random design values. |
 | `random-layout-2` | A random 3x3 layout (uifo with random_seed=2) with random design values. |
@@ -57,6 +58,7 @@ Results: one session file per run in `bench/results/<machine>/variations/`, and 
 | `detector-moved` | 3x3 | 101 | 800 to 3000 Hz | 193 | detector at 30 | 7 | 4 | 6 / 3 | space modulation | 196 / 71 |
 | `frequencies-201` | 3x3 | 201 | 800 to 3000 Hz | 193 | detector at 03 | 7 | 4 | 6 / 3 | space modulation | 196 / 71 |
 | `frequencies-51` | 3x3 | 51 | 800 to 3000 Hz | 193 | detector at 03 | 7 | 4 | 6 / 3 | space modulation | 196 / 71 |
+| `frequency-modulation` | 3x3 | 101 | 800 to 3000 Hz | 193 | detector at 03 | 7 | 4 | 6 / 3 | space modulation | 132 / 71 |
 | `homodyne-readout` | 3x3 | 101 | 800 to 3000 Hz | 195 | balanced homodyne at 03 | 7 | 4 | 6 / 3 | space modulation | 203 / 73 |
 | `random-layout-1` | 3x3 | 101 | 800 to 3000 Hz | 193 | balanced homodyne at 20 | 6 | 5 | 5 / 4 | space modulation | 202 / 73 |
 | `random-layout-2` | 3x3 | 101 | 800 to 3000 Hz | 192 | detector at 41 | 5 | 6 | 5 / 4 | space modulation | 195 / 71 |
@@ -84,6 +86,7 @@ Centers are listed row by row (B = beamsplitter, D = directional beamsplitter). 
 | `detector-moved` | D B D / B B B / D B B | 01 laser, 02 laser, 03 laser, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 detector, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
 | `frequencies-201` | D B D / B B B / D B B | 01 laser, 02 laser, 03 detector, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 laser, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
 | `frequencies-51` | D B D / B B B / D B B | 01 laser, 02 laser, 03 detector, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 laser, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
+| `frequency-modulation` | D B D / B B B / D B B | 01 laser, 02 laser, 03 detector, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 laser, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
 | `homodyne-readout` | D B D / B B B / D B B | 01 laser, 02 laser, 03 balanced homodyne, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 laser, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
 | `random-layout-1` | B D B / D B B / D B D | 01 squeezer, 02 laser, 03 laser, 10 squeezer, 14 squeezer, 20 balanced homodyne, 24 squeezer, 30 laser, 34 laser, 41 laser, 42 laser, 43 squeezer |
 | `random-layout-2` | B B B / D D D / D B B | 01 squeezer, 02 laser, 03 squeezer, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 squeezer, 34 squeezer, 41 detector, 42 laser, 43 squeezer |
@@ -129,7 +132,7 @@ Centers are listed row by row (B = beamsplitter, D = directional beamsplitter). 
 
 The `DEVIATION` limits are those of `bench/validate.py`. The loss is `mean(log10(sensitivity))`; there is no public reference for these setups. The scenario `supplied` also has to reproduce the public reference sensitivities and the arrays that `benchmark.py` itself produced with the original code.
 
-A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py <scenario>` answers that: it repeats our calculation with every sparse solve refined to a near-exact result and shows how far ours and the original are from it.
+A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py <scenario>` answers that: it repeats our calculation with every sparse solve refined to a high-accuracy reference (iterative refinement with residuals computed in 100-digit arithmetic, stopped when the correction is below 1e-20 of the solution) and shows how far ours and the original are from it.
 
 ## Add a scenario
 
@@ -141,5 +144,5 @@ A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py 
 ## Not covered yet
 
 - `frequencies-201` and `size-4-full` need a machine with 32 GB and 48 GB for the original; on a smaller one the original is not started and the verdict is `NO_REFERENCE` until its results have been made on a large machine and committed.
-- Frequency-modulation mode, grids larger than 4x4, and a different set of design variables (for example refractive indices or beamsplitter angles).
+- Grids larger than 4x4, and a different set of design variables (for example refractive indices or beamsplitter angles).
 - Setups that are not grids (Voyager, aLIGO, the cavity sweep): `tests/test_host.py` compares our two code paths on them, but they are not timed here.

@@ -237,7 +237,7 @@ Each case is a file in `tests/variations/`: a complete setup and its frequencies
 
 Verdicts: `PASS`; `DEVIATION` (inside the judges' limit of 1e-5 in log sensitivity, but some value differs from the original by more than the `validate.py` tolerance; the line names it); `FAIL`; `NO_REFERENCE` (the original could not produce a result). The case `supplied` is the script's check of itself: it must reproduce the public reference sensitivities and the harness's own baseline arrays.
 
-A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py <case>` does: it repeats our calculation with every sparse solve refined to a rounding-free result and prints how far ours and the original are from it. The settings of every case (layout, frequencies, values, seeds, limits) and how to add one are in `tests/variations/README.md`.
+A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py <case>` does: it repeats our calculation with every sparse solve refined to a high-accuracy reference (iterative refinement with residuals computed in 100-digit arithmetic, stopped when the correction is below 1e-20 of the solution) and prints how far ours and the original are from it. The settings of every case (layout, frequencies, values, seeds, limits) and how to add one are in `tests/variations/README.md`.
 
 Things to know when reading the table:
 

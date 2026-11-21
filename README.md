@@ -6,6 +6,38 @@ This repository includes the public simulator source, example data, [challenge P
 
 **Final evaluation uses a different optical setup**, a slight variation of the supplied example. Use this example to develop and benchmark improvements that carry over to other optical setups.
 
+## Our submission
+
+This repository is our entry. The simulator in `differometor/` has been changed for speed; everything below this section is the organizers' original description of the challenge.
+
+Official benchmark, one logical CPU (`--cpus 1`), original and ours on the same machine (AMD EPYC 9334, Linux, Python 3.12, 10 repeats):
+
+| | Original | Ours |
+| --- | ---: | ---: |
+| **Complete first run** (the scored number) | 35.62 s | **0.715 s** |
+| Repeat run, once compiled (median) | 15.67 s | 0.124 s |
+| Official validation | `PASS` | `PASS` |
+| Distance from the public reference in log sensitivity (limit 1e-5) | 5.374e-06 | 5.375e-06 |
+
+Reports and plots of these two runs: [original](benchmarks/amd-epyc-9334-original.json) ([plot](benchmarks/amd-epyc-9334-original.png)) and [ours](benchmarks/amd-epyc-9334-candidate.json) ([plot](benchmarks/amd-epyc-9334-candidate.png)).
+
+Reproduce and check:
+
+```bash
+python3.12 -m venv .venv && source .venv/bin/activate
+python -m pip install -r requirements.txt && python -m pip install -e .
+python benchmark.py --cpus 1 --output benchmark-candidate.json   # the scored run; prints PASS
+python bench/validate.py WORKTREE     # every output and all 193 gradient entries against the original's
+python tests/variations.py            # 19 other setups against the original
+python tests/test_host.py             # our NumPy path against our JAX path
+```
+
+- **What we changed and why:** [CHANGES.md](CHANGES.md), twelve changes, each with its measurement and its correctness evidence.
+- **Other setups:** the final evaluation uses a variation of the example, so [tests/variations/README.md](tests/variations/README.md) lists 19 varied setups (other values, frequencies, layouts, readouts, grid sizes, modulation modes) that are compared with the original code.
+- **Every run we made:** [bench/RUNS.md](bench/RUNS.md).
+- **One added dependency:** `klujax==0.5.3`, a JAX wrapper around the sparse solver KLU, pinned in `requirements.txt` and `pyproject.toml`.
+- **A caveat on timing:** on a busy shared Linux host the same code took between 0.74 and 2.8 s in one session. What we found out about it is in CHANGES.md ("The same on one pinned Linux core").
+
 ## Start here
 
 Use **Python 3.12 on Linux or WSL2**, with **32 GB RAM recommended**. Clone the repository:
@@ -34,7 +66,7 @@ For reproducible measurements, numerical checks and the five-bar plot, use the f
 python benchmark.py --cpus 1 --output benchmark-baseline.json
 ```
 
-`--cpus 1` pins the process to one logical CPU on Linux/WSL. The full benchmark takes roughly 5 minutes for ten repetitions and validation, prints `PASS`, and writes `benchmark-baseline.json` and `benchmark-baseline.png`. Use `--repeats 3` for a shorter run or `--save-arrays baseline.npz` to save outputs. The measured peak memory was about 14.4 GiB.
+`--cpus 1` pins the process to one logical CPU on Linux/WSL. With the organizers' original code the full benchmark takes roughly 5 minutes for ten repetitions and validation (with the code in this repository: a few seconds, and well under 1 GB of memory), prints `PASS`, and writes `benchmark-baseline.json` and `benchmark-baseline.png`. Use `--repeats 3` for a shorter run or `--save-arrays baseline.npz` to save outputs. The measured peak memory was about 14.4 GiB.
 
 ## If setup fails
 
@@ -115,6 +147,6 @@ python plot_timings.py benchmark-baseline.json --output benchmark-baseline.png
 
 ## Public source and license
 
-The simulator is the unmodified public [Artificial Scientist Lab Differometor](https://github.com/artificial-scientist-lab/Differometor) at commit `b0dc7c79e7c72a1b010174f6bdcad01efa51d6ff`. This repository adds the Feyer hackathon brief and benchmarking tools. The full upstream instructions remain in [README.upstream.md](README.upstream.md); the upstream [MIT license](LICENSE) is retained.
+The simulator started from the public [Artificial Scientist Lab Differometor](https://github.com/artificial-scientist-lab/Differometor) at commit `b0dc7c79e7c72a1b010174f6bdcad01efa51d6ff`. In this repository `differometor/` has since been modified for speed; [CHANGES.md](CHANGES.md) lists every change. This repository adds the Feyer hackathon brief and benchmarking tools. The full upstream instructions remain in [README.upstream.md](README.upstream.md); the upstream [MIT license](LICENSE) is retained.
 
 [UPSTREAM.json](UPSTREAM.json) records the original simulator and fixture hashes.
