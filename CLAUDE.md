@@ -46,8 +46,13 @@ These come from the organizers' [README.md](README.md) and the judging criteria.
 
 ## Git
 
-- **Push directly to `main`** unless the request explicitly says otherwise. Do
-  not open a branch or a pull request on your own initiative.
+- **Push directly to `main`** unless the request explicitly says otherwise.
+- **Create a new branch only after asking the user.** This covers every way
+  of making one: `git branch`, `git switch -c`, `git checkout -b`, a new
+  worktree on a new branch, or pushing to a new remote branch. If a branch
+  seems useful (a risky experiment, a change that would break `main` for the
+  others), say why and wait for a yes. The same holds for pull requests: do
+  not open one on your own initiative.
 - `origin` is the team repository (`pochndai/start-hack-munich-2026`).
   `upstream` is the organizers' repository; we cannot push there, and nothing
   of ours belongs there.
