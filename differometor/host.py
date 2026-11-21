@@ -5,7 +5,7 @@ NumPy implementation of the simulation, wrapped as one JAX operation.
 to trace and compile every component function and its derivative before the first
 evaluation. On CPU that compilation is most of a first run. Here the component
 functions, the assembly of the systems and the reverse pass run in NumPy on the host,
-the sparse systems are solved with SciPy's SuperLU, and JAX only sees two callbacks.
+and JAX only sees two callbacks, the sparse solves and a handful of array operations.
 There is almost nothing left to compile.
 
 NumPy cannot differentiate, so two things are done by hand:
@@ -13,7 +13,7 @@ NumPy cannot differentiate, so two things are done by hand:
 - `Dual` carries a value together with its derivatives with respect to the seven
   inputs of a component function. Running the unchanged component functions on `Dual`
   inputs yields their Jacobians (forward-mode differentiation).
-- `_backward` and `_reverse` are the reverse pass of `_assemble` and of the two solves, written out
+- `_backward` is the reverse pass of `_assemble` and of the two solves, written out
   step by step. It follows JAX's convention for complex cotangents: a C-linear map
   y = M x pulls back as x_bar = M^T y_bar (no conjugation), y = conj(x) as
   x_bar = conj(y_bar), and a real input collects Re(y_bar * dy/dx).
@@ -27,9 +27,8 @@ import types
 
 import jax
 import jax.numpy as jnp
+import klujax
 import numpy as np
-from scipy.sparse import csc_matrix
-from scipy.sparse.linalg import splu
 
 from differometor import components
 from differometor.components import F0, FUNCTIONS, H_PLANCK, UNIT_VACUUM
@@ -384,74 +383,17 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
     return s
 
 
-class _Factors:
-    """
-    Sparse LU factors of the signal matrix, one per frequency (SciPy's SuperLU).
-
-    Each matrix is factored once; the factors then serve the solve with the matrix itself,
-    with its transpose and with its conjugate transpose.
-    """
-
-    def __init__(self, layout, values, size):
-        order = layout["transposed_order"]  # column by column, as the CSC format stores it
-        indices = layout["rows"][order].astype(np.int32)
-        pointers = np.concatenate([[0], np.cumsum(np.bincount(layout["columns"], minlength=size))]).astype(np.int32)
-        self.factors = [splu(csc_matrix((entries[order], indices, pointers), shape=(size, size))) for entries in values]
-
-    def solve(self, right_hand_sides, transpose="N"):
-        return np.stack([factor.solve(b, transpose) for factor, b in zip(self.factors, right_hand_sides)])
-
-
-def _weight_products(noise_layout, noise_values, weights):
-    """The terms conj(w[r_e]) and N_e w[k_e] of the noise quadratic form, shape (SV, E, D)."""
-    return np.conj(weights[:, noise_layout["rows"]]), noise_values[:, :, None] * weights[:, noise_layout["columns"]]
-
-
 def _forward(optimized_parameters, a, static):
-    a = _numpy(a)
-    s = _assemble(np.asarray(optimized_parameters), a, static, differentiate=False)
-    factors = _Factors(a["signal_sparse_indices"], s["signal_values"], a["signal_matrix"].shape[0])
-    signal = factors.solve(s["right_hand_side"])
-    weights = factors.solve(s["selections"], "H")
-    left, right = _weight_products(a["noise_sparse_indices"], s["noise_values"], weights)
-    noise = np.sqrt(2 * np.real(np.sum(left * right, axis=1)).T * NOISE_SCALE)
-    return s["carrier"], signal, weights, noise
+    s = _assemble(np.asarray(optimized_parameters), _numpy(a), static, differentiate=False)
+    return s["carrier"], s["signal_values"], s["right_hand_side"], s["selections"], s["noise_values"]
 
 
-def _backward(optimized_parameters, a, carrier, signal, weights, noise, carrier_cotangent, signal_cotangent, noise_cotangent, static):
+def _backward(optimized_parameters, a, carrier, signal, weights, signal_adjoint, weight_adjoint, noise_factor, carrier_cotangent, static):
     """
-    Reverse pass of the whole simulation: cotangents of the three results in, cotangent of
-    `optimized_parameters` out. The signal matrices are factored once more here; the two
-    adjoint solves reuse those factors.
-    """
-    a = _numpy(a)
-    carrier, signal, weights, noise = (np.asarray(x) for x in (carrier, signal, weights, noise))
-    s = _assemble(np.asarray(optimized_parameters), a, static, differentiate=True, carrier=carrier)
-    # noise = sqrt(2 K q): cotangent of q, shape (SV, D).
-    with np.errstate(divide="ignore", invalid="ignore"):
-        noise_factor = (np.asarray(noise_cotangent).reshape(noise.shape) * NOISE_SCALE / noise).T
-    # q = Re(sum_e conj(w[r_e]) N_e w[k_e]): cotangent of the weights.
-    noise_layout = a["noise_sparse_indices"]
-    left, right = _weight_products(noise_layout, s["noise_values"], weights)
-    scaled = noise_factor[:, None, :]
-    weight_cotangent = np.zeros_like(weights)
-    np.add.at(weight_cotangent, (slice(None), noise_layout["columns"]), scaled * left * s["noise_values"][:, :, None])
-    np.add.at(weight_cotangent, (slice(None), noise_layout["rows"]), scaled * np.conj(right))
-    # The two adjoint solves: A^T lambda = x_bar and conj(A) mu = w_bar.
-    factors = _Factors(a["signal_sparse_indices"], s["signal_values"], a["signal_matrix"].shape[0])
-    signal_adjoint = factors.solve(np.asarray(signal_cotangent), "T")
-    weight_adjoint = np.conj(factors.solve(np.conj(weight_cotangent)))
-    return _reverse(optimized_parameters, a, s, carrier, signal, weights, signal_adjoint, weight_adjoint, noise_factor, carrier_cotangent)
-
-
-def _reverse(optimized_parameters, a, s, carrier, signal, weights, signal_adjoint, weight_adjoint, noise_factor, carrier_cotangent):
-    """
-    Reverse pass after the adjoint solves.
+    Reverse pass of the whole simulation.
 
     Parameters
     ----------
-    s :
-        Result of `_assemble` with `differentiate=True`.
     carrier, signal, weights :
         Forward results: carrier solution (CV, CN), signal solution (SV, SN) and noise
         weights (SV, SN, D).
@@ -468,6 +410,10 @@ def _reverse(optimized_parameters, a, s, carrier, signal, weights, signal_adjoin
     -------
     Cotangent of `optimized_parameters`.
     """
+    a = _numpy(a)
+    carrier, signal, weights = np.asarray(carrier), np.asarray(signal), np.asarray(weights)
+    signal_adjoint, weight_adjoint = np.asarray(signal_adjoint), np.asarray(weight_adjoint)
+    s = _assemble(np.asarray(optimized_parameters), a, static, differentiate=True, carrier=carrier)
     value_count, carrier_count, carrier_size = s["value_count"], s["carrier_count"], carrier.shape[1]
     everything = slice(None)
 
@@ -618,19 +564,31 @@ def _shapes(a):
 def _primal(holder, optimized_parameters, a):
     carrier_count, value_count, carrier_size, signal_size, entries, detectors, noise_entries = _shapes(a)
     complex_array = lambda *shape: jax.ShapeDtypeStruct(shape, jnp.complex128)
-    carrier, signal, weights, noise = jax.pure_callback(
+    carrier, signal_values, right_hand_side, selections, noise_values = jax.pure_callback(
         lambda parameters, arrays: _forward(parameters, arrays, holder.static),
         (
             complex_array(carrier_count, carrier_size),
+            complex_array(value_count, entries),
             complex_array(value_count, signal_size),
             complex_array(value_count, signal_size, detectors),
-            jax.ShapeDtypeStruct((detectors, value_count), jnp.float64),
+            complex_array(value_count, noise_entries),
         ),
         optimized_parameters,
         a,
         vmap_method="sequential",
     )
-    return (carrier.T, signal.T, noise.squeeze()), (carrier, signal, weights, noise)
+    layout, noise_layout = a["signal_sparse_indices"], a["noise_sparse_indices"]
+    rows, columns, order = layout["rows"], layout["columns"], layout["transposed_order"]
+    signal = klujax.solve(rows, columns, signal_values, right_hand_side)
+    weights = klujax.solve(columns[order], rows[order], jnp.conjugate(signal_values[:, order]), selections)
+    quadratic_form = jnp.real(
+        jnp.sum(
+            noise_values[:, :, None] * weights[:, noise_layout["columns"]] * jnp.conjugate(weights[:, noise_layout["rows"]]),
+            axis=1,
+        )
+    ).T
+    noise = jnp.sqrt(2 * quadratic_form * NOISE_SCALE)
+    return (carrier.T, signal.T, noise.squeeze()), (carrier, signal_values, signal, weights, noise_values, noise)
 
 
 def _simulate_primal(holder, optimized_parameters, a):
@@ -647,8 +605,26 @@ def _simulate_forward(holder, optimized_parameters, a):
 
 
 def _simulate_backward(holder, residuals, cotangents):
-    optimized_parameters, a, carrier, signal, weights, noise = residuals
+    optimized_parameters, a, carrier, signal_values, signal, weights, noise_values, noise = residuals
     carrier_cotangent, signal_cotangent, noise_cotangent = cotangents
+    layout, noise_layout = a["signal_sparse_indices"], a["noise_sparse_indices"]
+    rows, columns, order = layout["rows"], layout["columns"], layout["transposed_order"]
+    noise_rows, noise_columns = noise_layout["rows"], noise_layout["columns"]
+
+    # noise = sqrt(2 K q): cotangent of q, shape (SV, D).
+    noise_factor = (noise_cotangent.reshape(noise.shape) * NOISE_SCALE / noise).T
+    # q = Re(sum_e conj(w[r_e]) N_e w[k_e]): cotangent of the weights.
+    scaled = noise_factor[:, None, :]
+    weight_cotangent = jnp.zeros_like(weights)
+    weight_cotangent = weight_cotangent.at[:, noise_columns].add(
+        scaled * jnp.conjugate(weights[:, noise_rows]) * noise_values[:, :, None]
+    )
+    weight_cotangent = weight_cotangent.at[:, noise_rows].add(
+        scaled * jnp.conjugate(noise_values[:, :, None] * weights[:, noise_columns])
+    )
+    # The two adjoint solves: A^T lambda = x_bar and conj(A) mu = w_bar.
+    signal_adjoint = klujax.solve(columns[order], rows[order], signal_values[:, order], signal_cotangent.T)
+    weight_adjoint = jnp.conjugate(klujax.solve(rows, columns, signal_values, jnp.conjugate(weight_cotangent)))
     cotangent = jax.pure_callback(
         lambda *arguments: _backward(*arguments, holder.static),
         jax.ShapeDtypeStruct(optimized_parameters.shape, jnp.float64),
@@ -657,10 +633,10 @@ def _simulate_backward(holder, residuals, cotangents):
         carrier,
         signal,
         weights,
-        noise,
+        signal_adjoint,
+        weight_adjoint,
+        noise_factor,
         carrier_cotangent.T,
-        signal_cotangent.T,
-        noise_cotangent.reshape(noise.shape),
         vmap_method="sequential",
     )
     # Only `optimized_parameters` is differentiated here. If a caller differentiates with
