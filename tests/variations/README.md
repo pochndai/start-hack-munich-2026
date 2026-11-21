@@ -117,7 +117,7 @@ Centers are listed row by row (B = beamsplitter, D = directional beamsplitter). 
 | Our gradient against finite differences in four random directions | 2% | `FAIL` |
 | Carrier, readout signal, noise, sensitivity, powers against the original, relative to the largest value | 1e-6 | `DEVIATION` |
 | ln(sensitivity) against the original | 1e-6 | `DEVIATION` |
-| Each gradient entry against the original | 0.01% of the entry, plus 1e-12 of the largest entry | `DEVIATION` |
+| Each gradient entry against the original | 0.1% of the entry, plus 1e-12 of the largest entry | `DEVIATION` |
 
 The `DEVIATION` limits are those of `bench/validate.py`. The loss is `mean(log10(sensitivity))`; there is no public reference for these setups. The scenario `supplied` also has to reproduce the public reference sensitivities and the arrays that `benchmark.py` itself produced with the original code.
 

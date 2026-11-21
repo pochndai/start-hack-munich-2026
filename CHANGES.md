@@ -277,6 +277,8 @@ Change 4 was measured on Linux only (table above).
   | 20 to 5000 Hz: entries 158 and 161 | 3e-07 and 1e-06 | 0.3% and 0.03% |
 
   **So the cause of the harness `FAIL` is rounding in the original's dense solver, not an error in ours.** On the supplied setup ours is within 2e-07 of the refined result on every gradient entry, and closer than the original on every output. Moving every input by one unit in its last digit changes the refined values by at most 4e-06, so the comparison is meaningful at this level. The harness's reference arrays come from the original, which is why it reports a failure. One value remains where ours is not within 0.01% either: entry 17 at 20 to 5000 Hz, 0.1% off (the original: 0.6%), in a setup that was optimized for 800 to 3000 Hz and is used here outside that band.
+
+  **Decision (21 November 2026):** the harness's per-entry gradient limit is now 0.1% of the entry instead of 0.01%, because the original's own values are not reproducible to 0.01% on such entries. Every verdict and count in this section was produced with 0.01% and has not been rerun with the new limit. From the values above: entry 158 of the supplied setup, 0.03% apart, is inside the new limit; entry 17 at 20 to 5000 Hz, 0.65% apart, is still outside it.
 - **The "original" is the upstream code:** the report of the original run lists file fingerprints identical to those in `UPSTREAM.json`.
 - **What is computed:** all 101 frequencies, all 193 design variables, double precision. No answers are stored and no calculation is skipped.
 

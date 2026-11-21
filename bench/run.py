@@ -523,6 +523,9 @@ def cmd_selftest(args):
             {**make("wrong", scale=1.0, perturb=1e-3), "parent": "fast"},
             # One small gradient entry is 50 % off; every large entry is exact.
             {**make("subtle", scale=1.0, scale_gradient_entry=[190, 1.5]), "parent": "fast"},
+            # One mid-sized gradient entry is 0.05 % off (inside the 0.1 % limit), then 0.2 % off (outside).
+            {**make("within", scale=1.0, scale_gradient_entry=[100, 1.0005]), "parent": "fast"},
+            {**make("beyond", scale=1.0, scale_gradient_entry=[100, 1.002]), "parent": "fast"},
         ]}
         results = root / "results"
         options = dict(registry=registry, results_root=results, cooldown=0.0, timeout=60.0)
@@ -575,7 +578,7 @@ def cmd_selftest(args):
             reference = root / "reference" / "baseline_arrays.npz"
             verdicts = {}
             for name, extra in (("slow", {"make_reference": True}), ("fast", {}), ("wrong", {}), ("wrong-allowed", {"allow_deviations": True}),
-                                ("subtle", {}), ("broken", {})):
+                                ("subtle", {}), ("within", {}), ("beyond", {}), ("broken", {})):
                 info = common.resolve_version(name.split("-")[0], registry)
                 record = validate.validate_version(info, registry, machine_dir, limits, timeout=60.0, reference_arrays=reference, **extra)
                 verdicts[name] = record["verdict"]
@@ -583,7 +586,15 @@ def cmd_selftest(args):
                     gradient = record["arrays"]["gradient"]
                     assert gradient["entries_outside"] == 1 and gradient["worst_index"] == 190, "the one wrong gradient entry must be named"
                     assert gradient["scale_rel"] < 1e-8, "this error is invisible relative to the largest entry: only a per-entry check finds it"
-            expected = {"slow": "PASS", "fast": "PASS", "wrong": "FAIL", "wrong-allowed": "PASS_WITH_DEVIATIONS", "subtle": "FAIL", "broken": "FAIL"}
+                if name == "within":
+                    gradient = record["arrays"]["gradient"]
+                    assert 4e-4 < gradient["max_elementwise_rel"] < 6e-4, "the entry must be 0.05 % off"
+                    assert gradient["entries_outside"] == 0, "an entry 0.05 % off is inside the per-entry limit of 0.1 %"
+                if name == "beyond":
+                    gradient = record["arrays"]["gradient"]
+                    assert gradient["entries_outside"] == 1 and gradient["worst_index"] == 100, "an entry 0.2 % off is outside the per-entry limit of 0.1 %"
+            expected = {"slow": "PASS", "fast": "PASS", "wrong": "FAIL", "wrong-allowed": "PASS_WITH_DEVIATIONS", "subtle": "FAIL",
+                        "within": "PASS", "beyond": "FAIL", "broken": "FAIL"}
             assert verdicts == expected, f"validation verdicts {verdicts}, expected {expected}"
             print("validation verdicts: " + ", ".join(f"{key}={value}" for key, value in verdicts.items()))
 

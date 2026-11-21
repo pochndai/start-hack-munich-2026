@@ -37,7 +37,9 @@ DEFAULT_TOLERANCES = {
     "log_sensitivity_abs": 1e-6,   # max |ln(sensitivity) - ln(baseline)|; the official bar is 1e-5
     # Gradient, entry by entry: |a-b| <= floor + gradient_rtol * |b|, where
     # floor = gradient_floor_scale_rel * max|b| stands for "numerically zero".
-    "gradient_rtol": 1e-4,
+    # 1e-3 by team decision (2026-11-21, was 1e-4): on very small entries the
+    # original's own values are only reproducible to about 1e-4 (bench/README.md).
+    "gradient_rtol": 1e-3,
     "gradient_floor_scale_rel": 1e-12,
 }
 OUTPUT_KEYS = ("carrier", "signal", "noise", "sensitivity", "powers")

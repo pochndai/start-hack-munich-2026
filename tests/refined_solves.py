@@ -11,7 +11,7 @@ correction is below 1e-20 of the solution. That gives the correctly rounded solu
 so the result is free of solver rounding. The script then prints how far our
 normal result (KLU) and the original's stored result (dense solver,
 bench/reference/variation-<scenario>.npz) are from it, and lists the gradient
-entries on which ours and the original differ by more than 0.01%.
+entries on which ours and the original differ by more than 0.1%.
 
 The last column repeats the refined calculation with every design variable
 moved by one unit in its last digit. It shows how much of a difference is
@@ -124,15 +124,15 @@ def main():
     relative = lambda a, b: float(np.abs(np.asarray(a) - np.asarray(b)).max() / np.abs(np.asarray(b)).max())
     in_log = lambda a, b: float(np.abs(np.log(np.asarray(a)) - np.log(np.asarray(b))).max())
     gk, ge, go, gm = (np.asarray(g) for g in (ours_gradient, exact_gradient, reference["gradient"], moved_gradient))
-    allowed = 1e-12 * np.abs(ge).max() + 1e-4 * np.abs(ge)  # the gradient tolerance of bench/validate.py
+    allowed = 1e-12 * np.abs(ge).max() + 1e-3 * np.abs(ge)  # the gradient tolerance of bench/validate.py
     outside = lambda g: int((np.abs(g - ge) > allowed).sum())
     print(f"{'distance from the refined result':36}{'ours (KLU)':>12}{'original (dense)':>18}{'refined, inputs moved':>24}")
     print(f"{'readout signal':36}{relative(ours[0], exact[0]):12.1e}{relative(reference['signal'], exact[0]):18.1e}{relative(moved[0], exact[0]):24.1e}")
     print(f"{'noise':36}{relative(ours[1], exact[1]):12.1e}{relative(reference['noise'], exact[1]):18.1e}{relative(moved[1], exact[1]):24.1e}")
     print(f"{'ln(sensitivity)':36}{in_log(ours[2], exact[2]):12.1e}{in_log(reference['sensitivity'], exact[2]):18.1e}{in_log(moved[2], exact[2]):24.1e}")
-    print(f"{'gradient entries off by over 0.01%':36}{outside(gk):12d}{outside(go):18d}{outside(gm):24d}   (of {ge.size})")
-    disputed = np.where(np.abs(gk - go) > 1e-12 * np.abs(go).max() + 1e-4 * np.abs(go))[0]
-    print(f"\nGradient entries on which ours and the original differ by more than 0.01%: {len(disputed)}")
+    print(f"{'gradient entries off by over 0.1%':36}{outside(gk):12d}{outside(go):18d}{outside(gm):24d}   (of {ge.size})")
+    disputed = np.where(np.abs(gk - go) > 1e-12 * np.abs(go).max() + 1e-3 * np.abs(go))[0]
+    print(f"\nGradient entries on which ours and the original differ by more than 0.1%: {len(disputed)}")
     off = lambda g, i: f"{g[i]: .9e} (off by {abs(g[i] - ge[i]) / abs(ge[i]):.0e})"
     for i in disputed:
         print(f"  entry {i} {'.'.join(first(pairs[i]))}: refined {ge[i]: .9e} | ours {off(gk, i)} | original {off(go, i)} | refined with inputs moved {off(gm, i)}")
