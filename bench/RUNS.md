@@ -23,6 +23,7 @@ Raw data: `bench/results/apple-m5-16g-darwin/`. A Mac cannot pin a process to on
 | 20:21 | `run.py full --no-validate`: `v01` to `v07`, 5 shuffled rounds | Medians 8.62, 6.86, 2.68, 1.69, 1.79, 1.27 and 0.50 s | `sessions/2026-11-21T20-21-55Z_full.json`, `SUMMARY.md` |
 | 20:38 | `run.py aa`: `v07` against itself, 5 rounds | Noise floor ±16%; medians 0.66 and 0.69 s, fastest 0.34 s | `sessions/2026-11-21T20-38-57Z_aa.json` |
 | 20:42 | `run.py official --versions v07-numpy-host` | First run 0.66 s, repeat 0.051 s, `PASS` | `official/v07-numpy-host.json` |
+| 21:50 | `validate.py --force` on `v01` to `v07`, after the per-entry gradient tolerance was set to 0.1% | `PASS` for all seven; entry 158 is at 0.29 of the allowed difference | `validation/<version>@<commit>.json` |
 
 Validation was switched off for the timing session because the harness leaves out versions with a `FAIL` verdict; the verdicts themselves were not changed. `SUMMARY.md` is regenerated from the sessions.
 
