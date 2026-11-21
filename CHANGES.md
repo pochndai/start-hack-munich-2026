@@ -4,6 +4,15 @@ Everything we changed in Differometor for the Feyer "Faster Physics" challenge, 
 
 ## Result so far
 
+Official benchmark on the same machine, both versions with `PASS` (Apple M5, 10 repeats; a Mac cannot pin to one core, so all cores are used):
+
+| | Original | Ours |
+| --- | ---: | ---: |
+| Complete first run | 13.1 s | **1.01 s** |
+| Repeat run, once compiled | 6.00 s | 0.054 s |
+
+A second pair of runs on the same Mac gave 10.5 s and 1.28 s. Reports: `benchmarks/mac-original.json` and `benchmarks/mac-candidate.json`.
+
 Official benchmark (`python benchmark.py --cpus 1`), complete first run, one CPU core:
 
 | Machine | Original | Ours |
@@ -169,7 +178,10 @@ Change 4 was measured on Linux only (table above).
 
   The remaining differences come from using a different solver on a matrix that is very sensitive to rounding.
 - **Other parameter values:** at three parameter sets with every design variable moved randomly by about 0.1%, original and ours agree to 2e-07 or better in log sensitivity and 5e-08 or better in the gradient (Apple M5).
-- **Other public setups:** `examples/aligo.py` still passes its own comparison with Finesse (limit 1e-6). `examples/cavity.py` and `examples/voyager.py` run.
+- **All saved arrays of the official benchmark, original against ours (Apple M5, `--save-arrays`):** carrier and powers agree to 2e-15, sensitivity to 6e-09, noise to 4e-08, signal to 1.2e-07, and all 193 gradient values to 9e-08 of the largest one.
+- **A second UIFO setup:** `examples/data/uifo_20_5000.json` has a different layout, two signal detectors, a homodyne detector and 192 design variables, at 101 frequencies from 20 to 5000 Hz. Original and ours agree to 2.5e-07 in log sensitivity and 1e-08 in the gradient. Inside the full signal vector the largest difference is 2.4e-05 of its largest entry; this setup is even more sensitive to solver rounding at low frequencies.
+- **Other public setups, compared array by array with the original:** Voyager, which uses balanced homodyne detection (sensitivity to 5e-11), aLIGO (sensitivity to 1e-11, and it still passes its own comparison with Finesse) and the cavity sweep (1e-14).
+- **The "original" is the upstream code:** the report of the original run lists file fingerprints identical to those in `UPSTREAM.json`.
 - **What is computed:** all 101 frequencies, all 193 design variables, double precision. No answers are stored and no calculation is skipped.
 
 ## Reproduce
@@ -188,6 +200,5 @@ For the original, run the same commands on the `main` branch. It needs about 16 
 
 - No run yet on the contest's Intel Xeon; the Linux numbers are from an AMD EPYC Codespace.
 - The original could not complete the official benchmark on the 16 GB Codespace, so the official-style "before" on that machine is missing.
-- Setups with several detectors or a homodyne detector use code paths the example does not exercise; we have not tested one.
 - The carrier system (286×286, solved once) still uses the dense solver.
 - `cos_arcsin` returns the same values as the complex arcsine route, but beyond total internal reflection its derivative has the opposite sign in the imaginary part. That only matters when a refractive index or an incidence angle is itself a design variable in such a setup; the benchmark's design variables are reflectivity, tuning, squeezing, angle of squeezing, power, mass and length.
