@@ -1,0 +1,1222 @@
+{
+ "description": "Supplied layout and design values in amplitude-modulation mode, which has linking functions, so our code takes its JAX fallback.",
+ "frequencies": [
+  800.0000000000003,
+  810.6442371677355,
+  821.4300990665743,
+  832.3594700555502,
+  843.4342595656514,
+  854.6564024334137,
+  866.0278592389444,
+  877.550616648451,
+  889.2266877613238,
+  901.0581124618377,
+  913.0469577755312,
+  925.1953182303334,
+  937.5053162224857,
+  949.9791023873415,
+  962.6188559750952,
+  975.4267852315112,
+  988.4051277837173,
+  1001.5561510311366,
+  1014.8821525416107,
+  1028.3854604528037,
+  1042.0684338789413,
+  1055.9334633229637,
+  1069.9829710941594,
+  1084.2194117313645,
+  1098.6452724317783,
+  1113.2630734854968,
+  1128.0753687158233,
+  1143.0847459254378,
+  1158.293827348501,
+  1173.7052701087762,
+  1189.321766683849,
+  1205.1460453755149,
+  1221.1808707864336,
+  1237.4290443031239,
+  1253.8934045853816,
+  1270.5768280622124,
+  1287.482229434366,
+  1304.6125621835456,
+  1321.970819088406,
+  1339.5600327474085,
+  1357.3832761086364,
+  1375.443663006657,
+  1393.7443487065336,
+  1412.288530455062,
+  1431.079448039357,
+  1450.12038435286,
+  1469.4146659688836,
+  1488.9656637217836,
+  1508.7767932958695,
+  1528.8515158221396,
+  1549.1933384829674,
+  1569.8058151248274,
+  1590.6925468791756,
+  1611.8571827915887,
+  1633.3034204592757,
+  1655.0350066770777,
+  1677.0557380920463,
+  1699.3694618667498,
+  1721.980076351395,
+  1744.8915317648916,
+  1768.1078308849894,
+  1791.6330297475763,
+  1815.4712383553026,
+  1839.6266213956221,
+  1864.10339896839,
+  1888.9058473231407,
+  1914.0382996061753,
+  1939.505146617596,
+  1965.3108375783968,
+  1991.4598809077775,
+  2017.9568450107924,
+  2044.806359076479,
+  2072.013113886606,
+  2099.581862635189,
+  2127.5174217588938,
+  2155.824671778506,
+  2184.5085581515877,
+  2213.574092136478,
+  2243.0263516677965,
+  2272.870482243584,
+  2303.1116978242653,
+  2333.7552817435485,
+  2364.8065876314645,
+  2396.2710403496794,
+  2428.1541369392485,
+  2460.4614475809967,
+  2493.1986165686476,
+  2526.3713632949302,
+  2559.985483250787,
+  2594.0468490378876,
+  2628.5614113946067,
+  2663.5352002356576,
+  2698.974325705554,
+  2734.884979246101,
+  2771.2734346780658,
+  2808.1460492972624,
+  2845.5092649852077,
+  2883.36960933457,
+  2921.7336967895662,
+  2960.608229801556,
+  3000.0000000000014
+ ],
+ "uifo": {
+  "size": 3,
+  "centers": {
+   "11": [
+    "directional_beamsplitter",
+    "left"
+   ],
+   "12": [
+    "beamsplitter",
+    "right"
+   ],
+   "13": [
+    "directional_beamsplitter",
+    "bottom"
+   ],
+   "21": [
+    "beamsplitter",
+    "right"
+   ],
+   "22": [
+    "beamsplitter",
+    "left"
+   ],
+   "23": [
+    "beamsplitter",
+    "left"
+   ],
+   "31": [
+    "directional_beamsplitter",
+    "top"
+   ],
+   "32": [
+    "beamsplitter",
+    "top"
+   ],
+   "33": [
+    "beamsplitter",
+    "bottom"
+   ]
+  },
+  "boundaries": {
+   "03": "detector",
+   "10": "laser",
+   "14": "laser",
+   "20": "squeezer",
+   "24": "laser",
+   "30": "laser",
+   "34": "squeezer",
+   "01": "laser",
+   "41": "squeezer",
+   "02": "laser",
+   "42": "squeezer",
+   "43": "laser"
+  },
+  "mode": "amplitude_modulation"
+ },
+ "values": {
+  "f": {
+   "frequency": 1
+  },
+  "center11": {},
+  "ml11": {
+   "loss": 5e-06,
+   "reflectivity": 0.9997463205778606,
+   "tuning": 359.9999804110357
+  },
+  "mr11": {
+   "loss": 5e-06,
+   "reflectivity": 4.708206805669005e-07,
+   "tuning": -359.99128230010496
+  },
+  "mt11": {
+   "loss": 5e-06,
+   "reflectivity": 0.9999815172153566,
+   "tuning": 359.99997218663236
+  },
+  "mb11": {
+   "loss": 5e-06,
+   "reflectivity": 0.005058886420801758,
+   "tuning": -358.38007461770127
+  },
+  "ml11sus": {
+   "mass": 0.1360922465030618
+  },
+  "mr11sus": {
+   "mass": 172.34818477849373
+  },
+  "mt11sus": {
+   "mass": 1.4504206625791336
+  },
+  "mb11sus": {
+   "mass": 199.61451139077965
+  },
+  "scenter11ml11": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter11mr11": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter11mt11": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter11mb11": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "center12": {
+   "loss": 5e-06,
+   "reflectivity": 0.8128820839974604,
+   "tuning": -359.99930817810423,
+   "alpha": 45.0
+  },
+  "center12sus": {
+   "mass": 112.4826387824513
+  },
+  "ml12": {
+   "loss": 5e-06,
+   "reflectivity": 1.2661890132802514e-09,
+   "tuning": -359.98911993233133
+  },
+  "mr12": {
+   "loss": 5e-06,
+   "reflectivity": 0.9998673089786779,
+   "tuning": -359.9999778099949
+  },
+  "mt12": {
+   "loss": 5e-06,
+   "reflectivity": 0.9485691849590813,
+   "tuning": 359.9999998584658
+  },
+  "mb12": {
+   "loss": 5e-06,
+   "reflectivity": 0.9999992066810465,
+   "tuning": -359.99999944427697
+  },
+  "ml12sus": {
+   "mass": 194.07264150888298
+  },
+  "mr12sus": {
+   "mass": 145.5708921327935
+  },
+  "mt12sus": {
+   "mass": 0.010040246358939594
+  },
+  "mb12sus": {
+   "mass": 0.010000200600756412
+  },
+  "scenter12ml12": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter12mr12": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter12mt12": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter12mb12": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "center13": {},
+  "ml13": {
+   "loss": 5e-06,
+   "reflectivity": 0.9991071554255289,
+   "tuning": 359.9996207622039
+  },
+  "mr13": {
+   "loss": 5e-06,
+   "reflectivity": 0.9999575227951807,
+   "tuning": -359.99999681899084
+  },
+  "mt13": {
+   "loss": 5e-06,
+   "reflectivity": 0.9999904321759459,
+   "tuning": -359.99999606361405
+  },
+  "mb13": {
+   "loss": 5e-06,
+   "reflectivity": 0.9990442146524147,
+   "tuning": -359.999968924553
+  },
+  "ml13sus": {
+   "mass": 199.69532433949007
+  },
+  "mr13sus": {
+   "mass": 0.010000208859247333
+  },
+  "mt13sus": {
+   "mass": 199.95575482463227
+  },
+  "mb13sus": {
+   "mass": 7.272192109936659
+  },
+  "scenter13ml13": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter13mr13": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter13mt13": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter13mb13": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "center21": {
+   "loss": 5e-06,
+   "reflectivity": 0.8872536369387017,
+   "tuning": -359.95227915455644,
+   "alpha": 45.0
+  },
+  "center21sus": {
+   "mass": 40.064553102254635
+  },
+  "ml21": {
+   "loss": 5e-06,
+   "reflectivity": 0.9999944694072304,
+   "tuning": -359.9999969113785
+  },
+  "mr21": {
+   "loss": 5e-06,
+   "reflectivity": 0.00023367156418153143,
+   "tuning": 359.44320627181344
+  },
+  "mt21": {
+   "loss": 5e-06,
+   "reflectivity": 0.9780747832397907,
+   "tuning": -359.9071600533739
+  },
+  "mb21": {
+   "loss": 5e-06,
+   "reflectivity": 0.002145657446774285,
+   "tuning": 358.70091492873155
+  },
+  "ml21sus": {
+   "mass": 199.83223499734885
+  },
+  "mr21sus": {
+   "mass": 199.1941963810066
+  },
+  "mt21sus": {
+   "mass": 115.96077269275422
+  },
+  "mb21sus": {
+   "mass": 199.9894041521368
+  },
+  "scenter21ml21": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter21mr21": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter21mt21": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter21mb21": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "center22": {
+   "loss": 5e-06,
+   "reflectivity": 4.358567171948022e-07,
+   "tuning": -359.6093106011614,
+   "alpha": 45.0
+  },
+  "center22sus": {
+   "mass": 10.99081481126773
+  },
+  "ml22": {
+   "loss": 5e-06,
+   "reflectivity": 0.9987695712814256,
+   "tuning": 359.96910414275203
+  },
+  "mr22": {
+   "loss": 5e-06,
+   "reflectivity": 2.6353814853196883e-09,
+   "tuning": 359.91040375926343
+  },
+  "mt22": {
+   "loss": 5e-06,
+   "reflectivity": 0.992804847630969,
+   "tuning": 284.456831338572
+  },
+  "mb22": {
+   "loss": 5e-06,
+   "reflectivity": 0.9999999888586341,
+   "tuning": -332.35350881307915
+  },
+  "ml22sus": {
+   "mass": 199.98699352524733
+  },
+  "mr22sus": {
+   "mass": 13.09773187277811
+  },
+  "mt22sus": {
+   "mass": 199.01733783969163
+  },
+  "mb22sus": {
+   "mass": 199.9390057932988
+  },
+  "scenter22ml22": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter22mr22": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter22mt22": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter22mb22": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "center23": {
+   "loss": 5e-06,
+   "reflectivity": 0.0001971754082860021,
+   "tuning": 354.4067714900299,
+   "alpha": 45.0
+  },
+  "center23sus": {
+   "mass": 189.4452780899222
+  },
+  "ml23": {
+   "loss": 5e-06,
+   "reflectivity": 7.31484747349577e-07,
+   "tuning": 359.9999636488727
+  },
+  "mr23": {
+   "loss": 5e-06,
+   "reflectivity": 3.4357372469849064e-06,
+   "tuning": -359.9968195249895
+  },
+  "mt23": {
+   "loss": 5e-06,
+   "reflectivity": 0.999471241752913,
+   "tuning": 359.99999999894294
+  },
+  "mb23": {
+   "loss": 5e-06,
+   "reflectivity": 0.9995384289586999,
+   "tuning": 359.95131584676653
+  },
+  "ml23sus": {
+   "mass": 0.01027013163222088
+  },
+  "mr23sus": {
+   "mass": 0.030253282851044394
+  },
+  "mt23sus": {
+   "mass": 199.99991837002275
+  },
+  "mb23sus": {
+   "mass": 199.91688671799005
+  },
+  "scenter23ml23": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter23mr23": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter23mt23": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter23mb23": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "center31": {},
+  "ml31": {
+   "loss": 5e-06,
+   "reflectivity": 0.08380362244165851,
+   "tuning": 359.5521498284528
+  },
+  "mr31": {
+   "loss": 5e-06,
+   "reflectivity": 0.00036473220758003323,
+   "tuning": -355.11390091954644
+  },
+  "mt31": {
+   "loss": 5e-06,
+   "reflectivity": 0.00037880583352690604,
+   "tuning": 359.9937566818312
+  },
+  "mb31": {
+   "loss": 5e-06,
+   "reflectivity": 0.9113804547897255,
+   "tuning": -308.7627867019232
+  },
+  "ml31sus": {
+   "mass": 180.28350283574076
+  },
+  "mr31sus": {
+   "mass": 1.5308056098182152
+  },
+  "mt31sus": {
+   "mass": 99.776733182446
+  },
+  "mb31sus": {
+   "mass": 154.1601439477683
+  },
+  "scenter31ml31": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter31mr31": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter31mt31": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter31mb31": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "center32": {
+   "loss": 5e-06,
+   "reflectivity": 0.6768936148162142,
+   "tuning": 359.9998882299435,
+   "alpha": 45.0
+  },
+  "center32sus": {
+   "mass": 87.55631911544464
+  },
+  "ml32": {
+   "loss": 5e-06,
+   "reflectivity": 0.006100363369291056,
+   "tuning": 359.99179375355754
+  },
+  "mr32": {
+   "loss": 5e-06,
+   "reflectivity": 0.0037026762038808734,
+   "tuning": 359.9995794789004
+  },
+  "mt32": {
+   "loss": 5e-06,
+   "reflectivity": 0.0007664628146157308,
+   "tuning": -339.619920942599
+  },
+  "mb32": {
+   "loss": 5e-06,
+   "reflectivity": 0.07288919917037341,
+   "tuning": 359.9980161780745
+  },
+  "ml32sus": {
+   "mass": 193.81915771973948
+  },
+  "mr32sus": {
+   "mass": 0.028845150441871296
+  },
+  "mt32sus": {
+   "mass": 199.95408564813255
+  },
+  "mb32sus": {
+   "mass": 0.010113698953618855
+  },
+  "scenter32ml32": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter32mr32": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter32mt32": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter32mb32": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "center33": {
+   "loss": 5e-06,
+   "reflectivity": 0.0005100118464300711,
+   "tuning": 335.977305927927,
+   "alpha": 45.0
+  },
+  "center33sus": {
+   "mass": 1.1498905493872305
+  },
+  "ml33": {
+   "loss": 5e-06,
+   "reflectivity": 7.1499972775498365e-06,
+   "tuning": -356.77337096979204
+  },
+  "mr33": {
+   "loss": 5e-06,
+   "reflectivity": 0.06368589589360696,
+   "tuning": 288.4780109241524
+  },
+  "mt33": {
+   "loss": 5e-06,
+   "reflectivity": 0.9986497737511184,
+   "tuning": -359.99999999876474
+  },
+  "mb33": {
+   "loss": 5e-06,
+   "reflectivity": 0.9907799097156599,
+   "tuning": 359.9965946009427
+  },
+  "ml33sus": {
+   "mass": 150.11915049753128
+  },
+  "mr33sus": {
+   "mass": 73.26032014590785
+  },
+  "mt33sus": {
+   "mass": 173.49270029762457
+  },
+  "mb33sus": {
+   "mass": 198.8003346098643
+  },
+  "scenter33ml33": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter33mr33": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "scenter33mt33": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "scenter33mb33": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "smr11ml12": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "smr12ml13": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "smt21mb11": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "smt22mb12": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "smr21ml22": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "smt23mb13": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "smr22ml23": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "smt31mb21": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "smt32mb22": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "smr31ml32": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "smt33mb23": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "smr32ml33": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "m10": {
+   "loss": 5e-06,
+   "reflectivity": 0.999713343663699,
+   "tuning": 359.9999999373399
+  },
+  "m10sus": {
+   "mass": 198.2132294362992
+  },
+  "boundary10": {
+   "power": 199.9999997935411,
+   "phase": 0.0
+  },
+  "sboundary10m10": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "sm10ml11": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "m14": {
+   "loss": 5e-06,
+   "reflectivity": 0.9999999998276381,
+   "tuning": -359.99694310046027
+  },
+  "m14sus": {
+   "mass": 0.010000468556320792
+  },
+  "boundary14": {
+   "power": 0.007759962643765978,
+   "phase": 0.0
+  },
+  "sboundary14m14": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "smr13m14": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "m20": {
+   "loss": 5e-06,
+   "reflectivity": 1.1485697959651439e-05,
+   "tuning": -359.99971929990727
+  },
+  "m20sus": {
+   "mass": 0.09678540224651341
+  },
+  "boundary20": {
+   "db": 0.002489971115696814,
+   "angle": 75.59677196747563
+  },
+  "sboundary20m20": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "sm20ml21": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "m24": {
+   "loss": 5e-06,
+   "reflectivity": 0.9953982497123609,
+   "tuning": -359.99891133192585
+  },
+  "m24sus": {
+   "mass": 0.010003655420778919
+  },
+  "boundary24": {
+   "power": 3.4426853728632474,
+   "phase": 0.0
+  },
+  "sboundary24m24": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "smr23m24": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "m30": {
+   "loss": 5e-06,
+   "reflectivity": 7.71488841539797e-06,
+   "tuning": -344.40091938583765
+  },
+  "m30sus": {
+   "mass": 47.01290253603227
+  },
+  "boundary30": {
+   "power": 181.82784570382967,
+   "phase": 0.0
+  },
+  "sboundary30m30": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "sm30ml31": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "m34": {
+   "loss": 5e-06,
+   "reflectivity": 3.280114045361915e-05,
+   "tuning": 359.7857220526182
+  },
+  "m34sus": {
+   "mass": 24.97060277948576
+  },
+  "boundary34": {
+   "db": 0.46503372674330035,
+   "angle": 7.819284363197995
+  },
+  "sboundary34m34": {
+   "amplitude": 1.0,
+   "phase": 0
+  },
+  "smr33m34": {
+   "amplitude": 1.0,
+   "phase": 0.0
+  },
+  "m01": {
+   "loss": 5e-06,
+   "reflectivity": 4.513478259671141e-06,
+   "tuning": 356.88298926558014
+  },
+  "m01sus": {
+   "mass": 197.52470565623912
+  },
+  "boundary01": {
+   "power": 1.017926615299493e-12,
+   "phase": 0.0
+  },
+  "sboundary01m01": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "sm01mt11": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "m41": {
+   "loss": 5e-06,
+   "reflectivity": 0.9999999145415202,
+   "tuning": 359.84797533766823
+  },
+  "m41sus": {
+   "mass": 23.79658704370252
+  },
+  "boundary41": {
+   "db": 0.1853787363462382,
+   "angle": 356.64440317121023
+  },
+  "sboundary41m41": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "smb31m41": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "m02": {
+   "loss": 5e-06,
+   "reflectivity": 0.9996320816972248,
+   "tuning": -283.2965584814101
+  },
+  "m02sus": {
+   "mass": 199.20524006388519
+  },
+  "boundary02": {
+   "power": 2.0738525468252105,
+   "phase": 0.0
+  },
+  "sboundary02m02": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "sm02mt12": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "m42": {
+   "loss": 5e-06,
+   "reflectivity": 0.998769996400499,
+   "tuning": -359.99802938039016
+  },
+  "m42sus": {
+   "mass": 0.01023475268762166
+  },
+  "boundary42": {
+   "db": 0.020338846903846186,
+   "angle": 358.353796326795
+  },
+  "sboundary42m42": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "smb32m42": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "m03": {
+   "loss": 5e-06,
+   "reflectivity": 0.0003049467929584451,
+   "tuning": -78.63774402248657
+  },
+  "m03sus": {
+   "mass": 199.84566240212908
+  },
+  "boundary03detector": {},
+  "boundary03noise": {},
+  "sm03mt13": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "m43": {
+   "loss": 5e-06,
+   "reflectivity": 1.097504878200664e-05,
+   "tuning": -271.4743998865187
+  },
+  "m43sus": {
+   "mass": 0.7886539733808827
+  },
+  "boundary43": {
+   "power": 1.427902233620095e-06,
+   "phase": 0.0
+  },
+  "sboundary43m43": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "smb33m43": {
+   "amplitude": 1.0,
+   "phase": 180
+  },
+  "center11_ml11": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center11_mt11": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center11_mr11": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center11_mb11": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center12_ml12": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center12_mt12": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center12_mr12": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center12_mb12": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center13_ml13": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center13_mt13": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center13_mr13": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center13_mb13": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center21_ml21": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center21_mt21": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center21_mr21": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center21_mb21": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center22_ml22": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center22_mt22": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center22_mr22": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center22_mb22": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center23_ml23": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center23_mt23": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center23_mr23": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center23_mb23": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center31_ml31": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center31_mt31": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center31_mr31": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center31_mb31": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center32_ml32": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center32_mt32": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center32_mr32": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center32_mb32": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center33_ml33": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center33_mt33": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center33_mr33": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "center33_mb33": {
+   "length": 1,
+   "refractive_index": 1.0
+  },
+  "mr11_ml12": {
+   "length": 0.10018325168516279,
+   "refractive_index": 1.0
+  },
+  "mr12_ml13": {
+   "length": 3999.999999606433,
+   "refractive_index": 1.0
+  },
+  "mt21_mb11": {
+   "length": 3999.9999974737925,
+   "refractive_index": 1.0
+  },
+  "mt22_mb12": {
+   "length": 3999.9999974737925,
+   "refractive_index": 1.0
+  },
+  "mr21_ml22": {
+   "length": 0.10018325168516279,
+   "refractive_index": 1.0
+  },
+  "mt23_mb13": {
+   "length": 3999.9999974737925,
+   "refractive_index": 1.0
+  },
+  "mr22_ml23": {
+   "length": 3999.999999606433,
+   "refractive_index": 1.0
+  },
+  "mt31_mb21": {
+   "length": 166.42812457311376,
+   "refractive_index": 1.0
+  },
+  "mt32_mb22": {
+   "length": 166.42812457311376,
+   "refractive_index": 1.0
+  },
+  "mr31_ml32": {
+   "length": 0.10018325168516279,
+   "refractive_index": 1.0
+  },
+  "mt33_mb23": {
+   "length": 166.42812457311376,
+   "refractive_index": 1.0
+  },
+  "mr32_ml33": {
+   "length": 3999.999999606433,
+   "refractive_index": 1.0
+  },
+  "boundary10_m10": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "m10_ml11": {
+   "length": 3999.9997926776146,
+   "refractive_index": 1.0
+  },
+  "boundary14_m14": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "mr13_m14": {
+   "length": 0.1004009649875108,
+   "refractive_index": 1.0
+  },
+  "boundary20_m20": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "m20_ml21": {
+   "length": 7.7050761879844964,
+   "refractive_index": 1.0
+  },
+  "boundary24_m24": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "mr23_m24": {
+   "length": 3999.7601427440077,
+   "refractive_index": 1.0
+  },
+  "boundary30_m30": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "m30_ml31": {
+   "length": 0.10226633801347029,
+   "refractive_index": 1.0
+  },
+  "boundary34_m34": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "mr33_m34": {
+   "length": 3998.964843250771,
+   "refractive_index": 1.0
+  },
+  "boundary01_m01": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "m01_mt11": {
+   "length": 3999.1704297341876,
+   "refractive_index": 1.0
+  },
+  "boundary41_m41": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "mb31_m41": {
+   "length": 3999.9988040687826,
+   "refractive_index": 1.0
+  },
+  "boundary02_m02": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "m02_mt12": {
+   "length": 9.345781856682716,
+   "refractive_index": 1.0
+  },
+  "boundary42_m42": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "mb32_m42": {
+   "length": 3999.9756067200733,
+   "refractive_index": 1.0
+  },
+  "m03_mt13": {
+   "length": 3999.6592580210086,
+   "refractive_index": 1.0
+  },
+  "boundary43_m43": {
+   "length": 0,
+   "refractive_index": 1.0
+  },
+  "mb33_m43": {
+   "length": 0.10362858185400296,
+   "refractive_index": 1.0
+  }
+ }
+}

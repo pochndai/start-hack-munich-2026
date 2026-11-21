@@ -193,7 +193,42 @@ speed-up in every past session, and a chart.
 | `results/<machine>/official/` | Official reports and plots for the submission. | yes |
 | `results/<machine>/SUMMARY.md`, `history.csv`, `summary.png` | Generated from the sessions; rebuild with `report.py`. | yes |
 | `reference/baseline_arrays.npz` (+ `.json`) | The correctness oracle and where it came from. | yes |
+| `results/<machine>/variations/<utc>.json`, `VARIATIONS.md` | Runs on other setups (`tests/variations.py`) and the table of the latest one. | yes |
+| `reference/variation-<case>.npz` (+ `.json`) | The original code's results on each other setup, and the one run that made them. | yes |
+| `RUNS.md` | The log of every run, including those made by hand before the harness existed. | yes |
+| `../benchmarks/runs/` | The report files of those hand-made runs. | yes |
 | `.cache/` | Snapshots, per-sample logs, temporary files. | no |
+
+## Other setups
+
+The jury scores "a slight variation of the supplied example", and everything above runs the supplied example only: `benchmark.py` checks its input file's fingerprint and must not be edited. `tests/variations.py` covers the gap. It is a separate script, not part of the harness, because it has to import the simulator and time its phases itself; it does both exactly as `benchmark.py` does, with the same phase names.
+
+```bash
+python tests/variations.py --list           # the cases and what each one changes
+python tests/variations.py                  # run them all
+python tests/variations.py uifo-20-5000     # run some
+```
+
+Each case is a file in `tests/variations/`: a complete setup and its frequencies. For every case the script
+
+1. runs the **original code once** and stores its readout signal, noise, sensitivity, powers and gradient in `reference/variation-<case>.npz`. This happens only when that file is missing (or with `--make-reference <case>`), because the original is slow and needs about 14 GB;
+2. runs the **working tree** in a fresh process and compares it with that reference, using `compare_arrays` and the tolerances of `validate.py`;
+3. checks the working tree's gradient against **finite differences** in four random directions;
+4. writes a session file to `results/<machine>/variations/` and regenerates `results/<machine>/VARIATIONS.md`.
+
+Verdicts: `PASS`; `DEVIATION` (inside the judges' limit of 1e-5 in log sensitivity, but some value differs from the original by more than the `validate.py` tolerance; the line names it); `FAIL`; `NO_REFERENCE` (the original could not produce a result). The case `supplied` is the script's check of itself: it must reproduce the public reference sensitivities and the harness's own baseline arrays.
+
+Things to know when reading the table:
+
+- The time of "ours" is one sample per case. For a clean number, run the script a second time once the references exist: in the session that creates them, our run starts right after the original has filled the memory.
+- The original's time is the single run that made the reference, on whatever machine that was.
+- There is no public reference for these setups, so the loss is `mean(log10(sensitivity))`. Its gradient is the same as the benchmark's, whose loss differs by a constant.
+- A reflectivity within 1e-6 of 0 or 1 is left out of the finite-difference directions, because the square roots in the mirror formulas have no finite slope there. Those gradient entries are still compared with the original's.
+- The cases are our guess at "a slight variation": other values, other frequencies, another layout, another readout, another grid size, and one mode in which our code falls back to its JAX path. Add a case by adding it to `generate()` in the script and running `python tests/variations.py --generate`.
+
+## Runs made by hand
+
+`RUNS.md` lists every run made so far, including the ones from before the harness was used, with the result of each and where its raw data is. Add a row there for any run made outside the harness (another machine, a cloud instance), and put its report in `../benchmarks/runs/`.
 
 ## Versions, baseline and anchor
 

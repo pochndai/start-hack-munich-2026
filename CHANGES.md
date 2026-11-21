@@ -237,8 +237,42 @@ Change 4 was measured on Linux only (table above).
 - **All saved arrays of the official benchmark, original against ours (Apple M5, `--save-arrays`):** carrier and powers agree to 2e-15, sensitivity to 6e-09, noise to 4e-08, signal to 1.2e-07, and all 193 gradient values to 9e-08 of the largest one.
 - **A second UIFO setup:** `examples/data/uifo_20_5000.json` has a different layout, two signal detectors, a homodyne detector and 192 design variables, at 101 frequencies from 20 to 5000 Hz. Original and ours agree to 2.5e-07 in log sensitivity and 1e-08 in the gradient. Inside the full signal vector the largest difference is 2.4e-05 of its largest entry; this setup is even more sensitive to solver rounding at low frequencies.
 - **Other public setups, compared array by array with the original:** Voyager, which uses balanced homodyne detection (sensitivity to 5e-11), aLIGO (sensitivity to 1e-11, and it still passes its own comparison with Finesse) and the cavity sweep (1e-14).
+- **Sixteen other setups, original against ours (`python tests/variations.py`, Apple M5 MacBook Air, 16 GB, thread limits set to one; session `bench/results/apple-m5-16g-darwin/variations/2026-11-21T19-46-00Z.json`):** the jury scores a slight variation of the supplied example, so each case changes something a variation could change. The original code ran once per case and its results are stored in `bench/reference/variation-<case>.npz`. "Sensitivity" is the largest difference from the original in ln(sensitivity) (judges' limit 1e-5). "Gradient outside" counts the entries that differ from the original's by more than 0.01% of their own size. "Finite differences" is the largest relative error of our gradient in four random directions. The times are one first run each on this Mac; the original's are inflated by swapping.
+
+  | Case | What it is | Path | Ours | Original | Sensitivity | Gradient outside | Finite differences | Verdict |
+  | --- | --- | --- | ---: | ---: | ---: | ---: | ---: | --- |
+  | `amplitude-modulation` | Supplied layout and design values in amplitude-modulation mode, which has linking functions, so our code takes its JAX fallback | JAX fallback | 1.00 s | 14.7 s | 8.0e-09 | 0 of 193 | 3.5e-06 | PASS |
+  | `band-20-5000` | Supplied setup at 101 frequencies from 20 to 5000 Hz | NumPy | 0.34 s | 15.0 s | 6.7e-08 | 3 of 193 | 3.6e-04 | DEVIATION |
+  | `boundary-swap` | Supplied layout with the laser at boundary 10 and the squeezer at boundary 20 exchanged | NumPy | 0.33 s | 14.0 s | 2.7e-11 | 0 of 193 | 2.8e-06 | PASS |
+  | `center-swap` | Supplied layout with center 22 made a directional beamsplitter and center 11 a plain one | NumPy | 0.34 s | 16.3 s | 6.3e-11 | 0 of 193 | 8.1e-04 | PASS |
+  | `detector-moved` | Supplied layout with the detector moved from boundary 03 to boundary 30 | NumPy | 0.33 s | 17.6 s | 1.5e-07 | 0 of 193 | 1.0e-04 | PASS |
+  | `frequencies-51` | Supplied setup at 51 frequencies from 800 to 3000 Hz | NumPy | 0.31 s | 7.5 s | 5.8e-08 | 0 of 193 | 3.6e-06 | PASS |
+  | `homodyne-readout` | Supplied layout with the detector replaced by a balanced homodyne readout | NumPy | 0.34 s | 13.7 s | 8.0e-08 | 0 of 195 | 2.8e-05 | PASS |
+  | `random-layout-1` | A random 3x3 layout (uifo with random_seed=1) with random design values | NumPy | 0.34 s | 12.5 s | 3.0e-09 | 0 of 193 | 8.9e-07 | PASS |
+  | `random-layout-2` | A random 3x3 layout (uifo with random_seed=2) with random design values | NumPy | 0.33 s | 12.3 s | 6.6e-10 | 0 of 192 | 9.2e-06 | PASS |
+  | `random-layout-3` | A random 3x3 layout (uifo with random_seed=3) with random design values | NumPy | 0.34 s | 13.0 s | 2.3e-09 | 0 of 197 | 1.5e-07 | PASS |
+  | `size-2` | A random 2x2 layout with random design values | NumPy | 0.30 s | 4.6 s | 2.1e-08 | 0 of 102 | 3.6e-07 | PASS |
+  | `size-4` | A random 4x4 layout with random design values, at 21 frequencies (the original would not fit in 16 GB with 101) | NumPy | 0.32 s | 8.0 s | 1.4e-10 | 0 of 315 | 7.2e-06 | PASS |
+  | `supplied` | The supplied example, unchanged (control: must reproduce benchmark.py) | NumPy | 0.34 s | 12.6 s | 5.8e-08 | 1 of 193 | 9.5e-06 | DEVIATION |
+  | `uifo-20-5000` | The second public setup (other layout, balanced homodyne readout) at 101 frequencies from 20 to 5000 Hz | NumPy | 0.33 s | 14.3 s | 1.7e-07 | 0 of 192 | 1.1e-04 | PASS |
+  | `values-random` | Supplied layout; every design variable drawn at random from the optimizer's ranges | NumPy | 0.34 s | 13.4 s | 7.3e-08 | 0 of 193 | 6.8e-07 | PASS |
+  | `values-shifted` | Supplied layout; every design variable moved by about 1% | NumPy | 0.34 s | 20.5 s | 8.8e-09 | 0 of 193 | 2.1e-07 | PASS |
+
+  All sixteen are far inside the judges' limit. The two `DEVIATION` verdicts are about single gradient values, described next.
+- **The stricter gradient check of the harness, and the values it flags:** `bench/validate.py` compares each gradient entry with the original's at 0.01% of the entry's own size. On the supplied setup 192 of 193 entries pass and one does not: entry 158 (`m01.reflectivity`), -4.8901e-04 in ours and -4.8885e-04 in the original, 0.03% apart. On the supplied setup at 20 to 5000 Hz three entries differ, by 0.03%, 0.3% and 0.65% (`boundary01.power`, `m01.reflectivity`, `mr12.reflectivity`). What these entries have in common: they are tiny next to the largest gradient entry (between one part in 100,000 and one part in a billion), and two of them belong to a laser set to 1e-12 W and the mirror in front of it. The evidence on which code is right:
+  - every version from the first to the last gives the same value for entry 158 to 8 digits, with two different ways of computing the gradient (JAX in changes 1–11, the hand-written reverse pass in change 12), and so did the experiment with a third solver (SciPy SuperLU);
+  - the original's own value for that entry moves in the fifth digit (-4.888495e-04 to -4.888760e-04) when its loss is merely shifted by a constant, which leaves the true gradient unchanged; ours stays the same to 7 digits;
+  - finite differences cannot decide: the loss changes too little along these variables, and the estimates scatter over several orders of magnitude for both codes.
+
+  So the difference looks like rounding in the original's dense solve of a badly scaled matrix, but it is not proven. Because of it, the harness verdict for all seven versions is `FAIL` (official benchmark: `PASS`), and the team has to decide whether to accept it (`bench/VERSIONS.md`, v01).
 - **The "original" is the upstream code:** the report of the original run lists file fingerprints identical to those in `UPSTREAM.json`.
 - **What is computed:** all 101 frequencies, all 193 design variables, double precision. No answers are stored and no calculation is skipped.
+
+## Where the measurements are
+
+- `bench/RUNS.md` lists every run made so far, on every machine, with its result and its raw data.
+- `bench/VERSIONS.md` describes the seven registered versions (`v01` to `v07`) and the baseline; `bench/results/` holds what the harness stored.
+- `benchmarks/runs/` holds the report files of the runs made by hand before the harness was used.
 
 ## Reproduce
 
@@ -250,7 +284,13 @@ python -m pip install -e .
 python benchmark.py --cpus 1 --output benchmark-candidate.json
 ```
 
-For the original, run the same commands on the `main` branch. It needs about 16 GB of free RAM.
+For the original, run the same commands on commit `02ec741`. It needs about 16 GB of free RAM.
+
+```bash
+python bench/validate.py WORKTREE     # official benchmark, then every output and gradient entry against the original's
+python tests/variations.py            # sixteen other setups against the original, with times
+python tests/test_host.py             # NumPy version against the JAX version
+```
 
 ## Known limits
 
@@ -259,4 +299,7 @@ For the original, run the same commands on the `main` branch. It needs about 16 
 - The original could not complete the official benchmark on the 16 GB Codespace, so the official-style "before" on that machine is missing.
 - On the AMD EPYC 9334 both versions have saved reports, but their output arrays were not brought back, so there is no array-by-array comparison from that machine. The comparisons on the Mac and the Codespace cover it.
 - The carrier system (286×286, solved once) still uses the dense solver.
+- A setup in amplitude-modulation mode has linking functions, so our code takes its JAX path there: correct, but 1.0 s where the NumPy path takes 0.34 s (Apple M5, case `amplitude-modulation`).
+- A negative reflectivity gives NaN in ours and a number in the original (seen while taking finite differences with too large a step). Reflectivities are bounded to 0..1 in the optimisation examples, so no setup we know has one.
+- The times of the sixteen other setups are from the Mac only. One-core Linux times for them are missing.
 - `cos_arcsin` returns the same values as the complex arcsine route, but beyond total internal reflection its derivative has the opposite sign in the imaginary part. That only matters when a refractive index or an incidence angle is itself a design variable in such a setup; the benchmark's design variables are reflectivity, tuning, squeezing, angle of squeezing, power, mass and length.

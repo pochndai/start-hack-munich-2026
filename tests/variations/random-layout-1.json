@@ -1,0 +1,3795 @@
+{
+ "description": "A random 3x3 layout (uifo with random_seed=1) with random design values.",
+ "frequencies": [
+  800.0000000000003,
+  810.6442371677355,
+  821.4300990665743,
+  832.3594700555502,
+  843.4342595656514,
+  854.6564024334137,
+  866.0278592389444,
+  877.550616648451,
+  889.2266877613238,
+  901.0581124618377,
+  913.0469577755312,
+  925.1953182303334,
+  937.5053162224857,
+  949.9791023873415,
+  962.6188559750952,
+  975.4267852315112,
+  988.4051277837173,
+  1001.5561510311366,
+  1014.8821525416107,
+  1028.3854604528037,
+  1042.0684338789413,
+  1055.9334633229637,
+  1069.9829710941594,
+  1084.2194117313645,
+  1098.6452724317783,
+  1113.2630734854968,
+  1128.0753687158233,
+  1143.0847459254378,
+  1158.293827348501,
+  1173.7052701087762,
+  1189.321766683849,
+  1205.1460453755149,
+  1221.1808707864336,
+  1237.4290443031239,
+  1253.8934045853816,
+  1270.5768280622124,
+  1287.482229434366,
+  1304.6125621835456,
+  1321.970819088406,
+  1339.5600327474085,
+  1357.3832761086364,
+  1375.443663006657,
+  1393.7443487065336,
+  1412.288530455062,
+  1431.079448039357,
+  1450.12038435286,
+  1469.4146659688836,
+  1488.9656637217836,
+  1508.7767932958695,
+  1528.8515158221396,
+  1549.1933384829674,
+  1569.8058151248274,
+  1590.6925468791756,
+  1611.8571827915887,
+  1633.3034204592757,
+  1655.0350066770777,
+  1677.0557380920463,
+  1699.3694618667498,
+  1721.980076351395,
+  1744.8915317648916,
+  1768.1078308849894,
+  1791.6330297475763,
+  1815.4712383553026,
+  1839.6266213956221,
+  1864.10339896839,
+  1888.9058473231407,
+  1914.0382996061753,
+  1939.505146617596,
+  1965.3108375783968,
+  1991.4598809077775,
+  2017.9568450107924,
+  2044.806359076479,
+  2072.013113886606,
+  2099.581862635189,
+  2127.5174217588938,
+  2155.824671778506,
+  2184.5085581515877,
+  2213.574092136478,
+  2243.0263516677965,
+  2272.870482243584,
+  2303.1116978242653,
+  2333.7552817435485,
+  2364.8065876314645,
+  2396.2710403496794,
+  2428.1541369392485,
+  2460.4614475809967,
+  2493.1986165686476,
+  2526.3713632949302,
+  2559.985483250787,
+  2594.0468490378876,
+  2628.5614113946067,
+  2663.5352002356576,
+  2698.974325705554,
+  2734.884979246101,
+  2771.2734346780658,
+  2808.1460492972624,
+  2845.5092649852077,
+  2883.36960933457,
+  2921.7336967895662,
+  2960.608229801556,
+  3000.0000000000014
+ ],
+ "setup": {
+  "parameters": [
+   [
+    "center11",
+    "loss"
+   ],
+   [
+    "center11",
+    "reflectivity"
+   ],
+   [
+    "center11",
+    "tuning"
+   ],
+   [
+    "center11",
+    "alpha"
+   ],
+   [
+    "center11sus",
+    "mass"
+   ],
+   [
+    "ml11",
+    "loss"
+   ],
+   [
+    "ml11",
+    "reflectivity"
+   ],
+   [
+    "ml11",
+    "tuning"
+   ],
+   [
+    "mr11",
+    "loss"
+   ],
+   [
+    "mr11",
+    "reflectivity"
+   ],
+   [
+    "mr11",
+    "tuning"
+   ],
+   [
+    "mt11",
+    "loss"
+   ],
+   [
+    "mt11",
+    "reflectivity"
+   ],
+   [
+    "mt11",
+    "tuning"
+   ],
+   [
+    "mb11",
+    "loss"
+   ],
+   [
+    "mb11",
+    "reflectivity"
+   ],
+   [
+    "mb11",
+    "tuning"
+   ],
+   [
+    "ml11sus",
+    "mass"
+   ],
+   [
+    "mr11sus",
+    "mass"
+   ],
+   [
+    "mt11sus",
+    "mass"
+   ],
+   [
+    "mb11sus",
+    "mass"
+   ],
+   [
+    "center11_ml11",
+    "length"
+   ],
+   [
+    "center11_ml11",
+    "refractive_index"
+   ],
+   [
+    "center11_mt11",
+    "length"
+   ],
+   [
+    "center11_mt11",
+    "refractive_index"
+   ],
+   [
+    "center11_mr11",
+    "length"
+   ],
+   [
+    "center11_mr11",
+    "refractive_index"
+   ],
+   [
+    "center11_mb11",
+    "length"
+   ],
+   [
+    "center11_mb11",
+    "refractive_index"
+   ],
+   [
+    "ml12",
+    "loss"
+   ],
+   [
+    "ml12",
+    "reflectivity"
+   ],
+   [
+    "ml12",
+    "tuning"
+   ],
+   [
+    "mr12",
+    "loss"
+   ],
+   [
+    "mr12",
+    "reflectivity"
+   ],
+   [
+    "mr12",
+    "tuning"
+   ],
+   [
+    "mt12",
+    "loss"
+   ],
+   [
+    "mt12",
+    "reflectivity"
+   ],
+   [
+    "mt12",
+    "tuning"
+   ],
+   [
+    "mb12",
+    "loss"
+   ],
+   [
+    "mb12",
+    "reflectivity"
+   ],
+   [
+    "mb12",
+    "tuning"
+   ],
+   [
+    "ml12sus",
+    "mass"
+   ],
+   [
+    "mr12sus",
+    "mass"
+   ],
+   [
+    "mt12sus",
+    "mass"
+   ],
+   [
+    "mb12sus",
+    "mass"
+   ],
+   [
+    "center12_ml12",
+    "length"
+   ],
+   [
+    "center12_ml12",
+    "refractive_index"
+   ],
+   [
+    "center12_mt12",
+    "length"
+   ],
+   [
+    "center12_mt12",
+    "refractive_index"
+   ],
+   [
+    "center12_mr12",
+    "length"
+   ],
+   [
+    "center12_mr12",
+    "refractive_index"
+   ],
+   [
+    "center12_mb12",
+    "length"
+   ],
+   [
+    "center12_mb12",
+    "refractive_index"
+   ],
+   [
+    "center13",
+    "loss"
+   ],
+   [
+    "center13",
+    "reflectivity"
+   ],
+   [
+    "center13",
+    "tuning"
+   ],
+   [
+    "center13",
+    "alpha"
+   ],
+   [
+    "center13sus",
+    "mass"
+   ],
+   [
+    "ml13",
+    "loss"
+   ],
+   [
+    "ml13",
+    "reflectivity"
+   ],
+   [
+    "ml13",
+    "tuning"
+   ],
+   [
+    "mr13",
+    "loss"
+   ],
+   [
+    "mr13",
+    "reflectivity"
+   ],
+   [
+    "mr13",
+    "tuning"
+   ],
+   [
+    "mt13",
+    "loss"
+   ],
+   [
+    "mt13",
+    "reflectivity"
+   ],
+   [
+    "mt13",
+    "tuning"
+   ],
+   [
+    "mb13",
+    "loss"
+   ],
+   [
+    "mb13",
+    "reflectivity"
+   ],
+   [
+    "mb13",
+    "tuning"
+   ],
+   [
+    "ml13sus",
+    "mass"
+   ],
+   [
+    "mr13sus",
+    "mass"
+   ],
+   [
+    "mt13sus",
+    "mass"
+   ],
+   [
+    "mb13sus",
+    "mass"
+   ],
+   [
+    "center13_ml13",
+    "length"
+   ],
+   [
+    "center13_ml13",
+    "refractive_index"
+   ],
+   [
+    "center13_mt13",
+    "length"
+   ],
+   [
+    "center13_mt13",
+    "refractive_index"
+   ],
+   [
+    "center13_mr13",
+    "length"
+   ],
+   [
+    "center13_mr13",
+    "refractive_index"
+   ],
+   [
+    "center13_mb13",
+    "length"
+   ],
+   [
+    "center13_mb13",
+    "refractive_index"
+   ],
+   [
+    "ml21",
+    "loss"
+   ],
+   [
+    "ml21",
+    "reflectivity"
+   ],
+   [
+    "ml21",
+    "tuning"
+   ],
+   [
+    "mr21",
+    "loss"
+   ],
+   [
+    "mr21",
+    "reflectivity"
+   ],
+   [
+    "mr21",
+    "tuning"
+   ],
+   [
+    "mt21",
+    "loss"
+   ],
+   [
+    "mt21",
+    "reflectivity"
+   ],
+   [
+    "mt21",
+    "tuning"
+   ],
+   [
+    "mb21",
+    "loss"
+   ],
+   [
+    "mb21",
+    "reflectivity"
+   ],
+   [
+    "mb21",
+    "tuning"
+   ],
+   [
+    "ml21sus",
+    "mass"
+   ],
+   [
+    "mr21sus",
+    "mass"
+   ],
+   [
+    "mt21sus",
+    "mass"
+   ],
+   [
+    "mb21sus",
+    "mass"
+   ],
+   [
+    "center21_ml21",
+    "length"
+   ],
+   [
+    "center21_ml21",
+    "refractive_index"
+   ],
+   [
+    "center21_mt21",
+    "length"
+   ],
+   [
+    "center21_mt21",
+    "refractive_index"
+   ],
+   [
+    "center21_mr21",
+    "length"
+   ],
+   [
+    "center21_mr21",
+    "refractive_index"
+   ],
+   [
+    "center21_mb21",
+    "length"
+   ],
+   [
+    "center21_mb21",
+    "refractive_index"
+   ],
+   [
+    "center22",
+    "loss"
+   ],
+   [
+    "center22",
+    "reflectivity"
+   ],
+   [
+    "center22",
+    "tuning"
+   ],
+   [
+    "center22",
+    "alpha"
+   ],
+   [
+    "center22sus",
+    "mass"
+   ],
+   [
+    "ml22",
+    "loss"
+   ],
+   [
+    "ml22",
+    "reflectivity"
+   ],
+   [
+    "ml22",
+    "tuning"
+   ],
+   [
+    "mr22",
+    "loss"
+   ],
+   [
+    "mr22",
+    "reflectivity"
+   ],
+   [
+    "mr22",
+    "tuning"
+   ],
+   [
+    "mt22",
+    "loss"
+   ],
+   [
+    "mt22",
+    "reflectivity"
+   ],
+   [
+    "mt22",
+    "tuning"
+   ],
+   [
+    "mb22",
+    "loss"
+   ],
+   [
+    "mb22",
+    "reflectivity"
+   ],
+   [
+    "mb22",
+    "tuning"
+   ],
+   [
+    "ml22sus",
+    "mass"
+   ],
+   [
+    "mr22sus",
+    "mass"
+   ],
+   [
+    "mt22sus",
+    "mass"
+   ],
+   [
+    "mb22sus",
+    "mass"
+   ],
+   [
+    "center22_ml22",
+    "length"
+   ],
+   [
+    "center22_ml22",
+    "refractive_index"
+   ],
+   [
+    "center22_mt22",
+    "length"
+   ],
+   [
+    "center22_mt22",
+    "refractive_index"
+   ],
+   [
+    "center22_mr22",
+    "length"
+   ],
+   [
+    "center22_mr22",
+    "refractive_index"
+   ],
+   [
+    "center22_mb22",
+    "length"
+   ],
+   [
+    "center22_mb22",
+    "refractive_index"
+   ],
+   [
+    "center23",
+    "loss"
+   ],
+   [
+    "center23",
+    "reflectivity"
+   ],
+   [
+    "center23",
+    "tuning"
+   ],
+   [
+    "center23",
+    "alpha"
+   ],
+   [
+    "center23sus",
+    "mass"
+   ],
+   [
+    "ml23",
+    "loss"
+   ],
+   [
+    "ml23",
+    "reflectivity"
+   ],
+   [
+    "ml23",
+    "tuning"
+   ],
+   [
+    "mr23",
+    "loss"
+   ],
+   [
+    "mr23",
+    "reflectivity"
+   ],
+   [
+    "mr23",
+    "tuning"
+   ],
+   [
+    "mt23",
+    "loss"
+   ],
+   [
+    "mt23",
+    "reflectivity"
+   ],
+   [
+    "mt23",
+    "tuning"
+   ],
+   [
+    "mb23",
+    "loss"
+   ],
+   [
+    "mb23",
+    "reflectivity"
+   ],
+   [
+    "mb23",
+    "tuning"
+   ],
+   [
+    "ml23sus",
+    "mass"
+   ],
+   [
+    "mr23sus",
+    "mass"
+   ],
+   [
+    "mt23sus",
+    "mass"
+   ],
+   [
+    "mb23sus",
+    "mass"
+   ],
+   [
+    "center23_ml23",
+    "length"
+   ],
+   [
+    "center23_ml23",
+    "refractive_index"
+   ],
+   [
+    "center23_mt23",
+    "length"
+   ],
+   [
+    "center23_mt23",
+    "refractive_index"
+   ],
+   [
+    "center23_mr23",
+    "length"
+   ],
+   [
+    "center23_mr23",
+    "refractive_index"
+   ],
+   [
+    "center23_mb23",
+    "length"
+   ],
+   [
+    "center23_mb23",
+    "refractive_index"
+   ],
+   [
+    "ml31",
+    "loss"
+   ],
+   [
+    "ml31",
+    "reflectivity"
+   ],
+   [
+    "ml31",
+    "tuning"
+   ],
+   [
+    "mr31",
+    "loss"
+   ],
+   [
+    "mr31",
+    "reflectivity"
+   ],
+   [
+    "mr31",
+    "tuning"
+   ],
+   [
+    "mt31",
+    "loss"
+   ],
+   [
+    "mt31",
+    "reflectivity"
+   ],
+   [
+    "mt31",
+    "tuning"
+   ],
+   [
+    "mb31",
+    "loss"
+   ],
+   [
+    "mb31",
+    "reflectivity"
+   ],
+   [
+    "mb31",
+    "tuning"
+   ],
+   [
+    "ml31sus",
+    "mass"
+   ],
+   [
+    "mr31sus",
+    "mass"
+   ],
+   [
+    "mt31sus",
+    "mass"
+   ],
+   [
+    "mb31sus",
+    "mass"
+   ],
+   [
+    "center31_ml31",
+    "length"
+   ],
+   [
+    "center31_ml31",
+    "refractive_index"
+   ],
+   [
+    "center31_mt31",
+    "length"
+   ],
+   [
+    "center31_mt31",
+    "refractive_index"
+   ],
+   [
+    "center31_mr31",
+    "length"
+   ],
+   [
+    "center31_mr31",
+    "refractive_index"
+   ],
+   [
+    "center31_mb31",
+    "length"
+   ],
+   [
+    "center31_mb31",
+    "refractive_index"
+   ],
+   [
+    "center32",
+    "loss"
+   ],
+   [
+    "center32",
+    "reflectivity"
+   ],
+   [
+    "center32",
+    "tuning"
+   ],
+   [
+    "center32",
+    "alpha"
+   ],
+   [
+    "center32sus",
+    "mass"
+   ],
+   [
+    "ml32",
+    "loss"
+   ],
+   [
+    "ml32",
+    "reflectivity"
+   ],
+   [
+    "ml32",
+    "tuning"
+   ],
+   [
+    "mr32",
+    "loss"
+   ],
+   [
+    "mr32",
+    "reflectivity"
+   ],
+   [
+    "mr32",
+    "tuning"
+   ],
+   [
+    "mt32",
+    "loss"
+   ],
+   [
+    "mt32",
+    "reflectivity"
+   ],
+   [
+    "mt32",
+    "tuning"
+   ],
+   [
+    "mb32",
+    "loss"
+   ],
+   [
+    "mb32",
+    "reflectivity"
+   ],
+   [
+    "mb32",
+    "tuning"
+   ],
+   [
+    "ml32sus",
+    "mass"
+   ],
+   [
+    "mr32sus",
+    "mass"
+   ],
+   [
+    "mt32sus",
+    "mass"
+   ],
+   [
+    "mb32sus",
+    "mass"
+   ],
+   [
+    "center32_ml32",
+    "length"
+   ],
+   [
+    "center32_ml32",
+    "refractive_index"
+   ],
+   [
+    "center32_mt32",
+    "length"
+   ],
+   [
+    "center32_mt32",
+    "refractive_index"
+   ],
+   [
+    "center32_mr32",
+    "length"
+   ],
+   [
+    "center32_mr32",
+    "refractive_index"
+   ],
+   [
+    "center32_mb32",
+    "length"
+   ],
+   [
+    "center32_mb32",
+    "refractive_index"
+   ],
+   [
+    "ml33",
+    "loss"
+   ],
+   [
+    "ml33",
+    "reflectivity"
+   ],
+   [
+    "ml33",
+    "tuning"
+   ],
+   [
+    "mr33",
+    "loss"
+   ],
+   [
+    "mr33",
+    "reflectivity"
+   ],
+   [
+    "mr33",
+    "tuning"
+   ],
+   [
+    "mt33",
+    "loss"
+   ],
+   [
+    "mt33",
+    "reflectivity"
+   ],
+   [
+    "mt33",
+    "tuning"
+   ],
+   [
+    "mb33",
+    "loss"
+   ],
+   [
+    "mb33",
+    "reflectivity"
+   ],
+   [
+    "mb33",
+    "tuning"
+   ],
+   [
+    "ml33sus",
+    "mass"
+   ],
+   [
+    "mr33sus",
+    "mass"
+   ],
+   [
+    "mt33sus",
+    "mass"
+   ],
+   [
+    "mb33sus",
+    "mass"
+   ],
+   [
+    "center33_ml33",
+    "length"
+   ],
+   [
+    "center33_ml33",
+    "refractive_index"
+   ],
+   [
+    "center33_mt33",
+    "length"
+   ],
+   [
+    "center33_mt33",
+    "refractive_index"
+   ],
+   [
+    "center33_mr33",
+    "length"
+   ],
+   [
+    "center33_mr33",
+    "refractive_index"
+   ],
+   [
+    "center33_mb33",
+    "length"
+   ],
+   [
+    "center33_mb33",
+    "refractive_index"
+   ],
+   [
+    "mr11_ml12",
+    "length"
+   ],
+   [
+    "mr11_ml12",
+    "refractive_index"
+   ],
+   [
+    "mr12_ml13",
+    "length"
+   ],
+   [
+    "mr12_ml13",
+    "refractive_index"
+   ],
+   [
+    "mt21_mb11",
+    "length"
+   ],
+   [
+    "mt21_mb11",
+    "refractive_index"
+   ],
+   [
+    "mt22_mb12",
+    "length"
+   ],
+   [
+    "mt22_mb12",
+    "refractive_index"
+   ],
+   [
+    "mr21_ml22",
+    "length"
+   ],
+   [
+    "mr21_ml22",
+    "refractive_index"
+   ],
+   [
+    "mt23_mb13",
+    "length"
+   ],
+   [
+    "mt23_mb13",
+    "refractive_index"
+   ],
+   [
+    "mr22_ml23",
+    "length"
+   ],
+   [
+    "mr22_ml23",
+    "refractive_index"
+   ],
+   [
+    "mt31_mb21",
+    "length"
+   ],
+   [
+    "mt31_mb21",
+    "refractive_index"
+   ],
+   [
+    "mt32_mb22",
+    "length"
+   ],
+   [
+    "mt32_mb22",
+    "refractive_index"
+   ],
+   [
+    "mr31_ml32",
+    "length"
+   ],
+   [
+    "mr31_ml32",
+    "refractive_index"
+   ],
+   [
+    "mt33_mb23",
+    "length"
+   ],
+   [
+    "mt33_mb23",
+    "refractive_index"
+   ],
+   [
+    "mr32_ml33",
+    "length"
+   ],
+   [
+    "mr32_ml33",
+    "refractive_index"
+   ],
+   [
+    "m10",
+    "loss"
+   ],
+   [
+    "m10",
+    "reflectivity"
+   ],
+   [
+    "m10",
+    "tuning"
+   ],
+   [
+    "m10sus",
+    "mass"
+   ],
+   [
+    "boundary10",
+    "db"
+   ],
+   [
+    "boundary10",
+    "angle"
+   ],
+   [
+    "boundary10_m10",
+    "length"
+   ],
+   [
+    "boundary10_m10",
+    "refractive_index"
+   ],
+   [
+    "m10_ml11",
+    "length"
+   ],
+   [
+    "m10_ml11",
+    "refractive_index"
+   ],
+   [
+    "m14",
+    "loss"
+   ],
+   [
+    "m14",
+    "reflectivity"
+   ],
+   [
+    "m14",
+    "tuning"
+   ],
+   [
+    "m14sus",
+    "mass"
+   ],
+   [
+    "boundary14",
+    "db"
+   ],
+   [
+    "boundary14",
+    "angle"
+   ],
+   [
+    "boundary14_m14",
+    "length"
+   ],
+   [
+    "boundary14_m14",
+    "refractive_index"
+   ],
+   [
+    "mr13_m14",
+    "length"
+   ],
+   [
+    "mr13_m14",
+    "refractive_index"
+   ],
+   [
+    "m20",
+    "loss"
+   ],
+   [
+    "m20",
+    "reflectivity"
+   ],
+   [
+    "m20",
+    "tuning"
+   ],
+   [
+    "m20sus",
+    "mass"
+   ],
+   [
+    "boundary20bhbs",
+    "loss"
+   ],
+   [
+    "boundary20bhbs",
+    "reflectivity"
+   ],
+   [
+    "boundary20bhbs",
+    "tuning"
+   ],
+   [
+    "boundary20bhbs",
+    "alpha"
+   ],
+   [
+    "boundary20noise",
+    "phase"
+   ],
+   [
+    "boundary20lo_boundary20bhbs",
+    "length"
+   ],
+   [
+    "boundary20lo_boundary20bhbs",
+    "refractive_index"
+   ],
+   [
+    "m20_boundary20bhbs",
+    "length"
+   ],
+   [
+    "m20_boundary20bhbs",
+    "refractive_index"
+   ],
+   [
+    "m20_ml21",
+    "length"
+   ],
+   [
+    "m20_ml21",
+    "refractive_index"
+   ],
+   [
+    "m24",
+    "loss"
+   ],
+   [
+    "m24",
+    "reflectivity"
+   ],
+   [
+    "m24",
+    "tuning"
+   ],
+   [
+    "m24sus",
+    "mass"
+   ],
+   [
+    "boundary24",
+    "db"
+   ],
+   [
+    "boundary24",
+    "angle"
+   ],
+   [
+    "boundary24_m24",
+    "length"
+   ],
+   [
+    "boundary24_m24",
+    "refractive_index"
+   ],
+   [
+    "mr23_m24",
+    "length"
+   ],
+   [
+    "mr23_m24",
+    "refractive_index"
+   ],
+   [
+    "m30",
+    "loss"
+   ],
+   [
+    "m30",
+    "reflectivity"
+   ],
+   [
+    "m30",
+    "tuning"
+   ],
+   [
+    "m30sus",
+    "mass"
+   ],
+   [
+    "boundary30",
+    "power"
+   ],
+   [
+    "boundary30",
+    "phase"
+   ],
+   [
+    "boundary30_m30",
+    "length"
+   ],
+   [
+    "boundary30_m30",
+    "refractive_index"
+   ],
+   [
+    "m30_ml31",
+    "length"
+   ],
+   [
+    "m30_ml31",
+    "refractive_index"
+   ],
+   [
+    "m34",
+    "loss"
+   ],
+   [
+    "m34",
+    "reflectivity"
+   ],
+   [
+    "m34",
+    "tuning"
+   ],
+   [
+    "m34sus",
+    "mass"
+   ],
+   [
+    "boundary34",
+    "power"
+   ],
+   [
+    "boundary34",
+    "phase"
+   ],
+   [
+    "boundary34_m34",
+    "length"
+   ],
+   [
+    "boundary34_m34",
+    "refractive_index"
+   ],
+   [
+    "mr33_m34",
+    "length"
+   ],
+   [
+    "mr33_m34",
+    "refractive_index"
+   ],
+   [
+    "m01",
+    "loss"
+   ],
+   [
+    "m01",
+    "reflectivity"
+   ],
+   [
+    "m01",
+    "tuning"
+   ],
+   [
+    "m01sus",
+    "mass"
+   ],
+   [
+    "boundary01",
+    "db"
+   ],
+   [
+    "boundary01",
+    "angle"
+   ],
+   [
+    "boundary01_m01",
+    "length"
+   ],
+   [
+    "boundary01_m01",
+    "refractive_index"
+   ],
+   [
+    "m01_mt11",
+    "length"
+   ],
+   [
+    "m01_mt11",
+    "refractive_index"
+   ],
+   [
+    "m41",
+    "loss"
+   ],
+   [
+    "m41",
+    "reflectivity"
+   ],
+   [
+    "m41",
+    "tuning"
+   ],
+   [
+    "m41sus",
+    "mass"
+   ],
+   [
+    "boundary41",
+    "power"
+   ],
+   [
+    "boundary41",
+    "phase"
+   ],
+   [
+    "boundary41_m41",
+    "length"
+   ],
+   [
+    "boundary41_m41",
+    "refractive_index"
+   ],
+   [
+    "mb31_m41",
+    "length"
+   ],
+   [
+    "mb31_m41",
+    "refractive_index"
+   ],
+   [
+    "m02",
+    "loss"
+   ],
+   [
+    "m02",
+    "reflectivity"
+   ],
+   [
+    "m02",
+    "tuning"
+   ],
+   [
+    "m02sus",
+    "mass"
+   ],
+   [
+    "boundary02",
+    "power"
+   ],
+   [
+    "boundary02",
+    "phase"
+   ],
+   [
+    "boundary02_m02",
+    "length"
+   ],
+   [
+    "boundary02_m02",
+    "refractive_index"
+   ],
+   [
+    "m02_mt12",
+    "length"
+   ],
+   [
+    "m02_mt12",
+    "refractive_index"
+   ],
+   [
+    "m42",
+    "loss"
+   ],
+   [
+    "m42",
+    "reflectivity"
+   ],
+   [
+    "m42",
+    "tuning"
+   ],
+   [
+    "m42sus",
+    "mass"
+   ],
+   [
+    "boundary42",
+    "power"
+   ],
+   [
+    "boundary42",
+    "phase"
+   ],
+   [
+    "boundary42_m42",
+    "length"
+   ],
+   [
+    "boundary42_m42",
+    "refractive_index"
+   ],
+   [
+    "mb32_m42",
+    "length"
+   ],
+   [
+    "mb32_m42",
+    "refractive_index"
+   ],
+   [
+    "m03",
+    "loss"
+   ],
+   [
+    "m03",
+    "reflectivity"
+   ],
+   [
+    "m03",
+    "tuning"
+   ],
+   [
+    "m03sus",
+    "mass"
+   ],
+   [
+    "boundary03",
+    "power"
+   ],
+   [
+    "boundary03",
+    "phase"
+   ],
+   [
+    "boundary03_m03",
+    "length"
+   ],
+   [
+    "boundary03_m03",
+    "refractive_index"
+   ],
+   [
+    "m03_mt13",
+    "length"
+   ],
+   [
+    "m03_mt13",
+    "refractive_index"
+   ],
+   [
+    "m43",
+    "loss"
+   ],
+   [
+    "m43",
+    "reflectivity"
+   ],
+   [
+    "m43",
+    "tuning"
+   ],
+   [
+    "m43sus",
+    "mass"
+   ],
+   [
+    "boundary43",
+    "db"
+   ],
+   [
+    "boundary43",
+    "angle"
+   ],
+   [
+    "boundary43_m43",
+    "length"
+   ],
+   [
+    "boundary43_m43",
+    "refractive_index"
+   ],
+   [
+    "mb33_m43",
+    "length"
+   ],
+   [
+    "mb33_m43",
+    "refractive_index"
+   ]
+  ],
+  "nodes": {
+   "f": {
+    "component": "frequency",
+    "properties": {
+     "frequency": 1
+    }
+   },
+   "center11": {
+    "component": "beamsplitter",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.12857020276919962,
+     "tuning": -0.5199390431172279,
+     "alpha": 45.0
+    }
+   },
+   "center11sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 120.30365654109526
+    },
+    "target": "center11"
+   },
+   "ml11": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.028689008371944547,
+     "tuning": -253.49321910423174
+    }
+   },
+   "mr11": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.9282110229603695,
+     "tuning": -309.2971851689783
+    }
+   },
+   "mt11": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.12977394939929798,
+     "tuning": 322.79648637007807
+    }
+   },
+   "mb11": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.6218835927963828,
+     "tuning": -94.3249509145505
+    }
+   },
+   "ml11sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 102.2828904604345
+    },
+    "target": "ml11"
+   },
+   "mr11sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 132.5719620738347
+    },
+    "target": "mr11"
+   },
+   "mt11sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 55.06901006406825
+    },
+    "target": "mt11"
+   },
+   "mb11sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 27.6022348926624
+    },
+    "target": "mb11"
+   },
+   "scenter11ml11": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center11_ml11"
+   },
+   "scenter11mr11": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center11_mr11"
+   },
+   "scenter11mt11": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center11_mt11"
+   },
+   "scenter11mb11": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center11_mb11"
+   },
+   "center12": {
+    "component": "directional_beamsplitter",
+    "properties": {}
+   },
+   "ml12": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.7880395945039919,
+     "tuning": 122.65962055378833
+    }
+   },
+   "mr12": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.5123823134831604,
+     "tuning": 228.0502338981538
+    }
+   },
+   "mt12": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.5490752688700263,
+     "tuning": 346.2578202940599
+    }
+   },
+   "mb12": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.20450946133004488,
+     "tuning": 38.685861262964025
+    }
+   },
+   "ml12sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 96.73010313770831
+    },
+    "target": "ml12"
+   },
+   "mr12sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 70.66143826353901
+    },
+    "target": "mr12"
+   },
+   "mt12sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 118.3231448367692
+    },
+    "target": "mt12"
+   },
+   "mb12sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 47.067893321199435
+    },
+    "target": "mb12"
+   },
+   "scenter12ml12": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center12_ml12"
+   },
+   "scenter12mr12": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center12_mr12"
+   },
+   "scenter12mt12": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center12_mt12"
+   },
+   "scenter12mb12": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center12_mb12"
+   },
+   "center13": {
+    "component": "beamsplitter",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.8022026837784835,
+     "tuning": 264.4801573265386,
+     "alpha": 45.0
+    }
+   },
+   "center13sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 25.76064664885793
+    },
+    "target": "center13"
+   },
+   "ml13": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.46707320673827113,
+     "tuning": -160.45567737573288
+    }
+   },
+   "mr13": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.08311699773524239,
+     "tuning": 285.0799019402646
+    }
+   },
+   "mt13": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.42994869204783537,
+     "tuning": -253.66226402729228
+    }
+   },
+   "mb13": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.6733623572759108,
+     "tuning": -214.40445999261252
+    }
+   },
+   "ml13sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 180.28720142684853
+    },
+    "target": "ml13"
+   },
+   "mr13sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 43.43748000113145
+    },
+    "target": "mr13"
+   },
+   "mt13sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 6.6246067286119645
+    },
+    "target": "mt13"
+   },
+   "mb13sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 40.161783142702255
+    },
+    "target": "mb13"
+   },
+   "scenter13ml13": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center13_ml13"
+   },
+   "scenter13mr13": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center13_mr13"
+   },
+   "scenter13mt13": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center13_mt13"
+   },
+   "scenter13mb13": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center13_mb13"
+   },
+   "center21": {
+    "component": "directional_beamsplitter",
+    "properties": {}
+   },
+   "ml21": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.34574787375563953,
+     "tuning": -22.386122335811052
+    }
+   },
+   "mr21": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.9061343388955606,
+     "tuning": 142.09998389013438
+    }
+   },
+   "mt21": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.33932066074244527,
+     "tuning": -347.84840512980156
+    }
+   },
+   "mb21": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.15982369410498098,
+     "tuning": 357.43383038856274
+    }
+   },
+   "ml21sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 91.948598818838
+    },
+    "target": "ml21"
+   },
+   "mr21sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 138.2110728645887
+    },
+    "target": "mr21"
+   },
+   "mt21sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 10.94306559975358
+    },
+    "target": "mt21"
+   },
+   "mb21sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 6.819715286618051
+    },
+    "target": "mb21"
+   },
+   "scenter21ml21": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center21_ml21"
+   },
+   "scenter21mr21": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center21_mr21"
+   },
+   "scenter21mt21": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center21_mt21"
+   },
+   "scenter21mb21": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center21_mb21"
+   },
+   "center22": {
+    "component": "beamsplitter",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.8458901064450575,
+     "tuning": 63.27499728013956,
+     "alpha": 45.0
+    }
+   },
+   "center22sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 61.74886154348036
+    },
+    "target": "center22"
+   },
+   "ml22": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.31737663828133744,
+     "tuning": -295.7491768192209
+    }
+   },
+   "mr22": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.17266960110857543,
+     "tuning": -342.29800262506586
+    }
+   },
+   "mt22": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.8391248483727817,
+     "tuning": -24.261698013721087
+    }
+   },
+   "mb22": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.1272029160585304,
+     "tuning": 172.25774930425828
+    }
+   },
+   "ml22sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 39.13860946076474
+    },
+    "target": "ml22"
+   },
+   "mr22sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 12.39342782733903
+    },
+    "target": "mr22"
+   },
+   "mt22sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 119.6824375437344
+    },
+    "target": "mt22"
+   },
+   "mb22sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 179.15259277073892
+    },
+    "target": "mb22"
+   },
+   "scenter22ml22": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center22_ml22"
+   },
+   "scenter22mr22": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center22_mr22"
+   },
+   "scenter22mt22": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center22_mt22"
+   },
+   "scenter22mb22": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center22_mb22"
+   },
+   "center23": {
+    "component": "beamsplitter",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.026943411384702798,
+     "tuning": 219.69791272200186,
+     "alpha": 45.0
+    }
+   },
+   "center23sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 38.04210164550087
+    },
+    "target": "center23"
+   },
+   "ml23": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.09290142163654713,
+     "tuning": -347.06733433015955
+    }
+   },
+   "mr23": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.292975067012086,
+     "tuning": 163.52045566698106
+    }
+   },
+   "mt23": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.49317895100811693,
+     "tuning": 254.10239600725996
+    }
+   },
+   "mb23": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.21721130352149032,
+     "tuning": -133.06842205672922
+    }
+   },
+   "ml23sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 51.635588962399126
+    },
+    "target": "ml23"
+   },
+   "mr23sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 195.66044445147025
+    },
+    "target": "mr23"
+   },
+   "mt23sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 188.20178887034047
+    },
+    "target": "mt23"
+   },
+   "mb23sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 68.14382830954325
+    },
+    "target": "mb23"
+   },
+   "scenter23ml23": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center23_ml23"
+   },
+   "scenter23mr23": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center23_mr23"
+   },
+   "scenter23mt23": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center23_mt23"
+   },
+   "scenter23mb23": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center23_mb23"
+   },
+   "center31": {
+    "component": "directional_beamsplitter",
+    "properties": {}
+   },
+   "ml31": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.43600150359233103,
+     "tuning": -133.68986733322592
+    }
+   },
+   "mr31": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.7465089173054106,
+     "tuning": -331.19056616170303
+    }
+   },
+   "mt31": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.06743893309202609,
+     "tuning": -69.0929370227475
+    }
+   },
+   "mb31": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.24509405111406402,
+     "tuning": 248.56198682488332
+    }
+   },
+   "ml31sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 148.36400122409327
+    },
+    "target": "ml31"
+   },
+   "mr31sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 109.16333856476612
+    },
+    "target": "mr31"
+   },
+   "mt31sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 132.29848810755698
+    },
+    "target": "mt31"
+   },
+   "mb31sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 138.45889854591792
+    },
+    "target": "mb31"
+   },
+   "scenter31ml31": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center31_ml31"
+   },
+   "scenter31mr31": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center31_mr31"
+   },
+   "scenter31mt31": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center31_mt31"
+   },
+   "scenter31mb31": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center31_mb31"
+   },
+   "center32": {
+    "component": "beamsplitter",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.7810548233983421,
+     "tuning": 307.8018699232916,
+     "alpha": 45.0
+    }
+   },
+   "center32sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 29.955537405808712
+    },
+    "target": "center32"
+   },
+   "ml32": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.6261301577453815,
+     "tuning": -256.5925609583843
+    }
+   },
+   "mr32": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.4431309412846969,
+     "tuning": 206.12504780908702
+    }
+   },
+   "mt32": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.8946977936861454,
+     "tuning": 186.6442709696614
+    }
+   },
+   "mb32": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.03540820408159373,
+     "tuning": -101.22330496768078
+    }
+   },
+   "ml32sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 32.619735915981565
+    },
+    "target": "ml32"
+   },
+   "mr32sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 199.76050950160405
+    },
+    "target": "mr32"
+   },
+   "mt32sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 28.811631372431176
+    },
+    "target": "mt32"
+   },
+   "mb32sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 48.87044542486813
+    },
+    "target": "mb32"
+   },
+   "scenter32ml32": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center32_ml32"
+   },
+   "scenter32mr32": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center32_mr32"
+   },
+   "scenter32mt32": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center32_mt32"
+   },
+   "scenter32mb32": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center32_mb32"
+   },
+   "center33": {
+    "component": "directional_beamsplitter",
+    "properties": {}
+   },
+   "ml33": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.357219712779527,
+     "tuning": -316.16157390538467
+    }
+   },
+   "mr33": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.8703849170433338,
+     "tuning": 98.18022374144948
+    }
+   },
+   "mt33": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.1597482399584199,
+     "tuning": -1.2466384469638658
+    }
+   },
+   "mb33": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.07866975863495762,
+     "tuning": 79.90544689912488
+    }
+   },
+   "ml33sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 46.340328987210555
+    },
+    "target": "ml33"
+   },
+   "mr33sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 7.737400183623053
+    },
+    "target": "mr33"
+   },
+   "mt33sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 23.056348363743563
+    },
+    "target": "mt33"
+   },
+   "mb33sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 111.05697189781802
+    },
+    "target": "mb33"
+   },
+   "scenter33ml33": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center33_ml33"
+   },
+   "scenter33mr33": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "center33_mr33"
+   },
+   "scenter33mt33": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center33_mt33"
+   },
+   "scenter33mb33": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "center33_mb33"
+   },
+   "smr11ml12": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "mr11_ml12"
+   },
+   "smr12ml13": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "mr12_ml13"
+   },
+   "smt21mb11": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "mt21_mb11"
+   },
+   "smt22mb12": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "mt22_mb12"
+   },
+   "smr21ml22": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "mr21_ml22"
+   },
+   "smt23mb13": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "mt23_mb13"
+   },
+   "smr22ml23": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "mr22_ml23"
+   },
+   "smt31mb21": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "mt31_mb21"
+   },
+   "smt32mb22": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "mt32_mb22"
+   },
+   "smr31ml32": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "mr31_ml32"
+   },
+   "smt33mb23": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "mt33_mb23"
+   },
+   "smr32ml33": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "mr32_ml33"
+   },
+   "m10": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.6369806109581821,
+     "tuning": -126.1435340633781
+    }
+   },
+   "m10sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 128.69405138792177
+    },
+    "target": "m10"
+   },
+   "boundary10": {
+    "component": "squeezer",
+    "properties": {
+     "db": 3.520660999086127,
+     "angle": -265.9255151110324
+    }
+   },
+   "sboundary10m10": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "boundary10_m10"
+   },
+   "sm10ml11": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "m10_ml11"
+   },
+   "m14": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.3952682262538195,
+     "tuning": 297.09996098622827
+    }
+   },
+   "m14sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 23.140918140214072
+    },
+    "target": "m14"
+   },
+   "boundary14": {
+    "component": "squeezer",
+    "properties": {
+     "db": 0.8616389056725349,
+     "angle": 44.28145949163323
+    }
+   },
+   "sboundary14m14": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "boundary14_m14"
+   },
+   "smr13m14": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "mr13_m14"
+   },
+   "m20": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.9072551262567928,
+     "tuning": 144.1757216048939
+    }
+   },
+   "m20sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 13.3594818216646
+    },
+    "target": "m20"
+   },
+   "boundary20lo": {
+    "component": "laser",
+    "properties": {
+     "power": 0.01,
+     "phase": 0
+    }
+   },
+   "boundary20bhbs": {
+    "component": "beamsplitter",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.8064014242808892,
+     "tuning": 132.02981091515346,
+     "alpha": 45.0
+    }
+   },
+   "boundary20noise-top": {
+    "component": "qnoised",
+    "properties": {},
+    "target": "boundary20bhbs",
+    "port": "top",
+    "direction": "out",
+    "auxiliary": true
+   },
+   "boundary20noise-right": {
+    "component": "qnoised",
+    "properties": {},
+    "target": "boundary20bhbs",
+    "port": "right",
+    "direction": "out",
+    "auxiliary": true
+   },
+   "boundary20noise": {
+    "component": "qhd",
+    "properties": {
+     "phase": 180.0
+    },
+    "detector1": "boundary20noise-top",
+    "detector2": "boundary20noise-right"
+   },
+   "detector-top": {
+    "component": "detector",
+    "properties": {},
+    "target": "boundary20bhbs",
+    "port": "top",
+    "direction": "out"
+   },
+   "detector-right": {
+    "component": "detector",
+    "properties": {},
+    "target": "boundary20bhbs",
+    "port": "right",
+    "direction": "out"
+   },
+   "sm20boundary20bhbs": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "m20_boundary20bhbs"
+   },
+   "sboundary20loboundary20bhbs": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "boundary20lo_boundary20bhbs"
+   },
+   "sm20ml21": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "m20_ml21"
+   },
+   "m24": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.46494372602737133,
+     "tuning": -324.48768812673546
+    }
+   },
+   "m24sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 160.37717429727707
+    },
+    "target": "m24"
+   },
+   "boundary24": {
+    "component": "squeezer",
+    "properties": {
+     "db": 7.1863421718828295,
+     "angle": 219.33223194099804
+    }
+   },
+   "sboundary24m24": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "boundary24_m24"
+   },
+   "smr23m24": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "mr23_m24"
+   },
+   "m30": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.26725757696269736,
+     "tuning": 208.61317043532802
+    }
+   },
+   "m30sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 49.84163747762207
+    },
+    "target": "m30"
+   },
+   "boundary30": {
+    "component": "laser",
+    "properties": {
+     "power": 27.5790955872786,
+     "phase": 0.0
+    }
+   },
+   "sboundary30m30": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "boundary30_m30"
+   },
+   "sm30ml31": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "m30_ml31"
+   },
+   "m34": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.4978403528910281,
+     "tuning": -154.20805370138112
+    }
+   },
+   "m34sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 121.16052308173798
+    },
+    "target": "m34"
+   },
+   "boundary34": {
+    "component": "laser",
+    "properties": {
+     "power": 120.50074584187888,
+     "phase": 0.0
+    }
+   },
+   "sboundary34m34": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0
+    },
+    "target": "boundary34_m34"
+   },
+   "smr33m34": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 0.0
+    },
+    "target": "mr33_m34"
+   },
+   "m01": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.6225674878326488,
+     "tuning": -102.77789936099298
+    }
+   },
+   "m01sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 146.94057283476351
+    },
+    "target": "m01"
+   },
+   "boundary01": {
+    "component": "squeezer",
+    "properties": {
+     "db": 2.904179516189237,
+     "angle": 215.13126876506686
+    }
+   },
+   "sboundary01m01": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "boundary01_m01"
+   },
+   "sm01mt11": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "m01_mt11"
+   },
+   "m41": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.5532402344263726,
+     "tuning": 124.8093516153852
+    }
+   },
+   "m41sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 103.68029132653425
+    },
+    "target": "m41"
+   },
+   "boundary41": {
+    "component": "laser",
+    "properties": {
+     "power": 51.52363308760775,
+     "phase": 0.0
+    }
+   },
+   "sboundary41m41": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "boundary41_m41"
+   },
+   "smb31m41": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "mb31_m41"
+   },
+   "m02": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.09605540688734415,
+     "tuning": -126.05495319608166
+    }
+   },
+   "m02sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 109.82696849350667
+    },
+    "target": "m02"
+   },
+   "boundary02": {
+    "component": "laser",
+    "properties": {
+     "power": 5.740094452594002,
+     "phase": 0.0
+    }
+   },
+   "sboundary02m02": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "boundary02_m02"
+   },
+   "sm02mt12": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "m02_mt12"
+   },
+   "m42": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.7992644185605979,
+     "tuning": 204.34635503644722
+    }
+   },
+   "m42sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 127.3969097606501
+    },
+    "target": "m42"
+   },
+   "boundary42": {
+    "component": "laser",
+    "properties": {
+     "power": 180.35993201887757,
+     "phase": 0.0
+    }
+   },
+   "sboundary42m42": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "boundary42_m42"
+   },
+   "smb32m42": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "mb32_m42"
+   },
+   "m03": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.29878446694892125,
+     "tuning": 104.30389887310277
+    }
+   },
+   "m03sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 68.0230720481975
+    },
+    "target": "m03"
+   },
+   "boundary03": {
+    "component": "laser",
+    "properties": {
+     "power": 149.9688865848353,
+     "phase": 0.0
+    }
+   },
+   "sboundary03m03": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "boundary03_m03"
+   },
+   "sm03mt13": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "m03_mt13"
+   },
+   "m43": {
+    "component": "mirror",
+    "properties": {
+     "loss": 5e-06,
+     "reflectivity": 0.15324335875809325,
+     "tuning": 271.0487579225115
+    }
+   },
+   "m43sus": {
+    "component": "free_mass",
+    "properties": {
+     "mass": 138.08418540624714
+    },
+    "target": "m43"
+   },
+   "boundary43": {
+    "component": "squeezer",
+    "properties": {
+     "db": 7.446787391543124,
+     "angle": 42.91049844251508
+    }
+   },
+   "sboundary43m43": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "boundary43_m43"
+   },
+   "smb33m43": {
+    "component": "signal",
+    "properties": {
+     "amplitude": 1.0,
+     "phase": 180
+    },
+    "target": "mb33_m43"
+   }
+  },
+  "edges": {
+   "center11_ml11": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "left",
+    "target_port": "left"
+   },
+   "center11_mt11": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "top",
+    "target_port": "left"
+   },
+   "center11_mr11": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "center11_mb11": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "bottom",
+    "target_port": "left"
+   },
+   "center12_ml12": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "top",
+    "target_port": "left"
+   },
+   "center12_mt12": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "center12_mr12": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "bottom",
+    "target_port": "left"
+   },
+   "center12_mb12": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "left",
+    "target_port": "left"
+   },
+   "center13_ml13": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "bottom",
+    "target_port": "left"
+   },
+   "center13_mt13": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "left",
+    "target_port": "left"
+   },
+   "center13_mr13": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "top",
+    "target_port": "left"
+   },
+   "center13_mb13": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "center21_ml21": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "bottom",
+    "target_port": "left"
+   },
+   "center21_mt21": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "left",
+    "target_port": "left"
+   },
+   "center21_mr21": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "top",
+    "target_port": "left"
+   },
+   "center21_mb21": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "center22_ml22": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "top",
+    "target_port": "left"
+   },
+   "center22_mt22": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "center22_mr22": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "bottom",
+    "target_port": "left"
+   },
+   "center22_mb22": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "left",
+    "target_port": "left"
+   },
+   "center23_ml23": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "bottom",
+    "target_port": "left"
+   },
+   "center23_mt23": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "left",
+    "target_port": "left"
+   },
+   "center23_mr23": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "top",
+    "target_port": "left"
+   },
+   "center23_mb23": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "center31_ml31": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "center31_mt31": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "bottom",
+    "target_port": "left"
+   },
+   "center31_mr31": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "left",
+    "target_port": "left"
+   },
+   "center31_mb31": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "top",
+    "target_port": "left"
+   },
+   "center32_ml32": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "left",
+    "target_port": "left"
+   },
+   "center32_mt32": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "top",
+    "target_port": "left"
+   },
+   "center32_mr32": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "center32_mb32": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "bottom",
+    "target_port": "left"
+   },
+   "center33_ml33": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "top",
+    "target_port": "left"
+   },
+   "center33_mt33": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "center33_mr33": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "bottom",
+    "target_port": "left"
+   },
+   "center33_mb33": {
+    "properties": {
+     "length": 1,
+     "refractive_index": 1.0
+    },
+    "source_port": "left",
+    "target_port": "left"
+   },
+   "mr11_ml12": {
+    "properties": {
+     "length": 1791.5487981751503,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mr12_ml13": {
+    "properties": {
+     "length": 2263.2155833489064,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mt21_mb11": {
+    "properties": {
+     "length": 250.3488731917667,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mt22_mb12": {
+    "properties": {
+     "length": 250.3488731917667,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mr21_ml22": {
+    "properties": {
+     "length": 1791.5487981751503,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mt23_mb13": {
+    "properties": {
+     "length": 250.3488731917667,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mr22_ml23": {
+    "properties": {
+     "length": 2263.2155833489064,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mt31_mb21": {
+    "properties": {
+     "length": 2220.3193496822996,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mt32_mb22": {
+    "properties": {
+     "length": 2220.3193496822996,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mr31_ml32": {
+    "properties": {
+     "length": 1791.5487981751503,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mt33_mb23": {
+    "properties": {
+     "length": 2220.3193496822996,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "mr32_ml33": {
+    "properties": {
+     "length": 2263.2155833489064,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary10_m10": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "m10_ml11": {
+    "properties": {
+     "length": 1260.9096066652764,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary14_m14": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "mr13_m14": {
+    "properties": {
+     "length": 3853.5748146004566,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary20lo_boundary20bhbs": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "bottom"
+   },
+   "m20_boundary20bhbs": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "left",
+    "target_port": "left"
+   },
+   "m20_ml21": {
+    "properties": {
+     "length": 575.8065639797885,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary24_m24": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "mr23_m24": {
+    "properties": {
+     "length": 3041.6865209166467,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary30_m30": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "m30_ml31": {
+    "properties": {
+     "length": 1561.6210954332303,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary34_m34": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "mr33_m34": {
+    "properties": {
+     "length": 959.3466510914444,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary01_m01": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "m01_mt11": {
+    "properties": {
+     "length": 1660.5004124935494,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary41_m41": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "mb31_m41": {
+    "properties": {
+     "length": 3917.5284078230147,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary02_m02": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "m02_mt12": {
+    "properties": {
+     "length": 619.7368530594936,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary42_m42": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "mb32_m42": {
+    "properties": {
+     "length": 3022.118061007889,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary03_m03": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "m03_mt13": {
+    "properties": {
+     "length": 1539.2363560069784,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   },
+   "boundary43_m43": {
+    "properties": {
+     "length": 0.0,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "left"
+   },
+   "mb33_m43": {
+    "properties": {
+     "length": 3131.788177026164,
+     "refractive_index": 1.0
+    },
+    "source_port": "right",
+    "target_port": "right"
+   }
+  }
+ }
+}

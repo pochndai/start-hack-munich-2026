@@ -107,11 +107,12 @@ These come from the organizers' [README.md](README.md) and the judging criteria.
   `bench/reference/baseline_arrays.npz` does not exist yet. Do not report it
   as a pass.
 - `validate.py` covers the supplied setup only. For a change that touches the
-  physics formulas, the solver or the build step, also compare with the
-  original code on other public setups (`examples/data/uifo_20_5000.json`,
-  Voyager, aLIGO, the cavity sweep), and at perturbed parameter values. There
-  is no committed script for this yet; record what you compared and the
-  largest difference in `CHANGES.md`.
+  physics formulas, the solver or the build step, also run
+  `python tests/variations.py`. It compares the working tree with the original
+  code on 16 other setups (other values, frequencies, layouts, readouts and
+  grid sizes) and checks the gradient against finite differences; see "Other
+  setups" in `bench/README.md`. Commit the session it writes under
+  `bench/results/` and quote its table in `CHANGES.md`.
 - The original code is commit `02ec741` (version `v00-baseline`).
 
 ## Task: measuring speed

@@ -1,0 +1,47 @@
+{
+  "case": "amplitude-modulation",
+  "case_sha256": "ff291dc31dd76131ecb4cd6d2695c461ad6dfac21867775c7f44ad0f4102b996",
+  "source_version": "v00-baseline",
+  "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+  "created_utc": "2026-11-21T19:41:06.617038+00:00",
+  "machine_id": "apple-m5-16g-darwin",
+  "limits": {
+    "strategy": "thread-env",
+    "env": {
+      "OMP_NUM_THREADS": "1",
+      "OPENBLAS_NUM_THREADS": "1",
+      "MKL_NUM_THREADS": "1",
+      "NUMEXPR_NUM_THREADS": "1",
+      "VECLIB_MAXIMUM_THREADS": "1",
+      "NPROC": "1"
+    }
+  },
+  "run": {
+    "first_run_total": 14.691328044049442,
+    "phases": {
+      "imports": 0.15839833300560713,
+      "initialize": 0.00641087512485683,
+      "load": 0.00034208386205136776,
+      "build": 0.45352387498132885,
+      "forward_lower": 0.5531508331187069,
+      "forward_compile": 1.547298749908805,
+      "forward": 5.870296875014901,
+      "sensitivity_lower": 0.028688708785921335,
+      "sensitivity_compile": 0.035148541908711195,
+      "sensitivity": 0.00025441707111895084,
+      "gradient_lower": 0.14481466705910861,
+      "gradient_compile": 0.928520750021562,
+      "gradient": 4.959422167157754,
+      "host_transfer": 0.005057167029008269
+    },
+    "path": "original",
+    "loss": -6.693528442955779,
+    "frequencies": 101,
+    "design_variables": 193,
+    "signal_system_size": 687,
+    "detector_ports": 1,
+    "finite": true,
+    "positive_sensitivity": true,
+    "gradient_nonzero": true
+  }
+}
