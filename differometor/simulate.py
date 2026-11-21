@@ -20,7 +20,6 @@ Conventions used throughout:
 import jax
 from time import time
 import numpy as np
-import klujax
 import jax.numpy as jnp
 from jax import lax, vmap, jit
 
@@ -343,6 +342,8 @@ def simulate_jax(
     - Conjugation and block manipulation follow the conventions used for upper and lower
       sidebands in frequency-domain interferometer models.
     """
+    import klujax  # only this fallback needs it; `differometor.host` solves with SciPy
+
     # Insert optimized parameter values into the base parameter row.
     parameters = parameters.at[[0], optimized_parameter_indices].set(
         optimized_parameters[optimized_value_indices]
