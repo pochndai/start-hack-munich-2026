@@ -41,6 +41,9 @@ DEFAULT_TOLERANCES = {
     # original's own values are only reproducible to about 1e-4 (bench/README.md).
     "gradient_rtol": 1e-3,
     "gradient_floor_scale_rel": 1e-12,
+    # Gradient as a whole: max|a-b| / max|b|. Binds for the large entries, which the
+    # per-entry limit above would let be 0.1 % wrong.
+    "gradient_scale_rel": 1e-6,
 }
 OUTPUT_KEYS = ("carrier", "signal", "noise", "sensitivity", "powers")
 INPUT_KEYS = ("parameters", "frequencies")
@@ -75,8 +78,8 @@ def compare_arrays(candidate_path, reference_path, tolerances):
                 "max_elementwise_rel": float((difference[significant] / np.abs(theirs[significant])).max()) if significant.any() else 0.0,
             }
             if key == "gradient":
-                # A tolerance relative to the largest entry would leave small entries
-                # unchecked: the gradient spans many orders of magnitude.
+                # A tolerance relative to the largest entry alone would leave small entries
+                # unchecked: the gradient spans many orders of magnitude. Both are applied.
                 allowed = floor + tolerances["gradient_rtol"] * np.abs(theirs)
                 excess = (difference / np.maximum(allowed, 1e-300)).ravel()
                 worst = int(np.argmax(excess))
@@ -90,6 +93,8 @@ def compare_arrays(candidate_path, reference_path, tolerances):
                         f"gradient: {entry['entries_outside']} of {entry['entries']} entries outside "
                         f"|a-b| <= {floor:.1e} + {tolerances['gradient_rtol']:.0e}*|baseline|; worst is entry {worst}: "
                         f"{entry['worst_ours']:.6e} vs baseline {entry['worst_baseline']:.6e}")
+                if entry["scale_rel"] > tolerances["gradient_scale_rel"]:
+                    deviations.append(f"gradient: scale-relative difference {entry['scale_rel']:.3e} > {tolerances['gradient_scale_rel']:.1e}")
             elif entry["scale_rel"] > tolerances["outputs_scale_rel"]:
                 deviations.append(f"{key}: scale-relative difference {entry['scale_rel']:.3e} > {tolerances['outputs_scale_rel']:.1e}")
             if key == "sensitivity" and (ours > 0).all():
@@ -236,7 +241,7 @@ def print_record(record):
             name = f" ({entry['worst_parameter']})" if entry.get("worst_parameter") else ""
             print(f"  {key:12s} vs baseline: {entry['entries_outside']} of {entry['entries']} entries outside tolerance, worst relative error "
                   f"{entry['max_elementwise_rel']:.2e}; closest to the limit: entry {entry['worst_index']}{name} at "
-                  f"{entry['worst_error_over_allowed']:.2g}x the allowed error")
+                  f"{entry['worst_error_over_allowed']:.2g}x the allowed error; scale-relative {entry['scale_rel']:.2e}")
             continue
         extra = f", log {entry['max_log_abs']:.2e}" if "max_log_abs" in entry else ""
         print(f"  {key:12s} vs baseline: scale-relative {entry['scale_rel']:.2e}, worst element {entry['max_elementwise_rel']:.2e}{extra}")

@@ -148,6 +148,7 @@ Tolerances:
 | --- | --- | --- |
 | `gradient_rtol` | `1e-3` | Every gradient entry on its own: `abs(a - b) <= floor + gradient_rtol * abs(b)`. |
 | `gradient_floor_scale_rel` | `1e-12` | `floor` = this × the largest baseline gradient entry: what counts as numerically zero. |
+| `gradient_scale_rel` | `1e-6` | The gradient as a whole: largest difference relative to the largest baseline entry. |
 | `log_sensitivity_abs` | `1e-6` | Largest `abs(ln(sensitivity) - ln(baseline))`. The official bar against the public reference is `1e-5`, and the baseline already uses `5.4e-6` of it. |
 | `outputs_scale_rel` | `1e-6` | Carrier, signal, noise, sensitivity, powers: largest difference relative to the array's largest magnitude. |
 
@@ -155,12 +156,23 @@ The gradient is checked entry by entry because its entries span many orders of
 magnitude (norm about 7e4, `mb11.tuning` about 8e-5). A tolerance relative to
 the largest entry would let the small ones be wrong by any factor.
 
+The per-entry limit alone would in turn let the largest entries be wrong by
+0.1%, and those decide the direction an optimizer moves in. `gradient_scale_rel`
+covers them: it is the stricter of the two for every entry larger than a
+thousandth of the largest one, and the per-entry limit is the stricter one
+below that. A gradient has to meet both.
+
 `gradient_rtol` was `1e-4` until 21 November 2026 and was raised to `1e-3` by
 team decision. On very small gradient entries the original's own values are
 only reproducible to about `1e-4`, so the stricter limit failed correct
 versions (see "The one gradient value" in `VERSIONS.md`). A stored record
 keeps the tolerances it was judged with in its `"tolerances"` field and is not
 judged again on its own: rerun the version with `--force`.
+
+`gradient_scale_rel` was added on the same day at `1e-6`, the value already
+used for the other arrays. The largest value measured so far is 2.7e-07
+(scenario `band-20-5000`, Apple M5, session
+`results/apple-m5-16g-darwin/variations/2026-11-21T19-46-00Z.json`).
 
 The other three numbers are first guesses. A reordered but correct calculation can
 differ from the baseline by rounding noise larger than a guess; the printed
