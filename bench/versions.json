@@ -1,0 +1,14 @@
+{
+  "baseline": "v00-baseline",
+  "anchor": null,
+  "tolerances": {},
+  "versions": [
+    {
+      "name": "v00-baseline",
+      "ref": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+      "parent": null,
+      "summary": "Unmodified upstream Differometor (b0dc7c7) with the official benchmark.py, as shipped by the organizers.",
+      "enabled": true
+    }
+  ]
+}
