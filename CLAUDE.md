@@ -51,8 +51,18 @@ These come from the organizers' [README.md](README.md) and the judging criteria.
 - `origin` is the team repository (`pochndai/start-hack-munich-2026`).
   `upstream` is the organizers' repository; we cannot push there, and nothing
   of ours belongs there.
-- Pull before starting and before pushing; others push to `main` too. Never
-  force-push `main` and never rewrite pushed history.
+- **Pull as often as possible.** Several of us are coding on `main` in
+  parallel, so a checkout goes stale within minutes. Run
+  `git pull origin main` when starting a session, before starting each new
+  task, before reading files you are about to change, before every commit and
+  again right before pushing. A pull costs seconds; working on a stale
+  checkout costs a merge conflict or a measurement of the wrong code.
+- Push as soon as a change is committed and checked, so the others can pull
+  it. Do not let finished commits sit locally.
+- If a pull brings in changes to files you are working on, read what changed
+  before continuing, and say so. Resolve conflicts by keeping both sides'
+  intent; never discard a teammate's change to make a merge go through.
+- Never force-push `main` and never rewrite pushed history.
 - The organizers still change the rules. Run `git fetch upstream` when
   starting a session. If `upstream/main` has moved, read what changed, tell
   the user, and merge it into `main`.
