@@ -9,18 +9,18 @@ Official benchmark (`python benchmark.py --cpus 1`), complete first run, one CPU
 | Machine | Original | Ours |
 | --- | ---: | ---: |
 | Intel Xeon Platinum 8468 (Feyer's published baseline) | 44.2 s | not measured yet |
-| AMD EPYC 7763, GitHub Codespace, Python 3.12 | does not fit in 16 GB of RAM | **10.9 s** |
+| AMD EPYC 7763, GitHub Codespace, Python 3.12 | does not fit in 16 GB of RAM | **5.8 s** |
 
 Same Codespace, one core, both versions in the style of `start_here.py` (one compile, one run):
 
 | | Original | Ours |
 | --- | ---: | ---: |
-| Setup | 1.4 s | 1.4 s |
-| Compile | 22.6 s | 7.9 s |
-| First run | 11.7 s | 0.4 s |
-| **Total** | **35.8 s** | **9.6 s** |
+| Setup | 1.4 s | 1.2 s |
+| Compile | 22.6 s | 4.0 s |
+| First run | 11.7 s | 0.3 s |
+| **Total** | **35.8 s** | **5.6 s** |
 
-A repeat run, once compiled, takes 0.33 s in the official benchmark (the published baseline is 17.7 s).
+A repeat run, once compiled, takes 0.34 s in the official benchmark (the published baseline is 17.7 s).
 
 The report and chart of our run are in `benchmarks/codespace-candidate.json` and `benchmarks/codespace-candidate.png`.
 
@@ -47,12 +47,25 @@ All code changes are in `differometor/simulate.py` and `differometor/__init__.py
 - **Why:** after change 1 the solver was fast, but the code still filled about 57 million numbers per matrix copy to use 0.5% of them, and the gradient had to remember all of it.
 - **Effect:** a repeat run went from about 3 s to 0.07 s on an Apple M5. Peak memory went from 3.8 GiB to 0.5 GiB in our test script (the original needs about 14.4 GiB in the official benchmark).
 
-### 4. Ask the compiler to optimise less
+### 4. Ask the compiler to compile quickly
 
-- **What:** `differometor/__init__.py` sets `XLA_FLAGS=--xla_backend_optimization_level=0` before JAX starts, unless the user has already chosen a level.
-- **Why:** after changes 1–3, compiling is about 85% of a first run and the compiled program then runs in a fraction of a second. Lightly optimised code compiles much faster and the slower run barely matters.
-- **Effect:** on the Codespace the complete first run went from 17.8 s to 10.9 s. The repeat run went from 0.23 s to 0.33 s.
-- **Transparency:** the benchmark records the flag in its report under `environment.xla_flags`.
+- **What:** `differometor/__init__.py` adds four settings to `XLA_FLAGS` before JAX starts, unless the user has already set them:
+  - `--xla_backend_optimization_level=0`: do not optimise the generated code.
+  - `--xla_cpu_use_fusion_emitters=false`: use the simpler of XLA's two code generators.
+  - `--xla_llvm_disable_expensive_passes=true`: skip slow optimisation passes.
+  - `--xla_cpu_parallel_codegen_split_count=1`: do not split the program for parallel compiling, which only costs time on one core.
+- **Why:** after changes 1–3, compiling is about 85% of a first run and the compiled program then runs in a fraction of a second. Code that is quick to produce matters more than code that is quick to run.
+- **Effect:** measured on the Codespace with the official benchmark, complete first run:
+
+  | Settings | Total | Compile |
+  | --- | ---: | ---: |
+  | None (XLA defaults) | 17.8 s | 15.9 s |
+  | Optimisation level 0 | 10.9 s | 9.2 s |
+  | All four | 5.8 s | 4.2 s |
+
+  The repeat run went from 0.23 s to 0.34 s.
+- **Safety:** XLA stops with an error on a flag it does not know. The second and fourth flag exist in the pinned jaxlib 0.9.0 but not in every release, so they are only added when jaxlib is a 0.9 version.
+- **Transparency:** the benchmark records the flags in its report under `environment.xla_flags`.
 
 ## Step by step (Apple M5, official benchmark without CPU pinning)
 
