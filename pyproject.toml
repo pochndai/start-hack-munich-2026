@@ -12,7 +12,7 @@ requires-python = ">=3.11"
 classifiers = ["Programming Language :: Python :: 3", "Operating System :: OS Independent"]
 license = "MIT"
 license-files = ["LICEN[CS]E*"]
-dependencies = ["jax", "optax", "numpy", "plotly", "matplotlib", "tqdm"]
+dependencies = ["jax", "klujax", "optax", "numpy", "plotly", "matplotlib", "tqdm"]
 
 [project.urls]
 Homepage = "https://github.com/artificial-scientist-lab/Differometor"

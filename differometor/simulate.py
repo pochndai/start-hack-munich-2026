@@ -19,6 +19,8 @@ Conventions used throughout:
 
 import jax
 from time import time
+import numpy as np
+import klujax
 import jax.numpy as jnp
 from jax import lax, vmap, jit
 
@@ -186,6 +188,8 @@ def simulate(
     noise_function_indices: jnp.ndarray,
     noise_output_indices: tuple[jnp.ndarray, jnp.ndarray],
     noise_system_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
+    # sparse solve arrays
+    signal_solve_indices: jnp.ndarray,
 ) -> tuple[jnp.ndarray, jnp.ndarray, jnp.ndarray]:
     """
     Run one full simulation pass: carrier, signal, and quantum noise.
@@ -250,6 +254,10 @@ def simulate(
     noise_function_input_indices, noise_function_indices, noise_output_indices,
     noise_system_matrix_indices :
         Indexing and function-selection arrays used by `update` to fill the noise matrix.
+
+    signal_solve_indices : jnp.ndarray
+        Output of `signal_solve_pattern`, shape (3, NNZ): rows and columns of the signal
+        matrix entries that can be non-zero, and the order that sorts its transpose.
 
     Returns
     -------
@@ -332,7 +340,10 @@ def simulate(
         jnp.conjugate(signal_matrix[:, carrier_size : carrier_size * 2, carrier_size * 2 :])
     )
 
-    signal = vmap(solve)(signal_matrix[:, :, :-1], signal_matrix[:, :, -1])
+    # The signal matrix is ~0.5% filled, so all three solves below use the sparse KLU solver.
+    rows, columns, transposed_order = signal_solve_indices
+    signal_values = signal_matrix[:, rows, columns]
+    signal = klujax.solve(rows, columns, signal_values, signal_matrix[:, :, -1])
 
     # --------------------
     # Quantum noise solve
@@ -367,12 +378,21 @@ def simulate(
     ].set(lower_carrier_selections)
 
     # Back-propagate detector weights by solving the transposed conjugated signal system.
-    transposed_conjugated_signal_matrix = jnp.transpose(jnp.conjugate(signal_matrix[:, :, :-1]), (0, 2, 1))
-    carrier_selections = jnp.broadcast_to(
-        carrier_selections,
-        (carrier_selections.shape[0], transposed_conjugated_signal_matrix.shape[0], carrier_selections.shape[2]),
+    # Detectors become the trailing right-hand-side axis: shape (SV, SN, D).
+    carrier_selections = jnp.moveaxis(
+        jnp.broadcast_to(
+            carrier_selections,
+            (carrier_selections.shape[0], signal_matrix.shape[0], carrier_selections.shape[2]),
+        ),
+        0,
+        -1,
     )
-    noise_weights = vmap(vmap(solve), in_axes=(None, 0))(transposed_conjugated_signal_matrix, carrier_selections)
+    noise_weights = klujax.solve(
+        columns[transposed_order],
+        rows[transposed_order],
+        jnp.conjugate(signal_values[:, transposed_order]),
+        carrier_selections,
+    )
 
     # Update noise source matrix (may depend on current parameters).
     noise_matrix = vmap(update, in_axes=(0, None, None, None, None, None))(
@@ -384,33 +404,41 @@ def simulate(
         noise_function_indices,
     )
 
-    def matmul_single_batch(matrix_batch: jnp.ndarray, vector_batch: jnp.ndarray) -> jnp.ndarray:
-        """
-        Multiply a batch of matrices with a batch of vectors.
-
-        Parameters
-        ----------
-        matrix_batch : jnp.ndarray
-            Shape (B, N, N).
-        vector_batch : jnp.ndarray
-            Shape (B, N).
-
-        Returns
-        -------
-        product : jnp.ndarray
-            Shape (B, N).
-        """
-        return jnp.einsum("bij,bj->bi", matrix_batch, vector_batch)
-
     # Project noise sources into the system and propagate through the signal matrix.
-    noise_sources = vmap(matmul_single_batch, in_axes=(None, 0))(noise_matrix, noise_weights)
-    covariances = vmap(vmap(solve), in_axes=(None, 0))(signal_matrix[:, :, :-1], noise_sources)
+    noise_sources = jnp.einsum("bij,bjd->bid", noise_matrix, noise_weights)
+    covariances = klujax.solve(rows, columns, signal_values, noise_sources)
 
     # Convert propagated covariances into amplitude spectral density.
-    temporary_sum = jnp.sum(jnp.real(covariances * jnp.conjugate(carrier_selections)), axis=2)
+    temporary_sum = jnp.sum(jnp.real(covariances * jnp.conjugate(carrier_selections)), axis=1).T
     noise = jnp.sqrt(2 * temporary_sum * UNIT_VACUUM * H_PLANCK * F0 * 0.25)
 
     return carrier.T, signal.T, noise.squeeze()
+
+
+def signal_solve_pattern(signal_matrix, *index_pairs) -> jnp.ndarray:
+    """
+    Find which signal matrix entries can ever be non-zero, for the sparse solver.
+
+    Parameters
+    ----------
+    signal_matrix : jnp.ndarray
+        Base signal augmented matrix, shape (SN, SN + 1).
+    index_pairs : tuple[jnp.ndarray, jnp.ndarray]
+        Every (rows, columns) pair that `simulate` writes into the signal matrix.
+
+    Returns
+    -------
+    signal_solve_indices : jnp.ndarray
+        Shape (3, NNZ): rows, columns (row-major, unique), and the order that makes
+        the transposed entries row-major.
+    """
+    pattern = np.asarray(signal_matrix)[:, :-1] != 0
+    for rows, columns in index_pairs:
+        rows, columns = np.asarray(rows), np.asarray(columns)
+        inside = columns < pattern.shape[1]  # the last column is the right-hand side
+        pattern[rows[inside], columns[inside]] = True
+    rows, columns = np.nonzero(pattern)
+    return jnp.asarray(np.stack([rows, columns, np.lexsort((rows, columns))]))
 
 
 def run_build_step(
@@ -470,6 +498,12 @@ def run_build_step(
     arg_names = simulate.__code__.co_varnames[:arg_count]
 
     all_arrays = (*prepared_arrays, *matrices, *carrier_arrays, *signal_arrays, *noise_arrays)
+    named = dict(zip(arg_names, all_arrays))
+    all_arrays += (
+        signal_solve_pattern(
+            named["signal_matrix"], named["signal_matrix_indices"], named["signal_carrier_placing_indices"]
+        ),
+    )
     if len(arg_names) != len(all_arrays):
         raise ValueError(
             "simulate signature does not match the number of prepared arrays and matrices. "
