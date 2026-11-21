@@ -113,6 +113,9 @@ These come from the organizers' [README.md](README.md) and the judging criteria.
   grid sizes) and checks the gradient against finite differences; see "Other
   setups" in `bench/README.md`. Commit the session it writes under
   `bench/results/` and quote its table in `CHANGES.md`.
+  The scenarios and their settings are listed in `tests/variations/README.md`.
+  If ours and the original disagree, `python tests/refined_solves.py <case>`
+  shows which one is right.
 - The original code is commit `02ec741` (version `v00-baseline`).
 
 ## Task: measuring speed

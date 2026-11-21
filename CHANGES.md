@@ -205,6 +205,7 @@ The Codespace was a little slower in this session than when changes 5–7 were m
 
 - **`cos(x) + 1j*sin(x)` instead of `exp(1j*x)`:** no measurable difference in compile time (about 3 ms per use either way).
 - **Reusing one factorisation for the solves:** change 12 already cut the sparse factorisations from six per frequency to four (two forward, two in the gradient). Going further was measured on the main example (Apple M5): the two forward solves take 12.2 ms when each factors from scratch and 7.4 ms when they share one factorisation. Over both stages that is about 10 ms per evaluation, roughly 3% of the complete first run. It needs the solver's factorisations to be kept in memory that Python does not manage and released by hand, where a mistake means a crash or a leak, not a wrong number. Not adopted.
+- **One extra refinement step in every sparse solve** (solve, compute the residual in double precision, solve again for the correction): it brings entry 17 of the 20 to 5000 Hz scenario from 0.1% to 0.002% of the refined value, and the supplied setup's gradient from 1e-08 to 1e-09. It costs a second solve per system: a compiled evaluation of loss and gradient goes from 52 to 79 ms on the supplied setup (Apple M5), about 8% of a complete first run. The judges' limit is 1e-5 in log sensitivity, where ours is at 3e-08 without it, and the supplied setup's gradient is already within 2e-07. Not adopted; it is the change to make if a gradient accurate to 0.01% outside the design band is ever required.
 - **SciPy's sparse solver (SuperLU) in place of KLU** (branch `scipy-host`): it would make klujax unnecessary except for the fallback, and it factors each matrix once per stage. The official benchmark passes, a little slower (Apple M5: 0.42 s against 0.33 s). But `tests/test_host.py` fails on the two setups with a homodyne detector: the noise differs from the KLU result by 2e-05 (second UIFO) and 6e-05 (Voyager), and the Voyager example's sensitivity ends up 7e-03 away from the original code in log, where KLU is 6e-11 away. The matrices there have entries from 5e-20 to 1e+13; SuperLU matches the dense reference solver in the large entries of the solution (1e-09) but is less accurate in the small ones that the noise depends on. Not adopted.
 
 ## Step by step, changes 1–3 (Apple M5, official benchmark without CPU pinning)
@@ -259,12 +260,23 @@ Change 4 was measured on Linux only (table above).
   | `values-shifted` | Supplied layout; every design variable moved by about 1% | NumPy | 0.34 s | 20.5 s | 8.8e-09 | 0 of 193 | 2.1e-07 | PASS |
 
   All sixteen are far inside the judges' limit. The two `DEVIATION` verdicts are about single gradient values, described next.
-- **The stricter gradient check of the harness, and the values it flags:** `bench/validate.py` compares each gradient entry with the original's at 0.01% of the entry's own size. On the supplied setup 192 of 193 entries pass and one does not: entry 158 (`m01.reflectivity`), -4.8901e-04 in ours and -4.8885e-04 in the original, 0.03% apart. On the supplied setup at 20 to 5000 Hz three entries differ, by 0.03%, 0.3% and 0.65% (`boundary01.power`, `m01.reflectivity`, `mr12.reflectivity`). What these entries have in common: they are tiny next to the largest gradient entry (between one part in 100,000 and one part in a billion), and two of them belong to a laser set to 1e-12 W and the mirror in front of it. The evidence on which code is right:
-  - every version from the first to the last gives the same value for entry 158 to 8 digits, with two different ways of computing the gradient (JAX in changes 1–11, the hand-written reverse pass in change 12), and so did the experiment with a third solver (SciPy SuperLU);
-  - the original's own value for that entry moves in the fifth digit (-4.888495e-04 to -4.888760e-04) when its loss is merely shifted by a constant, which leaves the true gradient unchanged; ours stays the same to 7 digits;
-  - finite differences cannot decide: the loss changes too little along these variables, and the estimates scatter over several orders of magnitude for both codes.
+- **The stricter gradient check of the harness, the values it flags, and which code is right:** `bench/validate.py` compares each gradient entry with the original's at 0.01% of the entry's own size. On the supplied setup 192 of 193 entries pass and one does not: entry 158 (`m01.reflectivity`), -4.8901e-04 in ours and -4.8885e-04 in the original, 0.03% apart. On the supplied setup at 20 to 5000 Hz three entries differ, by 0.03%, 0.3% and 0.65%. These entries are tiny next to the largest gradient entry (between one part in 100,000 and one part in a billion), and two of them belong to a laser set to 1e-12 W and the mirror in front of it.
 
-  So the difference looks like rounding in the original's dense solve of a badly scaled matrix, but it is not proven. Because of it, the harness verdict for all seven versions is `FAIL` (official benchmark: `PASS`), and the team has to decide whether to accept it (`bench/VERSIONS.md`, v01).
+  To find out which code is right, `python tests/refined_solves.py <scenario>` repeats our calculation with every sparse solve refined until it is free of rounding: solve, compute the residual exactly in 100-digit arithmetic, correct, repeat. Results (Apple M5):
+
+  | Distance from the refined result | Ours (KLU) | Original (dense solver) |
+  | --- | ---: | ---: |
+  | Supplied setup: readout signal | 2.2e-08 | 8.9e-08 |
+  | Supplied setup: noise | 7.0e-10 | 4.0e-08 |
+  | Supplied setup: ln(sensitivity) | 2.4e-08 | 6.0e-08 |
+  | Supplied setup: gradient entries off by more than 0.01% | 0 of 193 | 1 of 193 |
+  | Supplied setup: entry 158 (refined value -4.890100922e-04) | 1e-08 | 3e-04 |
+  | 20 to 5000 Hz: ln(sensitivity) | 3.2e-08 | 6.7e-08 |
+  | 20 to 5000 Hz: gradient entries off by more than 0.01% | 1 of 193 | 3 of 193 |
+  | 20 to 5000 Hz: entry 17, `mr12.reflectivity` | 0.1% | 0.6% |
+  | 20 to 5000 Hz: entries 158 and 161 | 3e-07 and 1e-06 | 0.3% and 0.03% |
+
+  **So the cause of the harness `FAIL` is rounding in the original's dense solver, not an error in ours.** On the supplied setup ours is within 2e-07 of the refined result on every gradient entry, and closer than the original on every output. Moving every input by one unit in its last digit changes the refined values by at most 4e-06, so the comparison is meaningful at this level. The harness's reference arrays come from the original, which is why it reports a failure. One value remains where ours is not within 0.01% either: entry 17 at 20 to 5000 Hz, 0.1% off (the original: 0.6%), in a setup that was optimized for 800 to 3000 Hz and is used here outside that band.
 - **The "original" is the upstream code:** the report of the original run lists file fingerprints identical to those in `UPSTREAM.json`.
 - **What is computed:** all 101 frequencies, all 193 design variables, double precision. No answers are stored and no calculation is skipped.
 

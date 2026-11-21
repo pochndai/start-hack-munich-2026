@@ -249,6 +249,128 @@ def generate():
         "values": values}, indent=1) + "\n")
     print(f"Wrote {len(cases) + 1} cases to {CASES}")
 
+    # The scenario sheet is written from the case files themselves, so it cannot drift from them.
+    import re
+    short = {"beamsplitter": "B", "directional_beamsplitter": "D", "laser": "laser", "squeezer": "squeezer"}
+    rows, layouts = [], []
+    for path in sorted(CASES.glob("*.json")):
+        case = json.loads(path.read_text())
+        if "uifo" in case:
+            recipe = case["uifo"]
+            setup = uifo(recipe["size"], centers={key: tuple(value) for key, value in recipe["centers"].items()}, boundaries=recipe["boundaries"], mode=recipe["mode"])[0]
+            nodes, edges, mode = setup.to_data()["nodes"], setup.to_data()["edges"], "amplitude modulation"
+        else:
+            setup = Setup.from_data(copy.deepcopy(case["setup"]))
+            nodes, edges, mode = case["setup"]["nodes"], case["setup"]["edges"], "space modulation"
+        variables = len(constrain_inter_grid_cell_spaces(setup.parameters, PROPERTIES))
+        centers = {name[6:]: short[item["component"]] for name, item in nodes.items() if re.fullmatch(r"center\d\d", name)}
+        size = max(int(key[0]) for key in centers)
+        boundaries = {}
+        for position in sorted({match.group(1) for name in nodes if (match := re.match(r"boundary(\d\d)", name))}):
+            boundaries[position] = ("detector" if f"boundary{position}detector" in nodes else "balanced homodyne" if f"boundary{position}bhbs" in nodes
+                                    else short[nodes[f"boundary{position}"]["component"]])
+        readout = "; ".join(f"{kind} at {position}" for position, kind in boundaries.items() if kind in ("detector", "balanced homodyne"))
+        count = lambda kind: sum(value == kind for value in boundaries.values())
+        f = case["frequencies"]
+        rows.append(f"| `{path.stem}` | {size}x{size} | {len(f)} | {f[0]:.0f} to {f[-1]:.0f} Hz | {variables} | {readout} | {count('laser')} | {count('squeezer')} | "
+                    f"{sum(v == 'B' for v in centers.values())} / {sum(v == 'D' for v in centers.values())} | {mode} | {len(nodes)} / {len(edges)} |")
+        grid = " / ".join(" ".join(centers[f"{x}{y}"] for y in range(1, size + 1)) for x in range(1, size + 1))
+        layouts.append(f"| `{path.stem}` | {grid} | " + ", ".join(f"{position} {kind}" for position, kind in boundaries.items()) + " |")
+    descriptions = "\n".join(f"| `{path.stem}` | {json.loads(path.read_text())['description']} |" for path in sorted(CASES.glob("*.json")))
+    bound_rows = "\n".join(f"| {name} | {low} | {high} |" for name, (low, high) in bounds.items())
+    (CASES / "README.md").write_text(SCENARIO_SHEET.format(descriptions=descriptions, settings="\n".join(rows), layouts="\n".join(layouts), bounds=bound_rows))
+    print(f"Wrote {CASES / 'README.md'}")
+
+
+SCENARIO_SHEET = """# Test scenarios: setups other than the supplied one
+
+Written by `python tests/variations.py --generate` from the case files in this folder. Do not edit by hand: change `generate()` in `tests/variations.py` and run that command.
+
+## Why these exist
+
+The jury scores "a slight variation of the supplied example". `benchmark.py` can only run the supplied example, so each file here is one variation we thought the jury might use: a complete optical setup and the frequencies to simulate. `tests/variations.py` runs every one on the original code and on ours, compares the results and gradients, and times our code.
+
+## Run them
+
+```bash
+python tests/variations.py --list                  # the scenarios
+python tests/variations.py                         # run all, compare with the stored results of the original
+python tests/variations.py size-4 uifo-20-5000     # run some
+python tests/variations.py --make-reference size-4 # run the original again for one scenario (slow, about 14 GB)
+python tests/refined_solves.py band-20-5000        # when ours and the original disagree: which one is right
+```
+
+On a new machine, run `python bench/run.py calibrate` first. On Linux the runs are then pinned to one core (`--cpus 1`), as in the official benchmark; on a Mac every numerical library is limited to one thread. The stored results of the original (`bench/reference/variation-<scenario>.npz`) are in the repository, so the original only has to run again for a new or changed scenario.
+
+Results: one session file per run in `bench/results/<machine>/variations/`, and the table of the latest session in `bench/results/<machine>/VARIATIONS.md`.
+
+## The scenarios
+
+| Scenario | What it is |
+| --- | --- |
+{descriptions}
+
+## Settings of each scenario
+
+"Design variables" are the reflectivities, tunings, squeezing levels and angles, laser powers, masses and tied lengths that `benchmark.py` differentiates. "Beamsplitters" counts plain / directional ones at the grid centers. "Nodes / edges" is the number of components and connections.
+
+| Scenario | Grid | Frequencies | Band | Design variables | Readout | Lasers | Squeezers | Beamsplitters | Signal mode | Nodes / edges |
+| --- | --- | ---: | --- | ---: | --- | ---: | ---: | --- | --- | --- |
+{settings}
+
+All frequency lists are spaced evenly on a logarithmic scale, except the band of the supplied example, which is taken from `examples/data/uifo_800_3000_test_data.json`.
+
+## Layout of each scenario
+
+Centers are listed row by row (B = beamsplitter, D = directional beamsplitter). Boundaries are named by their grid position as in `differometor.setups.uifo`: `0y` and `(size+1)y` are the two sides in one direction, `x0` and `x(size+1)` the two in the other. The orientation of each center is in the case file.
+
+| Scenario | Centers | Boundaries |
+| --- | --- | --- |
+{layouts}
+
+## Where the numbers in a scenario come from
+
+- **Supplied values:** the optimized values stored in `examples/data/uifo_800_3000.json` (or `uifo_20_5000.json` for `uifo-20-5000`).
+- **Shifted values** (`values-shifted`): every design variable is multiplied by `1 + 0.01 * z`, with `z` from a standard normal distribution, seed 1. Tied lengths share one factor.
+- **Random values** (`values-random`, `random-layout-*`, `size-*`): every design variable is drawn evenly from the range the optimizer in `examples/uifo_optimization.py` works in (table below). Seeds: `values-random` 2, `random-layout-N` 10 + N, `size-2` 14, `size-4` 15.
+- **Random layouts:** `uifo(size, random=True, random_seed=N)` with N = 1, 2, 3 for `random-layout-N`, 4 for `size-2` and 5 for `size-4`.
+- **Changed layouts** (`boundary-swap`, `center-swap`, `detector-moved`, `homodyne-readout`): the supplied layout with the named parts exchanged. Parts that keep their name and kind keep the supplied values; new parts get the defaults of `differometor.components`.
+- Everything that is not a design variable (losses, refractive indices, beamsplitter angles, lengths next to a center or a boundary) stays as supplied or at its default.
+
+| Design variable | Lowest | Highest |
+| --- | ---: | ---: |
+{bounds}
+
+## What is checked, and the limits
+
+| Check | Limit | Verdict if outside |
+| --- | --- | --- |
+| Our run finishes; all results finite; sensitivities positive; gradient not all zero | | `FAIL` |
+| ln(sensitivity), ours against the original | 1e-5 (the judges' limit) | `FAIL` |
+| Our gradient against finite differences in four random directions | 2% | `FAIL` |
+| Carrier, readout signal, noise, sensitivity, powers against the original, relative to the largest value | 1e-6 | `DEVIATION` |
+| ln(sensitivity) against the original | 1e-6 | `DEVIATION` |
+| Each gradient entry against the original | 0.01% of the entry, plus 1e-12 of the largest entry | `DEVIATION` |
+
+The `DEVIATION` limits are those of `bench/validate.py`. The loss is `mean(log10(sensitivity))`; there is no public reference for these setups. The scenario `supplied` also has to reproduce the public reference sensitivities and the arrays that `benchmark.py` itself produced with the original code.
+
+A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py <scenario>` answers that: it repeats our calculation with every sparse solve refined to a near-exact result and shows how far ours and the original are from it.
+
+## Add a scenario
+
+1. In `generate()` in `tests/variations.py`, add one entry to `cases`: a name, one sentence, the setup and the frequencies. Use `changed(...)` for a different layout, `revalued(...)` for different values, `layout(...)` for a new grid.
+2. `python tests/variations.py --generate` writes the case file and this sheet. The existing case files come out byte for byte the same.
+3. `python tests/variations.py <name>` runs the original once, stores its results, and compares.
+4. Commit the case file, this sheet, `bench/reference/variation-<name>.*` and the new session under `bench/results/`.
+
+## Not covered yet
+
+- More than 101 frequencies, and a 4x4 grid at 101 frequencies: the original needs about 140 MB per frequency at 3x3 and more at 4x4, which does not fit in 16 GB. They need a machine with 32 GB or more.
+- One-core Linux times for these scenarios (the stored times are from the Mac).
+- Frequency-modulation mode, grids larger than 4x4, and a different set of design variables (for example refractive indices or beamsplitter angles).
+- Setups that are not grids (Voyager, aLIGO, the cavity sweep): `tests/test_host.py` compares our two code paths on them, but they are not timed here.
+"""
+
 
 # --------------------------------------------------------------------------
 # driver
