@@ -16,6 +16,7 @@ variation: a complete setup and its frequencies. For every case this script
     python tests/variations.py NAME [NAME ...] # some cases
     python tests/variations.py --list
     python tests/variations.py --make-reference NAME   # rerun the original for a case
+    python tests/variations.py --time-original         # also time the original here, keep the stored references
     python tests/variations.py --generate      # rewrite the case files (same seeds, same files)
 
 A case's verdict is PASS, DEVIATION (inside the judges' limit of 1e-5 in log
@@ -238,10 +239,15 @@ def generate():
     # shortcut: 21 frequencies, because the original needs about 140 MB per frequency at this size; use all 101 on a machine with 64 GB.
     cases["size-4"] = ("A random 4x4 layout with random design values, at 21 frequencies (the original would not fit in 16 GB with 101).",
                        revalued(layout(4, random=True, random_seed=5), drawn, 15), np.geomspace(800, 3000, 21).tolist())
+    # Two cases the original can only run on a large machine; "original_memory_gb" keeps it from being started on a small one.
+    heavy = {"frequencies-201": 32, "size-4-full": 48}
+    cases["frequencies-201"] = ("Supplied setup at 201 frequencies from 800 to 3000 Hz (the original needs about 29 GB).", supplied, np.geomspace(800, 3000, 201).tolist())
+    cases["size-4-full"] = ("The 4x4 layout of size-4 at all 101 frequencies of the supplied band (the original needs about 40 GB).", cases["size-4"][1], band)
     CASES.mkdir(exist_ok=True)
     for name, (description, data, frequencies) in cases.items():
         setup = {key: data[key] for key in ("parameters", "nodes", "edges")}
-        (CASES / f"{name}.json").write_text(json.dumps({"description": description, "frequencies": frequencies, "setup": setup}, indent=1) + "\n")
+        extra = {"original_memory_gb": heavy[name]} if name in heavy else {}
+        (CASES / f"{name}.json").write_text(json.dumps({"description": description, "frequencies": frequencies, **extra, "setup": setup}, indent=1) + "\n")
     values = {name: item["properties"] for kind in ("nodes", "edges") for name, item in supplied[kind].items()}
     (CASES / "amplitude-modulation.json").write_text(json.dumps({
         "description": "Supplied layout and design values in amplitude-modulation mode, which has linking functions, so our code takes its JAX fallback.",
@@ -296,7 +302,8 @@ The jury scores "a slight variation of the supplied example". `benchmark.py` can
 python tests/variations.py --list                  # the scenarios
 python tests/variations.py                         # run all, compare with the stored results of the original
 python tests/variations.py size-4 uifo-20-5000     # run some
-python tests/variations.py --make-reference size-4 # run the original again for one scenario (slow, about 14 GB)
+python tests/variations.py --make-reference size-4 # run the original again for one scenario and replace its stored results (slow, about 14 GB)
+python tests/variations.py --time-original         # also time the original on this machine; stored results stay as they are
 python tests/refined_solves.py band-20-5000        # when ours and the original disagree: which one is right
 ```
 
@@ -366,7 +373,7 @@ A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py 
 
 ## Not covered yet
 
-- More than 101 frequencies, and a 4x4 grid at 101 frequencies: the original needs about 140 MB per frequency at 3x3 and more at 4x4, which does not fit in 16 GB. They need a machine with 32 GB or more.
+- `frequencies-201` and `size-4-full` need a machine with 32 GB and 48 GB for the original; on a smaller one the original is not started and the verdict is `NO_REFERENCE` until its results have been made on a large machine and committed.
 - One-core Linux times for these scenarios (the stored times are from the Mac).
 - Frequency-modulation mode, grids larger than 4x4, and a different set of design variables (for example refractive indices or beamsplitter angles).
 - Setups that are not grids (Voyager, aLIGO, the cavity sweep): `tests/test_host.py` compares our two code paths on them, but they are not timed here.
@@ -419,12 +426,20 @@ def drive(args):
         entry = {"case": name, "description": case["description"], "case_sha256": case_sha, "problems": [], "deviations": []}
         if reference.exists() and common.read_json(provenance)["case_sha256"] != case_sha:
             raise SystemExit(f"{name}: the case file changed since its reference was made. Rerun with --make-reference {name}.")
-        if args.make_reference or not reference.exists():
+        ram_gb = (machine.get("ram_bytes") or 0) / 2**30
+        too_big = case.get("original_memory_gb", 0) > ram_gb
+        if (args.make_reference or args.time_original or not reference.exists()) and too_big:
+            entry["original_failure"] = f"not started: the original needs about {case['original_memory_gb']} GB for this case and this machine has {ram_gb:.0f}"
+        elif args.make_reference or args.time_original or not reference.exists():
             print(f"[{name}] original code (slow, memory-hungry)...", flush=True)
             baseline = common.resolve_version(registry["baseline"], registry)
             report, arrays, failure = run_worker(common, case_path, Path(baseline["snapshot"]), "original", limits, False, args.timeout)
             usable = failure is None and report["finite"] and report["positive_sensitivity"]
-            if usable:
+            if usable and reference.exists() and not args.make_reference:
+                # --time-original: the stored reference stays; this machine's run of the original is timed and compared with it
+                entry["original_here"] = report
+                entry["original_here_vs_reference"], _, entry["original_here_deviations"] = validate.compare_arrays(arrays, reference, tolerances)
+            elif usable:
                 common.REFERENCE.mkdir(exist_ok=True)
                 shutil.copyfile(arrays, reference)
                 common.write_json(provenance, {"case": name, "case_sha256": case_sha, "source_version": registry["baseline"], "source_id": baseline["id"],
@@ -478,8 +493,10 @@ def drive(args):
     out = machine_dir / "variations"
     out.mkdir(parents=True, exist_ok=True)
     common.write_json(out / f"{stamp}.json", session)
-    (machine_dir / "VARIATIONS.md").write_text(table(session, f"variations/{stamp}.json"))
-    print(f"\nStored {out / (stamp + '.json')}\nTable  {machine_dir / 'VARIATIONS.md'}")
+    print(f"\nStored {out / (stamp + '.json')}")
+    if not args.cases:  # the table shows a complete session; a run of a few named cases must not replace it
+        (machine_dir / "VARIATIONS.md").write_text(table(session, f"variations/{stamp}.json"))
+        print(f"Table  {machine_dir / 'VARIATIONS.md'}")
     counts = {verdict: sum(entry["verdict"] == verdict for entry in results) for verdict in ("PASS", "DEVIATION", "FAIL", "NO_REFERENCE")}
     print("  ".join(f"{verdict}: {count}" for verdict, count in counts.items()))
     return 1 if counts["FAIL"] or counts["NO_REFERENCE"] else 0
@@ -492,15 +509,15 @@ def table(session, source):
         f"Generated by `python tests/variations.py` from `{source}`. Do not edit by hand.", "",
         f"Machine: {machine['cpu_model']}, {round((machine.get('ram_bytes') or 0) / 2**30)} GB, {machine['system']}. "
         f"CPU limit: {session['limits'].get('strategy')}. Code: `{str(session['git_head'])[:12]}`{' plus uncommitted changes' if session['dirty'] else ''}.", "",
-        "Each time is one complete first run in a fresh process, with the phases of `benchmark.py`. The original's time is the single run that made the reference; "
-        "on a 16 GB machine it is inflated by swapping. \"Log sensitivity\" is the largest difference from the original in ln(sensitivity); the judges' limit is 1e-5. "
+        "Each time is one complete first run in a fresh process, with the phases of `benchmark.py`. The original's time is one run on this machine if the session was started with `--time-original`, "
+        "otherwise the single run that made the reference, possibly on another machine (see `bench/reference/variation-<case>.json`); on a 16 GB machine it is inflated by swapping. \"Log sensitivity\" is the largest difference from the original in ln(sensitivity); the judges' limit is 1e-5. "
         "\"Gradient\" counts the entries outside the tolerance of `bench/validate.py` and gives the largest difference relative to the largest entry. "
         "\"Finite differences\" is the largest relative error of our gradient in four random directions (limit 0.02).", "",
         "| Case | Frequencies | Design variables | Path | Ours | Original | Faster | Log sensitivity | Gradient | Finite differences | Verdict |",
         "| --- | ---: | ---: | --- | ---: | ---: | ---: | ---: | --- | ---: | --- |",
     ]
     for entry in session["cases"]:
-        ours, original, metrics = entry.get("ours") or {}, (entry.get("original") or {}).get("run") or {}, entry.get("metrics") or {}
+        ours, original, metrics = entry.get("ours") or {}, entry.get("original_here") or (entry.get("original") or {}).get("run") or {}, entry.get("metrics") or {}
         seconds = lambda run: f"{run['first_run_total']:.2f} s" if run else "-"
         gradient = metrics.get("gradient")
         check = ours.get("finite_differences")
@@ -521,6 +538,7 @@ def main():
     parser.add_argument("--list", action="store_true")
     parser.add_argument("--generate", action="store_true", help="rewrite the case files in tests/variations/")
     parser.add_argument("--make-reference", action="store_true", help="rerun the original code for the named cases")
+    parser.add_argument("--time-original", action="store_true", help="also run the original on this machine for every case, to time it; stored references are kept")
     parser.add_argument("--timeout", type=int, default=1800, help="seconds per run")
     parser.add_argument("--worker", type=Path, help=argparse.SUPPRESS)
     parser.add_argument("--repo", type=Path, help=argparse.SUPPRESS)

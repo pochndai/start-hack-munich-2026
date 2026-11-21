@@ -12,7 +12,8 @@ The jury scores "a slight variation of the supplied example". `benchmark.py` can
 python tests/variations.py --list                  # the scenarios
 python tests/variations.py                         # run all, compare with the stored results of the original
 python tests/variations.py size-4 uifo-20-5000     # run some
-python tests/variations.py --make-reference size-4 # run the original again for one scenario (slow, about 14 GB)
+python tests/variations.py --make-reference size-4 # run the original again for one scenario and replace its stored results (slow, about 14 GB)
+python tests/variations.py --time-original         # also time the original on this machine; stored results stay as they are
 python tests/refined_solves.py band-20-5000        # when ours and the original disagree: which one is right
 ```
 
@@ -29,12 +30,14 @@ Results: one session file per run in `bench/results/<machine>/variations/`, and 
 | `boundary-swap` | Supplied layout with the laser at boundary 10 and the squeezer at boundary 20 exchanged. |
 | `center-swap` | Supplied layout with center 22 made a directional beamsplitter and center 11 a plain one. |
 | `detector-moved` | Supplied layout with the detector moved from boundary 03 to boundary 30. |
+| `frequencies-201` | Supplied setup at 201 frequencies from 800 to 3000 Hz (the original needs about 29 GB). |
 | `frequencies-51` | Supplied setup at 51 frequencies from 800 to 3000 Hz. |
 | `homodyne-readout` | Supplied layout with the detector replaced by a balanced homodyne readout. |
 | `random-layout-1` | A random 3x3 layout (uifo with random_seed=1) with random design values. |
 | `random-layout-2` | A random 3x3 layout (uifo with random_seed=2) with random design values. |
 | `random-layout-3` | A random 3x3 layout (uifo with random_seed=3) with random design values. |
 | `size-2` | A random 2x2 layout with random design values. |
+| `size-4-full` | The 4x4 layout of size-4 at all 101 frequencies of the supplied band (the original needs about 40 GB). |
 | `size-4` | A random 4x4 layout with random design values, at 21 frequencies (the original would not fit in 16 GB with 101). |
 | `supplied` | The supplied example, unchanged (control: must reproduce benchmark.py). |
 | `uifo-20-5000` | The second public setup (other layout, balanced homodyne readout) at 101 frequencies from 20 to 5000 Hz. |
@@ -52,12 +55,14 @@ Results: one session file per run in `bench/results/<machine>/variations/`, and 
 | `boundary-swap` | 3x3 | 101 | 800 to 3000 Hz | 193 | detector at 03 | 7 | 4 | 6 / 3 | space modulation | 196 / 71 |
 | `center-swap` | 3x3 | 101 | 800 to 3000 Hz | 193 | detector at 03 | 7 | 4 | 6 / 3 | space modulation | 196 / 71 |
 | `detector-moved` | 3x3 | 101 | 800 to 3000 Hz | 193 | detector at 30 | 7 | 4 | 6 / 3 | space modulation | 196 / 71 |
+| `frequencies-201` | 3x3 | 201 | 800 to 3000 Hz | 193 | detector at 03 | 7 | 4 | 6 / 3 | space modulation | 196 / 71 |
 | `frequencies-51` | 3x3 | 51 | 800 to 3000 Hz | 193 | detector at 03 | 7 | 4 | 6 / 3 | space modulation | 196 / 71 |
 | `homodyne-readout` | 3x3 | 101 | 800 to 3000 Hz | 195 | balanced homodyne at 03 | 7 | 4 | 6 / 3 | space modulation | 203 / 73 |
 | `random-layout-1` | 3x3 | 101 | 800 to 3000 Hz | 193 | balanced homodyne at 20 | 6 | 5 | 5 / 4 | space modulation | 202 / 73 |
 | `random-layout-2` | 3x3 | 101 | 800 to 3000 Hz | 192 | detector at 41 | 5 | 6 | 5 / 4 | space modulation | 195 / 71 |
 | `random-layout-3` | 3x3 | 101 | 800 to 3000 Hz | 197 | detector at 41 | 3 | 8 | 6 / 3 | space modulation | 196 / 71 |
 | `size-2` | 2x2 | 101 | 800 to 3000 Hz | 102 | balanced homodyne at 23 | 2 | 5 | 2 / 2 | space modulation | 106 / 37 |
+| `size-4-full` | 4x4 | 101 | 800 to 3000 Hz | 315 | detector at 45 | 7 | 8 | 10 / 6 | space modulation | 323 / 119 |
 | `size-4` | 4x4 | 21 | 800 to 3000 Hz | 315 | detector at 45 | 7 | 8 | 10 / 6 | space modulation | 323 / 119 |
 | `supplied` | 3x3 | 101 | 800 to 3000 Hz | 193 | detector at 03 | 7 | 4 | 6 / 3 | space modulation | 196 / 71 |
 | `uifo-20-5000` | 3x3 | 101 | 20 to 5000 Hz | 192 | balanced homodyne at 42 | 4 | 7 | 4 / 5 | space modulation | 201 / 73 |
@@ -77,12 +82,14 @@ Centers are listed row by row (B = beamsplitter, D = directional beamsplitter). 
 | `boundary-swap` | D B D / B B B / D B B | 01 laser, 02 laser, 03 detector, 10 squeezer, 14 laser, 20 laser, 24 laser, 30 laser, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
 | `center-swap` | B B D / B D B / D B B | 01 laser, 02 laser, 03 detector, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 laser, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
 | `detector-moved` | D B D / B B B / D B B | 01 laser, 02 laser, 03 laser, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 detector, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
+| `frequencies-201` | D B D / B B B / D B B | 01 laser, 02 laser, 03 detector, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 laser, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
 | `frequencies-51` | D B D / B B B / D B B | 01 laser, 02 laser, 03 detector, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 laser, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
 | `homodyne-readout` | D B D / B B B / D B B | 01 laser, 02 laser, 03 balanced homodyne, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 laser, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
 | `random-layout-1` | B D B / D B B / D B D | 01 squeezer, 02 laser, 03 laser, 10 squeezer, 14 squeezer, 20 balanced homodyne, 24 squeezer, 30 laser, 34 laser, 41 laser, 42 laser, 43 squeezer |
 | `random-layout-2` | B B B / D D D / D B B | 01 squeezer, 02 laser, 03 squeezer, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 squeezer, 34 squeezer, 41 detector, 42 laser, 43 squeezer |
 | `random-layout-3` | B D B / B D B / D B B | 01 laser, 02 squeezer, 03 squeezer, 10 squeezer, 14 squeezer, 20 laser, 24 laser, 30 squeezer, 34 squeezer, 41 detector, 42 squeezer, 43 squeezer |
 | `size-2` | D D / B B | 01 laser, 02 squeezer, 10 squeezer, 13 squeezer, 20 squeezer, 23 balanced homodyne, 31 squeezer, 32 laser |
+| `size-4-full` | B D D B / D B B B / B D B B / B D B D | 01 laser, 02 squeezer, 03 laser, 04 squeezer, 10 squeezer, 15 squeezer, 20 squeezer, 25 laser, 30 squeezer, 35 squeezer, 40 squeezer, 45 detector, 51 laser, 52 laser, 53 laser, 54 laser |
 | `size-4` | B D D B / D B B B / B D B B / B D B D | 01 laser, 02 squeezer, 03 laser, 04 squeezer, 10 squeezer, 15 squeezer, 20 squeezer, 25 laser, 30 squeezer, 35 squeezer, 40 squeezer, 45 detector, 51 laser, 52 laser, 53 laser, 54 laser |
 | `supplied` | D B D / B B B / D B B | 01 laser, 02 laser, 03 detector, 10 laser, 14 laser, 20 squeezer, 24 laser, 30 laser, 34 squeezer, 41 squeezer, 42 squeezer, 43 laser |
 | `uifo-20-5000` | B D B / D D D / B B D | 01 squeezer, 02 squeezer, 03 laser, 10 laser, 14 squeezer, 20 squeezer, 24 squeezer, 30 laser, 34 squeezer, 41 squeezer, 42 balanced homodyne, 43 laser |
@@ -133,7 +140,7 @@ A `DEVIATION` does not say which code is wrong. `python tests/refined_solves.py 
 
 ## Not covered yet
 
-- More than 101 frequencies, and a 4x4 grid at 101 frequencies: the original needs about 140 MB per frequency at 3x3 and more at 4x4, which does not fit in 16 GB. They need a machine with 32 GB or more.
+- `frequencies-201` and `size-4-full` need a machine with 32 GB and 48 GB for the original; on a smaller one the original is not started and the verdict is `NO_REFERENCE` until its results have been made on a large machine and committed.
 - One-core Linux times for these scenarios (the stored times are from the Mac).
 - Frequency-modulation mode, grids larger than 4x4, and a different set of design variables (for example refractive indices or beamsplitter angles).
 - Setups that are not grids (Voyager, aLIGO, the cavity sweep): `tests/test_host.py` compares our two code paths on them, but they are not timed here.

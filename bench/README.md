@@ -233,7 +233,7 @@ Each case is a file in `tests/variations/`: a complete setup and its frequencies
 1. runs the **original code once** and stores its readout signal, noise, sensitivity, powers and gradient in `reference/variation-<case>.npz`. This happens only when that file is missing (or with `--make-reference <case>`), because the original is slow and needs about 14 GB;
 2. runs the **working tree** in a fresh process and compares it with that reference, using `compare_arrays` and the tolerances of `validate.py`;
 3. checks the working tree's gradient against **finite differences** in four random directions;
-4. writes a session file to `results/<machine>/variations/` and regenerates `results/<machine>/VARIATIONS.md`.
+4. writes a session file to `results/<machine>/variations/` and, when all cases were run, regenerates `results/<machine>/VARIATIONS.md`.
 
 Verdicts: `PASS`; `DEVIATION` (inside the judges' limit of 1e-5 in log sensitivity, but some value differs from the original by more than the `validate.py` tolerance; the line names it); `FAIL`; `NO_REFERENCE` (the original could not produce a result). The case `supplied` is the script's check of itself: it must reproduce the public reference sensitivities and the harness's own baseline arrays.
 
