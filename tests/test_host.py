@@ -159,7 +159,7 @@ def main():
             one_point = jax.jacfwd(lambda x: stacked(x[:, None, None])[:, 0, 0])
             jacobian = np.asarray(jax.vmap(jax.vmap(one_point, in_axes=1, out_axes=1), in_axes=1, out_axes=1)(jnp.asarray(inputs)))
             with np.errstate(all="ignore"):
-                dual = numpy_function(host.DualInputs(inputs))
+                dual = numpy_function(host.DualInputs(inputs, np.arange(7)))
             for index, entry in enumerate(dual):
                 value = np.broadcast_to(host._value(entry), (3, 5))
                 tangent = np.broadcast_to(host._tangent(entry), (7, 3, 5))

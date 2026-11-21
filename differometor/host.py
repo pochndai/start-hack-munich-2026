@@ -207,14 +207,20 @@ _UNARY = {
 
 
 class DualInputs:
-    """The seven inputs of a component function, each seeded with its own unit derivative."""
+    """
+    The seven inputs of a component function as `Dual` values.
 
-    def __init__(self, inputs):
+    Only the inputs listed in `seeded` get a derivative of their own; the tangent axis has
+    one entry per seeded input, and every other input carries zeros there.
+    """
+
+    def __init__(self, inputs, seeded):
         self.inputs = inputs
+        self.seeded = seeded
 
     def __getitem__(self, index):
-        tangent = np.zeros((len(self.inputs),) + (1,) * (self.inputs.ndim - 1))
-        tangent[index] = 1.0
+        tangent = np.zeros((len(self.seeded),) + (1,) * (self.inputs.ndim - 1))
+        tangent[self.seeded == index] = 1.0
         return Dual(self.inputs[index], tangent)
 
 
@@ -227,12 +233,17 @@ def _last_writes(*indices) -> np.ndarray:
     return keep
 
 
-def _evaluate(parameters, function_input_indices, output_indices, function_indices, differentiate):
+def _evaluate(parameters, function_input_indices, output_indices, function_indices, active):
     """
     NumPy counterpart of `differometor.simulate.evaluate`.
 
-    Returns the selected outputs, shape (V, M), and, if `differentiate`, a function that
-    maps cotangents of those outputs to cotangents of `parameters`, shape (V, P).
+    Returns the selected outputs, shape (V, M), and, unless `active` is None, a function
+    that maps cotangents of those outputs to cotangents of `parameters`, shape (V, P).
+
+    `active` marks the parameters that depend on the optimized values, shape (P,).
+    Derivatives are taken only with respect to function inputs that read such a parameter
+    somewhere; the cotangent of every other parameter is discarded by the caller, so it is
+    left at zero here.
     """
     output_rows, output_coefficients = output_indices
     value_count = parameters.shape[0]
@@ -241,8 +252,9 @@ def _evaluate(parameters, function_input_indices, output_indices, function_indic
     for function_index in np.unique(function_indices):
         inputs = np.nonzero(function_indices == function_index)[0]
         function_inputs = np.moveaxis(parameters[:, function_input_indices[inputs]], -1, 0)
+        seeded = () if active is None else np.nonzero(active[function_input_indices[inputs]].any(axis=0))[0]
         coefficients = NUMPY_FUNCTIONS[function_index](
-            DualInputs(function_inputs) if differentiate else function_inputs
+            DualInputs(function_inputs, seeded) if len(seeded) else function_inputs
         )
         from_this_function = np.isin(output_rows, inputs)
         for coefficient in np.unique(output_coefficients[from_this_function]):
@@ -252,23 +264,23 @@ def _evaluate(parameters, function_input_indices, output_indices, function_indic
             block = np.broadcast_to(_value(entry), (value_count, len(inputs)))
             outputs[:, selected] = block[:, positions]
             if isinstance(entry, Dual):
-                tangent = np.broadcast_to(entry.tangent, (function_inputs.shape[0], value_count, len(inputs)))
-                blocks.append((inputs, selected, positions, tangent))
-    if not differentiate:
+                tangent = np.broadcast_to(entry.tangent, (len(seeded), value_count, len(inputs)))
+                blocks.append((inputs, selected, positions, tangent, seeded))
+    if active is None:
         return outputs, None
 
     def pull_back(output_cotangents):
         parameter_cotangents = np.zeros(parameters.shape)
         everything = slice(None)
-        for inputs, selected, positions, tangent in blocks:
+        for inputs, selected, positions, tangent, seeded in blocks:
             per_input = np.zeros((value_count, len(inputs)), dtype=np.complex128)
             np.add.at(per_input, (everything, positions), output_cotangents[:, selected])
             contributions = np.real(per_input * tangent)
-            for argument in range(tangent.shape[0]):
+            for contribution, argument in zip(contributions, seeded):
                 np.add.at(
                     parameter_cotangents,
                     (everything, function_input_indices[inputs, argument]),
-                    contributions[argument],
+                    contribution,
                 )
         return parameter_cotangents
 
@@ -295,6 +307,13 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
     parameters[0, a["optimized_parameter_indices"]] = optimized_parameters[a["optimized_value_indices"]]
     # Parameter linking. Only identity links reach this function (see `supported`).
     parameters[0, a["indices_to_link"]] = parameters[0, a["linked_indices"]]
+    # Which parameters depend on the optimized values: the two assignments above, on flags.
+    # The swept parameters stay flagged; `_backward` drops their cotangents, as before.
+    active = None
+    if differentiate:
+        active = np.zeros(parameters.shape[1], dtype=bool)
+        active[a["optimized_parameter_indices"]] = True
+        active[a["indices_to_link"]] = active[a["linked_indices"]]
 
     # Quadrature-homodyne-detector phases, multiplied into the selection vectors.
     s["phases"] = np.exp(1j * np.radians(parameters[0, a["qhd_parameter_indices"]]))
@@ -310,7 +329,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
         a["carrier_function_input_indices"],
         static["carrier_output_indices"],
         static["carrier_function_indices"],
-        differentiate,
+        active,
     )
     carrier_count = parameters.shape[0]
     carrier_matrix = np.broadcast_to(
@@ -337,7 +356,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
         a["signal_function_input_indices"],
         static["signal_output_indices"],
         static["signal_function_indices"],
-        differentiate,
+        active,
     )
     values[:, layout["update_slots"]] = signal_outputs
     placing_slots = layout["placing_slots"]
@@ -367,7 +386,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
         a["noise_function_input_indices"],
         static["noise_output_indices"],
         static["noise_function_indices"],
-        differentiate,
+        active,
     )
     noise_values[:, noise_layout["update_slots"]] = noise_outputs
 
