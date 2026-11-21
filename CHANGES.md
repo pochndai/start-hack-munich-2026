@@ -9,26 +9,26 @@ Official benchmark (`python benchmark.py --cpus 1`), complete first run, one CPU
 | Machine | Original | Ours |
 | --- | ---: | ---: |
 | Intel Xeon Platinum 8468 (Feyer's published baseline) | 44.2 s | not measured yet |
-| AMD EPYC 7763, GitHub Codespace, Python 3.12 | does not fit in 16 GB of RAM | **5.1 s** |
+| AMD EPYC 7763, GitHub Codespace, Python 3.12 | does not fit in 16 GB of RAM | **3.2 s** |
 
 Same Codespace, one core, both versions in the style of `start_here.py` (one compile, one run):
 
 | | Original | Ours |
 | --- | ---: | ---: |
-| Setup | 1.4 s | 0.8 s |
-| Compile | 22.6 s | 3.8 s |
-| First run | 11.7 s | 0.3 s |
-| **Total** | **35.8 s** | **4.8 s** |
+| Setup | 1.4 s | 0.5 s |
+| Compile | 22.6 s | 2.4 s |
+| First run | 11.7 s | 0.2 s |
+| **Total** | **35.8 s** | **3.1 s** |
 
-A repeat run, once compiled, takes 0.25 s in the official benchmark (the published baseline is 17.7 s).
+A repeat run, once compiled, takes 0.20 s in the official benchmark (the published baseline is 17.7 s).
 
-The two machines in the first table are different, so 44.2 s and 5.1 s are not a same-hardware comparison. The second table is.
+The two machines in the first table are different, so 44.2 s and 3.2 s are not a same-hardware comparison. The second table is.
 
 The report and chart of our run are in `benchmarks/codespace-candidate.json` and `benchmarks/codespace-candidate.png`.
 
-## The seven changes
+## The eleven changes
 
-Most of the code changes are in `differometor/simulate.py`. The formulas of the physics functions in `components.py` are untouched.
+Most of the code changes are in `differometor/simulate.py`. In `components.py` the physics formulas are the same; only the mirror function was rewritten in an equivalent, shorter form (change 10).
 
 ### 1. Solve the signal system with a sparse solver
 
@@ -96,6 +96,52 @@ Official benchmark on the Codespace, one core, each version run twice:
 | + change 5 | 5.28 s, 5.20 s | 0.39 s | 1.2 s | 0.29 s |
 | + change 6 | 5.15 s, 5.09 s | 0.40 s | 1.0 s | 0.27 s |
 
+### 8. Keep the parameters real
+
+- **What:** the parameter vector is stored as real numbers (`float64`) instead of complex ones. Matrix entries and function outputs stay `complex128`.
+- **Why:** every parameter is a real quantity (mass, reflectivity, length, angle). Stored as complex, they turned all the arithmetic on them, including sines, cosines and hyperbolic functions, into complex arithmetic, which is much more code to compile and to differentiate.
+- **Out-of-range values:** with complex parameters, a reflectivity pushed slightly above 1 gave an imaginary square root; with real ones it would give NaN. So the three square roots of a reflectivity, transmissivity or power are still taken as complex (`as_complex`). Our perturbed-parameter check caught this.
+- **Snell's law:** `cos(arcsin(x))` is computed by `cos_arcsin`, a closed form with one square root that returns the same values, also beyond total internal reflection (checked on 6,000 points from -3 to 3, largest difference 1e-14). The complex arcsine it replaces is one of the slowest functions to compile.
+
+### 9. Only build the coefficients that are read
+
+- **What:** which coefficient of which function goes where is now build-time data too, and `evaluate()` reads the functions' coefficients directly (`raw_outputs`).
+- **Why:** every function returned four values, most of them padding zeros. They were broadcast, stacked, differentiated, written into a table and mostly never read.
+- **Effect:** bit-for-bit the same outputs as after change 8.
+
+### 10. Share the common steps of the mirror function
+
+- **What:** `surface()` computes its two reflection coefficients and its transmission coefficient from shared phases, angles and square roots, instead of calling three helpers that each recompute them.
+- **Why:** it is the largest function and is traced twice. Its compiled size with gradient fell by a third.
+- **Effect:** bit-for-bit the same outputs, and gradients equal to 6e-17.
+
+### 11. Convert build results on the host
+
+- **What:** the build step converts its lists to JAX arrays through NumPy (`device_array`) and reads the parameter vector as a NumPy array.
+- **Why:** `jnp.array(list, dtype=...)` and indexing a JAX array each ran, and at first use compiled, a small device program. That was 36 more small compilations.
+- **Effect:** the build step went from 0.42 s to 0.11 s on the Codespace. Outputs are bit-for-bit the same.
+
+### Changes 8–11 measured one at a time
+
+Official benchmark on the Codespace, one core, each version run three times:
+
+| Version | Total (three runs) | Build | Forward trace | Forward compile |
+| --- | ---: | ---: | ---: | ---: |
+| Changes 1–7 | 5.61, 5.45, 5.53 s | 0.46 s | 1.05 s | 2.14 s |
+| + change 8, without the out-of-range handling | 4.70, 4.49, 4.33 s | 0.45 s | 1.04 s | 1.19 s |
+| + change 9 | 3.60, 3.69, 3.50 s | 0.46 s | 0.88 s | 0.70 s |
+| + change 10 | 3.30, 3.29, 3.44 s | 0.42 s | 0.80 s | 0.66 s |
+| + change 11 | 3.01, 3.01, 3.05 s | 0.11 s | 0.82 s | 0.66 s |
+| + out-of-range handling with a complex arcsine | 3.33, 3.38, 3.33 s | 0.11 s | 0.82 s | 0.97 s |
+| + `cos_arcsin` in its place (final) | 3.16, 3.30, 3.24 s | 0.11 s | 0.85 s | 0.82 s |
+
+The Codespace was a little slower in this session than when changes 5–7 were measured, which is why the first row reads 5.5 s and not 5.1 s.
+
+### Tried and not adopted
+
+- **`cos(x) + 1j*sin(x)` instead of `exp(1j*x)`:** no measurable difference in compile time (about 3 ms per use either way).
+- **Reusing one factorisation for both remaining solves:** the whole repeat run is 0.2 s, so there is little to gain, and it would need a hand-written gradient rule.
+
 ## Step by step, changes 1–3 (Apple M5, official benchmark without CPU pinning)
 
 | Version | Total | Compile | Forward | Gradient |
@@ -144,3 +190,4 @@ For the original, run the same commands on the `main` branch. It needs about 16 
 - The original could not complete the official benchmark on the 16 GB Codespace, so the official-style "before" on that machine is missing.
 - Setups with several detectors or a homodyne detector use code paths the example does not exercise; we have not tested one.
 - The carrier system (286×286, solved once) still uses the dense solver.
+- `cos_arcsin` returns the same values as the complex arcsine route, but beyond total internal reflection its derivative has the opposite sign in the imaginary part. That only matters when a refractive index or an incidence angle is itself a design variable in such a setup; the benchmark's design variables are reflectivity, tuning, squeezing, angle of squeezing, power, mass and length.

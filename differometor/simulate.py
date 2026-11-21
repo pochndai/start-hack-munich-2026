@@ -26,7 +26,7 @@ from jax import lax, vmap, jit
 
 from differometor.setups import Setup
 from differometor.build import build, pairs_to_arrays, prepare_arrays, LINKING_FUNCTIONS
-from differometor.components import FUNCTIONS, UNIT_VACUUM, H_PLANCK, F0, numpy_backend
+from differometor.components import FUNCTIONS, UNIT_VACUUM, H_PLANCK, F0, numpy_backend, raw_outputs
 
 
 jax.config.update("jax_enable_x64", True)
@@ -85,7 +85,7 @@ def solve(matrix: jnp.ndarray, right_hand_side: jnp.ndarray) -> jnp.ndarray:
 def evaluate(
     parameters: jnp.ndarray,
     function_input_indices: jnp.ndarray,
-    output_indices: tuple[jnp.ndarray, jnp.ndarray],
+    output_indices: Static,
     function_indices: Static,
 ) -> jnp.ndarray:
     """
@@ -98,9 +98,9 @@ def evaluate(
     function_input_indices : jnp.ndarray
         Indices into `parameters` selecting inputs to the component functions,
         shape (K, 7).
-    output_indices : tuple[jnp.ndarray, jnp.ndarray]
-        Pair of index arrays selecting entries from the evaluated output matrix.
-        Each element has shape (M,). Together they define M output positions.
+    output_indices : Static
+        Two rows of M indices: which of the K evaluations, and which of its (up to
+        four) coefficients, each output is. Known at trace time.
     function_indices : Static
         Indices selecting which function to use for each input, shape (K,).
         Values index into the global `FUNCTIONS` list. Known at trace time.
@@ -112,30 +112,43 @@ def evaluate(
 
     Notes
     -----
-    The function indices are known while tracing, so each component function is
-    traced once and only for the inputs that use it. Selecting with `lax.switch`
-    under `vmap` instead evaluates every function for every input and compiles
-    several times slower.
+    The function and output indices are known while tracing, so each component
+    function is traced once, only for the inputs that use it, and only the
+    coefficients that are read are kept. Selecting with `lax.switch` under `vmap`
+    instead evaluates every function for every input and compiles several times
+    slower.
 
     The component functions work elementwise on their seven inputs, so each one is
     called once on arrays of shape (7, ..., K_f) instead of under `vmap`, which is
     slower to trace.
     """
     function_indices = function_indices.array
-    output_matrix = jnp.zeros((*parameters.shape[:-1], len(function_indices), 4), dtype=jnp.complex128)
+    output_rows, output_coefficients = output_indices.array
+    blocks = []  # one array of shape (..., K_f) per function and coefficient that is read
+    positions = np.zeros(len(output_rows), dtype=np.int64)  # where each output sits in the joined blocks
+    offset = 0
     for function_index in np.unique(function_indices):
         inputs = np.nonzero(function_indices == function_index)[0]
         function_inputs = jnp.moveaxis(parameters[..., function_input_indices[inputs]], -1, 0)
-        function_outputs = jnp.moveaxis(FUNCTIONS[function_index](function_inputs), 0, -1)
-        output_matrix = output_matrix.at[..., inputs, :].set(function_outputs)
-    return output_matrix[..., output_indices[0], output_indices[1]]
+        with raw_outputs():
+            coefficients = FUNCTIONS[function_index](function_inputs)
+        from_this_function = np.isin(output_rows, inputs)
+        for coefficient in np.unique(output_coefficients[from_this_function]):
+            selected = from_this_function & (output_coefficients == coefficient)
+            positions[selected] = offset + np.searchsorted(inputs, output_rows[selected])
+            value = coefficients[coefficient] if coefficient < len(coefficients) else 0
+            blocks.append(
+                jnp.broadcast_to(jnp.asarray(value, dtype=jnp.complex128), (*parameters.shape[:-1], len(inputs)))
+            )
+            offset += len(inputs)
+    return jnp.concatenate(blocks, axis=-1)[..., positions]
 
 
 def update(
     parameters: jnp.ndarray,
     matrix: jnp.ndarray,
     function_input_indices: jnp.ndarray,
-    output_indices: tuple[jnp.ndarray, jnp.ndarray],
+    output_indices: Static,
     matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
     function_indices: Static,
 ) -> jnp.ndarray:
@@ -222,19 +235,19 @@ def simulate(
     # carrier arrays
     carrier_function_input_indices: jnp.ndarray,
     carrier_function_indices: Static,
-    carrier_output_indices: tuple[jnp.ndarray, jnp.ndarray],
+    carrier_output_indices: Static,
     carrier_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
     # signal arrays
     signal_function_input_indices: jnp.ndarray,
     signal_function_indices: Static,
-    signal_output_indices: tuple[jnp.ndarray, jnp.ndarray],
+    signal_output_indices: Static,
     signal_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
     signal_carrier_indices: jnp.ndarray,
     signal_carrier_placing_indices: tuple[jnp.ndarray, jnp.ndarray],
     # noise arrays
     noise_function_input_indices: jnp.ndarray,
     noise_function_indices: Static,
-    noise_output_indices: tuple[jnp.ndarray, jnp.ndarray],
+    noise_output_indices: Static,
     noise_system_matrix_indices: tuple[jnp.ndarray, jnp.ndarray],
     # sparse layouts
     signal_sparse_indices: dict[str, jnp.ndarray],
@@ -492,7 +505,7 @@ def sparse_layout(matrix, update_indices, placing_indices=None, carrier_size=Non
     """
     base = np.asarray(matrix)
     size = base.shape[0]
-    index_pairs = [tuple(np.asarray(index) for index in pair) for pair in (update_indices, placing_indices) if pair is not None]
+    index_pairs = [tuple(np.asarray(pair)) for pair in (update_indices, placing_indices) if pair is not None]
     pattern = base != 0
     for pair in index_pairs:
         pattern[pair] = True
@@ -581,8 +594,7 @@ def run_build_step(
     all_arrays = (*prepared_arrays, *matrices, *carrier_arrays, *signal_arrays, *noise_arrays)
     named = dict(zip(arg_names, all_arrays))
     all_arrays = tuple(
-        Static(array) if name in ("carrier_function_indices", "signal_function_indices", "noise_function_indices")
-        else array
+        Static(array) if name.endswith(("_function_indices", "_output_indices")) and "linking" not in name else array
         for name, array in named.items()
     )
     all_arrays += (
