@@ -283,11 +283,23 @@ Official benchmark on the Codespace, one core, each version run twice:
   | Runs with a NumPy step at more than twice its normal time | 8 of 24 | 0 of 8 |
 
   So it costs about 0.03 s (4%) on a quiet machine and removes the outliers on a busy one. The scored number is a single run, where an outlier costs far more than 0.03 s.
+- **Second test, with the switch itself** (commit `8ff051a`, same kind of AMD container, 72 runs, `bench/results/amd-epyc-9334-32-core-processor-504g-linux/diagnosis-change-13/`). The package as committed against the same package with `NUMPY_MADVISE_HUGEPAGE=1`, which leaves NumPy's request on:
+
+  | | Request on | Request off (this change) |
+  | --- | ---: | ---: |
+  | Large pages handed to our process per run, quiet machine | 54 to 64 | 0 |
+  | Complete first run, quiet machine, median of 24 | 0.71 s | 0.74 s |
+  | Complete first run next to memory-churning processes, median of 12 | 1.11 s | 1.16 s |
+  | Same, slowest run | 1.15 s | 1.26 s |
+  | Runs with a NumPy step at more than twice its normal time | 0 of 12 | 0 of 12 |
+
+  The switch works (no large pages are handed out any more) and its cost is confirmed: 0.03 s on a quiet machine, about 0.05 s under memory pressure. **The benefit did not show in this session:** the outliers did not occur with either setting, so there was nothing for the switch to remove. Both tests together give outliers in 8 of 36 runs with the request on and 0 of 20 with it off, which would happen by chance about one time in 50.
+- **Where that leaves the change:** a certain cost of about 4% against a protection that is likely but not demonstrated. It is worth keeping if the scoring machine is shared with other work, and worth removing if it is dedicated and quiet. That question is open with the organizers.
 - **What is not shown:** the worst state we saw (0.74 s becoming 2.8 s) did not occur again during the test, so there is no measurement of this change against it. 0 of 8 against 8 of 24 would happen by chance about one time in 25.
 - **Why the run-time switch and not the environment variable:** `benchmark.py` imports NumPy (through JAX) before it imports this package, and NumPy reads `NUMPY_MADVISE_HUGEPAGE` only when it is imported. The switch does the same thing afterwards.
 - **A dependency to know about:** the switch is private to NumPy. It exists in the pinned `numpy==2.5.5`; if a future NumPy removes it, the call is skipped and the behaviour is as before this change. A user who sets `NUMPY_MADVISE_HUGEPAGE` themselves keeps their choice.
 - **How it stays general:** it does not depend on the setup. On macOS and Windows it has no effect.
-- **Checks after the change (Apple M5):** official benchmark `PASS`; `bench/validate.py WORKTREE` `PASS` with the same differences from the original as before the change (sensitivity 5.8e-08 in log, gradient 9.2e-08 of the largest entry); `tests/test_host.py` ends with `ALL CHECKS PASSED`; `tests/handwritten_jacobians.py` agrees on all 19 rules; `tests/variations.py` gives 18 `PASS` and the one known `DEVIATION` on 19 scenarios. A timing comparison with the switch itself, on Linux, is still owed; the numbers above were measured with the environment variable.
+- **Checks after the change (Apple M5):** official benchmark `PASS`; `bench/validate.py WORKTREE` `PASS` with the same differences from the original as before the change (sensitivity 5.8e-08 in log, gradient 9.2e-08 of the largest entry); `tests/test_host.py` ends with `ALL CHECKS PASSED`; `tests/handwritten_jacobians.py` agrees on all 19 rules; `tests/variations.py` gives 18 `PASS` and the one known `DEVIATION` on 19 scenarios. The Linux timing comparison with the switch itself is the second test above.
 
 ### Changes 8–11 measured one at a time
 

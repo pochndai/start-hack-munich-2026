@@ -1,0 +1,84 @@
+-- quiet
+   request-on      total  0.75 build 0.08 forward 0.07 gradient 0.10 | user 0.61 system 0.16 | large pages given 52, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.60 system 0.17 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.70 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.16 | large pages given 55, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.56 system 0.20 | large pages given 0, refused 0, compaction stalls 0
+   request-off     total  0.73 build 0.09 forward 0.08 gradient 0.11 | user 0.58 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.59 system 0.14 | large pages given 54, refused 0, compaction stalls 0
+   request-on      total  0.69 build 0.08 forward 0.07 gradient 0.08 | user 0.59 system 0.13 | large pages given 44, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.58 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.58 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.69 build 0.08 forward 0.07 gradient 0.09 | user 0.59 system 0.13 | large pages given 51, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.58 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.72 build 0.08 forward 0.07 gradient 0.11 | user 0.59 system 0.16 | large pages given 57, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.59 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.70 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.16 | large pages given 57, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.57 system 0.20 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.73 build 0.08 forward 0.08 gradient 0.11 | user 0.61 system 0.15 | large pages given 59, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.08 gradient 0.10 | user 0.59 system 0.15 | large pages given 53, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.57 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.58 system 0.15 | large pages given 62, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.57 system 0.20 | large pages given 0, refused 0, compaction stalls 0
+   request-off     total  0.72 build 0.09 forward 0.08 gradient 0.09 | user 0.59 system 0.16 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.72 build 0.08 forward 0.07 gradient 0.10 | user 0.59 system 0.16 | large pages given 74, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.07 gradient 0.11 | user 0.57 system 0.17 | large pages given 53, refused 0, compaction stalls 0
+   request-off     total  0.75 build 0.09 forward 0.08 gradient 0.11 | user 0.59 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+-- noisy neighbour churning memory
+   request-off     total  1.15 build 0.16 forward 0.16 gradient 0.15 | user 0.58 system 0.62 | large pages given 5104, refused 0, compaction stalls 7548
+   request-on      total  1.09 build 0.14 forward 0.12 gradient 0.17 | user 0.59 system 0.54 | large pages given 4823, refused 0, compaction stalls 6903
+   request-off     total  1.15 build 0.16 forward 0.14 gradient 0.17 | user 0.59 system 0.62 | large pages given 5236, refused 0, compaction stalls 7308
+   request-on      total  1.10 build 0.14 forward 0.13 gradient 0.14 | user 0.61 system 0.54 | large pages given 5224, refused 0, compaction stalls 7540
+   request-on      total  1.14 build 0.14 forward 0.14 gradient 0.16 | user 0.57 system 0.62 | large pages given 5100, refused 0, compaction stalls 7570
+   request-off     total  1.21 build 0.16 forward 0.13 gradient 0.19 | user 0.60 system 0.66 | large pages given 4544, refused 47, compaction stalls 7663
+   request-off     total  0.82 build 0.11 forward 0.10 gradient 0.12 | user 0.58 system 0.26 | large pages given 2416, refused 182, compaction stalls 3645
+   request-on      total  1.13 build 0.12 forward 0.13 gradient 0.17 | user 0.58 system 0.60 | large pages given 4129, refused 0, compaction stalls 6508
+   request-off     total  1.20 build 0.16 forward 0.13 gradient 0.21 | user 0.59 system 0.65 | large pages given 4201, refused 0, compaction stalls 6090
+   request-on      total  1.08 build 0.14 forward 0.13 gradient 0.11 | user 0.59 system 0.53 | large pages given 4069, refused 0, compaction stalls 5935
+   request-on      total  1.11 build 0.16 forward 0.13 gradient 0.17 | user 0.57 system 0.58 | large pages given 4139, refused 0, compaction stalls 5812
+   request-off     total  1.26 build 0.19 forward 0.16 gradient 0.19 | user 0.60 system 0.71 | large pages given 4434, refused 0, compaction stalls 6669
+   request-on      total  1.11 build 0.13 forward 0.14 gradient 0.17 | user 0.60 system 0.56 | large pages given 3636, refused 0, compaction stalls 5754
+   request-off     total  1.16 build 0.15 forward 0.17 gradient 0.20 | user 0.59 system 0.60 | large pages given 4089, refused 0, compaction stalls 6391
+   request-off     total  1.07 build 0.15 forward 0.09 gradient 0.13 | user 0.59 system 0.54 | large pages given 4111, refused 26, compaction stalls 6282
+   request-on      total  1.02 build 0.14 forward 0.12 gradient 0.11 | user 0.58 system 0.48 | large pages given 4510, refused 0, compaction stalls 6752
+   request-on      total  1.10 build 0.12 forward 0.13 gradient 0.15 | user 0.58 system 0.57 | large pages given 4514, refused 0, compaction stalls 7129
+   request-off     total  1.16 build 0.16 forward 0.13 gradient 0.19 | user 0.57 system 0.63 | large pages given 4965, refused 0, compaction stalls 7163
+   request-on      total  1.12 build 0.14 forward 0.13 gradient 0.17 | user 0.58 system 0.60 | large pages given 4837, refused 0, compaction stalls 6912
+   request-off     total  1.16 build 0.16 forward 0.16 gradient 0.13 | user 0.62 system 0.58 | large pages given 5104, refused 0, compaction stalls 7365
+   request-on      total  1.15 build 0.14 forward 0.12 gradient 0.16 | user 0.61 system 0.59 | large pages given 4615, refused 0, compaction stalls 7344
+   request-off     total  1.19 build 0.19 forward 0.15 gradient 0.15 | user 0.58 system 0.66 | large pages given 4999, refused 0, compaction stalls 7487
+   request-on      total  1.12 build 0.13 forward 0.12 gradient 0.18 | user 0.58 system 0.58 | large pages given 4678, refused 0, compaction stalls 6592
+   request-off     total  1.20 build 0.16 forward 0.15 gradient 0.20 | user 0.60 system 0.64 | large pages given 4903, refused 0, compaction stalls 7257
+-- quiet again
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.56 system 0.20 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.70 build 0.08 forward 0.07 gradient 0.09 | user 0.58 system 0.15 | large pages given 67, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.58 system 0.16 | large pages given 68, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.59 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.58 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.72 build 0.08 forward 0.07 gradient 0.11 | user 0.58 system 0.16 | large pages given 64, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.08 gradient 0.11 | user 0.57 system 0.16 | large pages given 65, refused 0, compaction stalls 0
+   request-off     total  0.75 build 0.09 forward 0.08 gradient 0.10 | user 0.60 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.58 system 0.16 | large pages given 49, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.57 system 0.20 | large pages given 0, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.59 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.70 build 0.08 forward 0.07 gradient 0.10 | user 0.57 system 0.16 | large pages given 69, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.59 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.72 build 0.08 forward 0.08 gradient 0.10 | user 0.59 system 0.15 | large pages given 47, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.59 system 0.14 | large pages given 58, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.57 system 0.20 | large pages given 0, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.57 system 0.20 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.58 system 0.16 | large pages given 66, refused 0, compaction stalls 0
+   request-on      total  0.70 build 0.08 forward 0.07 gradient 0.09 | user 0.58 system 0.15 | large pages given 52, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.12 | user 0.59 system 0.18 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.07 gradient 0.10 | user 0.56 system 0.17 | large pages given 54, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.58 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   request-off     total  0.74 build 0.09 forward 0.08 gradient 0.11 | user 0.57 system 0.19 | large pages given 0, refused 0, compaction stalls 0
+   request-on      total  0.71 build 0.08 forward 0.07 gradient 0.11 | user 0.57 system 0.17 | large pages given 65, refused 0, compaction stalls 0
+
+== summary (complete first run, seconds)
+condition                         setting           runs  fastest  median  slowest  slow runs  system s  stalls
+quiet                             request-off         12     0.72    0.74     0.75       0/12      0.19       0
+quiet                             request-on          12     0.69    0.71     0.75       0/12      0.15       0
+noisy neighbour churning memory   request-off         12     0.82    1.16     1.26      11/12      0.60   80868
+noisy neighbour churning memory   request-on          12     1.02    1.11     1.15      12/12      0.57   80751
+quiet again                       request-off         12     0.74    0.74     0.75       0/12      0.19       0
+quiet again                       request-on          12     0.70    0.71     0.72       0/12      0.16       0

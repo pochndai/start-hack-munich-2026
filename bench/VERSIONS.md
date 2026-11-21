@@ -259,7 +259,7 @@ Only where memory comes from changes, so the outputs are bit-for-bit those of v0
 
 **Result**
 
-On the Mac the switch has no effect (macOS has no such request), so there is no Mac timing to quote: the validation run took 0.37 s, like v07. The Linux numbers are those of the test above, made with the environment variable. A comparison with the switch itself on Linux, quiet and under memory pressure, is still owed.
+On the Mac the switch has no effect (macOS has no such request), so there is no Mac timing to quote: the validation run took 0.37 s, like v07. A second AMD test used the switch itself (`results/amd-epyc-9334-32-core-processor-504g-linux/diagnosis-change-13/`, 72 runs, one pinned core): quiet machine 0.74 s with the request off against 0.71 s with it on (median of 24 each); next to memory-churning processes 1.16 s against 1.11 s (median of 12 each). No large pages were handed to the process with the switch off, so it works. The outliers this version is meant to prevent did not occur with either setting in that session, so its benefit rests on the first test alone (8 of 24 runs against 0 of 8).
 
 **Dead ends and notes**
 

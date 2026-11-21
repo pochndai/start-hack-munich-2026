@@ -50,6 +50,7 @@ Follow-up on a third instance of the same kind (21:55 UTC; a container with 16 C
 | Time | What | Result | Raw data |
 | --- | --- | --- | --- |
 | 21:58 | 96 runs of `benchmark.py --cpus 1` on the current code (`e44b489`): four settings, 8 rounds each, on a quiet machine, next to four memory-churning processes, and right after a 14 GB memory user | Quiet and after the memory user: 0.69 to 0.75 s in all 64 runs. Next to the churning processes: 0.93 to 1.51 s; lumps in the NumPy steps in 8 of 24 runs with NumPy's large-page request on, in 0 of 8 with it off | `diagnosis/runs.jsonl`, `diagnosis/diagnose.log`, `diagnosis/machine.txt` |
+| 22:35 | 72 runs of `benchmark.py --cpus 1` on `8ff051a` (change 13): NumPy's large-page request off (as committed) and on, 12 rounds each, quiet, next to four memory-churning processes, quiet again | Quiet: 0.74 s off, 0.71 s on. Next to the churning processes: 1.16 s off, 1.11 s on (medians). No step took more than twice its normal time with either setting | `diagnosis-change-13/runs.jsonl`, `diagnosis-change-13/diagnose.log` |
 
 ## 2. By hand, with a saved report
 
