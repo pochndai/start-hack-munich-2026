@@ -148,6 +148,28 @@ The 18 scenarios on the same instance (`bench/results/amd-epyc-9334-32-core-proc
 
 The two scenarios that do not fit on the Mac (`frequencies-201` and `size-4-full`) got their reference here and pass. `uifo-20-5000` is `DEVIATION` here and `PASS` on the Mac: its readout signal is 1.4e-06 from the stored original, a hair over the 1e-6 limit, because the stored original was computed on the Mac and ours here on Linux. The original itself is not identical across the two machines either: on `band-20-5000`, the original on this machine and the original on the Mac disagree on two gradient entries by more than 0.1%.
 
+### The organizers' second benchmark: aLIGO
+
+On 21 November the organizers added `benchmark_aligo.py`: the public simplified Advanced LIGO setup with mirror mechanics and squeezed light, 101 frequencies from 20 to 5000 Hz, 29 design variables with independent lengths, and a tighter check (sensitivity within 1e-6 of the reference in log, where the grid benchmark allows 1e-5). They say the final evaluation will be on a setup like the larger grid; this one is for testing whether a speed-up carries over to a smaller setup. Their update (`83f8d2f`) is merged into `main`; it also changes `benchmark.py` so that both benchmarks share one harness, and the grid benchmark still prints `PASS` with it.
+
+Both versions on the same machine (Apple M5 MacBook Air, all cores, since a Mac cannot pin one; 10 repeats; reports `benchmarks/mac-aligo-original.*` and `benchmarks/mac-aligo-candidate.*`):
+
+| Step | Original | Ours |
+| --- | ---: | ---: |
+| Imports | 0.17 s | 0.27 s |
+| Build the setup | 0.36 s | 0.03 s |
+| Trace and compile | 3.51 s | 0.07 s |
+| Forward simulation | 0.038 s | 0.004 s |
+| Gradient | 0.025 s | 0.005 s |
+| **Complete first run** | **4.10 s** | **0.38 s** |
+| Repeat run, once compiled (median of 10) | 0.021 s | 0.007 s |
+| Distance from the reference, in log (limit 1e-6) | 1.0e-10 | 1.4e-10 |
+| Official check | `PASS` | `PASS` |
+
+About 11 times faster on the scored number. The setup is small (the original needs 0.02 s per evaluation once compiled), so almost all of the original's time is compiling, and that is what our NumPy path avoids; what is left of ours is mostly loading the packages. Ours against the original, every saved array: carrier and powers identical, noise 2e-12, sensitivity 1.3e-10 in log, signal 1.2e-08, and all 29 gradient entries within 1.1e-09 of their own size. No deviation at the harness tolerances.
+
+Not measured: a one-core Linux pair for this benchmark. The organizers' own run of the original on their Xeon took 25.31 s (`benchmarks/aligo-cpu-baseline.json`); that is a different machine and must not be compared with our Mac numbers.
+
 ## The twelve changes
 
 Most of the code changes are in `differometor/simulate.py`. In `components.py` the physics formulas are the same; only the mirror function was rewritten in an equivalent, shorter form (change 10).

@@ -27,8 +27,8 @@ These come from the organizers' [README.md](README.md) and the judging criteria.
 - Nothing may depend on the supplied setup in particular: no hard-coded sizes
   (751, 193, 101), component names or sparsity patterns. Derive them from the
   setup the code is given.
-- Do not edit `benchmark.py`, `plot_timings.py`, `UPSTREAM.json` or the
-  fixtures in `examples/data/`. `benchmark.py` checks the fixtures' hashes,
+- Do not edit `benchmark.py`, `benchmark_aligo.py`, `plot_timings.py`,
+  `UPSTREAM.json` or the fixtures in `examples/data/`. `benchmark.py` checks the fixtures' hashes,
   and the harness flags any version whose `benchmark.py` differs.
 
 ## Repository map

@@ -136,6 +136,18 @@ The second AMD session (19:01 to 19:08) has saved reports and is in section 2. O
 
 Earlier comparisons with the original on other setups (the second UIFO, Voyager, aLIGO, the cavity sweep, shifted parameter values) were made with scripts that are not in the repository; their results are in "Correctness checks" in `CHANGES.md`.
 
+## 4b. The organizers' second benchmark, aLIGO (22 November)
+
+By hand, Apple M5 MacBook Air, 16 GB, all cores, after merging the organizers' update `83f8d2f`:
+
+| Time (UTC) | Code | First run | Repeat | Reference | Check | Raw data |
+| --- | --- | ---: | ---: | ---: | --- | --- |
+| 00:40 | Ours (`main` after the merge), `benchmark_aligo.py` | 0.38 s | 0.007 s (10) | 1.4e-10 | PASS | `benchmarks/mac-aligo-candidate.json` |
+| 00:40 | Original (`upstream/main` at `83f8d2f`), `benchmark_aligo.py` | 4.10 s | 0.021 s (10) | 1.0e-10 | PASS | `benchmarks/mac-aligo-original.json` |
+| 00:42 | Ours, `benchmark.py` (the grid) with the organizers' new shared harness | 0.40 s | 0.051 s (10) | | PASS | not saved |
+
+`bench/validate.py WORKTREE` also gives `PASS` after the merge. Note for the harness: `benchmark.py` now differs from the one in the registered baseline (`02ec741`), because the organizers changed it; sessions will flag later versions as `unofficial-benchmark` until the baseline reference is moved to the organizers' new commit.
+
 ## 5. Runs on other machines
 
 Runs by other team members on their own machines are not in this file yet. Add them here in the same form: time, machine, CPU limit, code, first run, check, raw data.
