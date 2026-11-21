@@ -4,6 +4,15 @@ Everything we changed in Differometor for the Feyer "Faster Physics" challenge, 
 
 ## Result so far
 
+**This branch (`numpy-host`) adds change 12**, which does the work in NumPy and keeps JAX as the interface. Official benchmark, one core, Linux Codespace (AMD EPYC 7763), three runs each, all `PASS`:
+
+| Version | Complete first run | Trace and compile | Repeat run |
+| --- | ---: | ---: | ---: |
+| Changes 1–11 (`main`) | 3.23, 3.52, 4.22 s | about 2.5 s | 0.19 s |
+| + change 12 (this branch) | 1.01, 1.05, 1.33 s | about 0.2 s | 0.16 s |
+
+On an Apple M5 the official benchmark goes from 1.0 s to 0.33 s. The numbers further down this section are for changes 1–11.
+
 Official benchmark, one CPU core (`--cpus 1`), both versions on the same Linux machine (AMD EPYC 9334 on the AMD Radeon Cloud, 55 GB RAM, Python 3.12, 10 repeats). This is the cleanest comparison we have:
 
 | Step | Original | Ours |
@@ -52,7 +61,7 @@ The machines in the table above are different, so 44.2 s and 3.2 s are not a sam
 
 The report and chart of our run are in `benchmarks/codespace-candidate.json` and `benchmarks/codespace-candidate.png`.
 
-## The eleven changes
+## The twelve changes
 
 Most of the code changes are in `differometor/simulate.py`. In `components.py` the physics formulas are the same; only the mirror function was rewritten in an equivalent, shorter form (change 10).
 
@@ -148,6 +157,29 @@ Official benchmark on the Codespace, one core, each version run twice:
 - **Why:** `jnp.array(list, dtype=...)` and indexing a JAX array each ran, and at first use compiled, a small device program. That was 36 more small compilations.
 - **Effect:** the build step went from 0.42 s to 0.11 s on the Codespace. Outputs are bit-for-bit the same.
 
+### 12. Do the work in NumPy, keep JAX as the interface
+
+- **What:** `differometor/host.py` computes the simulation with NumPy: the physics functions, the assembly of the systems, the carrier solve and the reverse pass for the gradient. `simulate` is still a JAX function with the same arguments and results, and it works under `jax.jit`, `jax.grad` and `jax.vjp`. Inside, JAX now only sees two calls into NumPy, the sparse solves and a handful of array operations.
+- **Why:** after changes 1–11, most of a first run was JAX tracing and compiling the physics functions and their derivatives. NumPy needs no compiling, so that cost disappears.
+- **How the gradient is obtained without JAX:**
+  - The physics functions are the same code. They run on a small `Dual` type, a number that carries its own derivatives through each arithmetic step, which yields their derivatives automatically (checked against JAX for all 19 functions).
+  - The reverse pass through the assembly and the solves is written out by hand in `_backward`. Each forward solve needs one adjoint solve, so the gradient stage now does two sparse solves, not four.
+- **Fallback:** the previous implementation is kept as `simulate_jax`. It is used when `differometor.simulate.HOST_SIMULATION` is set to `False`, or when a setup has linking functions other than the identity, which the NumPy version does not differentiate.
+- **Limit:** the NumPy version supports reverse-mode differentiation only. Forward mode (`jax.jvp`, `jax.jacfwd`) raises an error; use the fallback for that.
+- **Only the design variables are differentiated.** A gradient with respect to any other input array (for example the swept frequencies) comes back as NaN in the NumPy version, so that it cannot be mistaken for a valid zero; use the fallback for that.
+- **Checks, NumPy version against the JAX version:**
+
+  | Setup | Outputs | Gradients for random directions on each output |
+  | --- | ---: | ---: |
+  | Main example | 5e-10 | 2e-09 |
+  | Main example, every parameter shifted by 0.1% (reflectivities above 1) | 2e-12 | 1e-11 |
+  | Second UIFO setup (homodyne detector, two signal detectors) | 6e-05 in the signal vector, 4e-15 in the noise | 3e-07 |
+  | Second UIFO setup, shifted | 2e-10 | 7e-10 |
+
+- **Test file:** `python tests/test_host.py` repeats these checks and adds more. It compares the NumPy version with the JAX version (all outputs, and gradients for random directions on each output) on 13 cases: the two saved UIFO setups, aLIGO, Voyager with balanced homodyne detection, a cavity with a carrier sweep, three randomly generated UIFO layouts (two 2×2 grids and one 3×3), and shifted parameters for four of them. Gradients agree to 3e-07 or better in every case. It also checks `jit`, `vmap`, the switch to the fallback for linking functions, and finite differences for one design variable of every kind (reflectivity, tuning, mass, power, length, squeezing level, squeezing angle and a group of tied lengths), which agree with the gradient to 0.5% or better. Two situations that no public setup has are built artificially from aLIGO: a second noise detector, and one cell of each system written a second time by another formula. In both, the NumPy and JAX versions agree (gradients to 1e-10) and the gradient matches finite differences in random directions to 0.3% or better.
+
+  Against the original code: Voyager, aLIGO and the cavity sweep agree as before (sensitivity to 5e-11 and 1e-11, cavity to 1e-14), and the official benchmark's saved arrays agree to 1.2e-07 (signal) and 9e-08 (gradient). The distance from the public reference is 5.376e-06 (limit 1e-5).
+
 ### Changes 8–11 measured one at a time
 
 Official benchmark on the Codespace, one core, each version run three times:
@@ -216,6 +248,7 @@ For the original, run the same commands on the `main` branch. It needs about 16 
 
 ## Known limits
 
+- Change 12 is new code for the whole reverse pass. It is verified against the JAX version on the setups listed above; a setup that uses a feature none of them has would be new ground, and `HOST_SIMULATION = False` switches back.
 - No run yet on the contest's Intel Xeon; the Linux numbers are from two AMD EPYC machines.
 - The original could not complete the official benchmark on the 16 GB Codespace, so the official-style "before" on that machine is missing.
 - The AMD EPYC 9334 run has printed timings for both versions but no saved reports or arrays, so the array-by-array comparison on that machine is missing. The comparisons on the Mac and the Codespace cover it.
