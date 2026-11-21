@@ -4,6 +4,7 @@ from time import perf_counter
 
 IMPORT_START = perf_counter()
 import argparse
+from copy import deepcopy
 from datetime import datetime, timezone
 import hashlib
 import importlib.metadata
@@ -37,13 +38,15 @@ import jax
 import jax.numpy as jnp
 import numpy as np
 import differometor as df
-from differometor.setups import constrain_inter_grid_cell_spaces
+from differometor.setups import aligo, constrain_inter_grid_cell_spaces
 
 IMPORT_SECONDS = perf_counter() - IMPORT_START
 PUBLIC_REPO = "https://github.com/artificial-scientist-lab/Differometor"
 BASELINE_COMMIT = "b0dc7c79e7c72a1b010174f6bdcad01efa51d6ff"
 FIXTURE_SHA256 = "ff4ba353a2a03cdce7f3e61bad729c2e00888d842c28ba9cf699f95afb87e138"
 REFERENCE_SHA256 = "726f2cfe6986cb991fa48d5a28127b9330c3dc7e69d5bd193c8748acef03adc3"
+ALIGO_REFERENCE_SHA256 = "e3419da07888d0260800be08ba873dc22518de0b103582740cc447e0014c5cb4"
+ALIGO_SETUP_SHA256 = "f77fa86eeae1771a9aa3a9305c490a7ef406df6a542c3e93de303d3070536390"
 PROPERTIES = ["reflectivity", "tuning", "db", "angle", "power", "mass", "length"]
 
 
@@ -133,13 +136,20 @@ def backward(simulation_pullback, readout_pullback, cotangent):
     return simulation_pullback(output_cotangents)[0]
 
 
-def main():
-    parser = argparse.ArgumentParser(description=__doc__)
+def main(setup_name="grid", import_seconds=IMPORT_SECONDS):
+    if setup_name not in {"grid", "aligo"}:
+        raise ValueError("Unknown benchmark setup")
+    is_aligo = setup_name == "aligo"
+    parser = argparse.ArgumentParser(description=(
+        "Time the complete public aLIGO optical setup and all 29 design gradients."
+        if is_aligo else __doc__
+    ))
     here = Path(__file__).resolve().parent
+    entrypoint = here / ("benchmark_aligo.py" if is_aligo else "benchmark.py")
     parser.add_argument("--repo", type=Path, default=here if (here / "differometor").is_dir() else here / "Differometor")
     parser.add_argument("--cpus", type=int, help="Pin this process to N allocated logical CPUs before imports (Linux/WSL)")
     parser.add_argument("--repeats", type=int, default=10, help="Repeated forward + sensitivity + gradient evaluations")
-    parser.add_argument("--output", type=Path, default=Path("benchmark.json"), help="JSON report (.json)")
+    parser.add_argument("--output", type=Path, default=Path("benchmark-aligo.json" if is_aligo else "benchmark.json"), help="JSON report (.json)")
     parser.add_argument("--plot", type=Path, help="Timing plot (.png, .svg or .pdf); defaults to the JSON filename with .png suffix")
     parser.add_argument("--save-arrays", type=Path, help="Save physical outputs, sensitivity, powers, parameters and gradient (.npz)")
     args = parser.parse_args()
@@ -150,7 +160,7 @@ def main():
     if Path(df.__file__).resolve().parent != repo / "differometor":
         parser.error("Install the requested public checkout with: python -m pip install -e /path/to/Differometor")
 
-    phases = [{"key": "imports", "label": "Python / library imports", "category": "setup", "seconds": IMPORT_SECONDS}]
+    phases = [{"key": "imports", "label": "Python / library imports", "category": "setup", "seconds": import_seconds}]
 
     def timed(key, label, category, function):
         start = perf_counter()
@@ -174,23 +184,37 @@ def main():
     print(f"CPU: {cpu_model()}; affinity: {len(os.sched_getaffinity(0)) if hasattr(os, 'sched_getaffinity') else 'unknown'}; devices: {devices}", flush=True)
 
     data_dir = repo / "examples" / "data"
-    fixture_path = data_dir / "uifo_800_3000.json"
-    reference_path = data_dir / "uifo_800_3000_test_data.json"
+    fixture_path = None if is_aligo else data_dir / "uifo_800_3000.json"
+    reference_path = data_dir / ("aligo_test_data.json" if is_aligo else "uifo_800_3000_test_data.json")
+    reference_sha256 = ALIGO_REFERENCE_SHA256 if is_aligo else REFERENCE_SHA256
+    sensitivity_tolerance = 1e-6 if is_aligo else 1e-5
+    check_pair = ["sq1", "db"] if is_aligo else ["mb11", "tuning"]
 
     def load_inputs():
-        fixture_bytes = fixture_path.read_bytes()
+        fixture_bytes = fixture_path.read_bytes() if fixture_path else None
         reference_bytes = reference_path.read_bytes()
-        return fixture_bytes, reference_bytes, json.loads(fixture_bytes), json.loads(reference_bytes)
+        return fixture_bytes, reference_bytes, json.loads(fixture_bytes) if fixture_bytes else None, json.loads(reference_bytes)
 
     fixture_bytes, reference_bytes, fixture, reference = timed("load", "Read and parse public inputs", "setup", load_inputs)
     # Integrity checks are validation, so they are outside measured phases.
-    if (hashlib.sha256(fixture_bytes).hexdigest(), hashlib.sha256(reference_bytes).hexdigest()) != (FIXTURE_SHA256, REFERENCE_SHA256):
+    if hashlib.sha256(reference_bytes).hexdigest() != reference_sha256 or (
+        fixture_bytes is not None and hashlib.sha256(fixture_bytes).hexdigest() != FIXTURE_SHA256
+    ):
         parser.error("Restore the unchanged public fixtures from the baseline commit.")
     source = git_state(repo)
 
     def build_inputs():
-        setup = df.Setup.from_data(fixture)
-        pairs = constrain_inter_grid_cell_spaces(setup.parameters, PROPERTIES)
+        nonlocal fixture
+        if is_aligo:
+            # Use the unchanged public constructor, including squeezing and mechanics.
+            setup, _ = aligo(mode="space_modulation")
+            # Building adds metadata to the setup; keep the original input intact.
+            fixture = deepcopy(setup.to_data())
+            # aLIGO has independent physical lengths, not the grid's tied lengths.
+            pairs = [list(pair) for pair in setup.parameters if pair[1] in PROPERTIES]
+        else:
+            setup = df.Setup.from_data(fixture)
+            pairs = constrain_inter_grid_cell_spaces(setup.parameters, PROPERTIES)
         initial = []
         for pair in pairs:
             members = pair if isinstance(pair[0], list) else [pair]
@@ -206,7 +230,13 @@ def main():
         return arrays, jnp.asarray(ports), parameters, frequencies, expected, pairs, jnp.asarray(1.0, dtype=jnp.float64)
 
     arrays, ports, parameters, frequencies, expected, pairs, one = timed("build", "Build optical setup and prepare inputs", "setup", build_inputs)
-    print(f"Workload: 101 frequencies; {len(parameters)} physical design variables; no optimizer", flush=True)
+    setup_sha256 = FIXTURE_SHA256
+    if is_aligo:
+        # Validation only: pin the constructed optical input, not simulator code.
+        setup_sha256 = hashlib.sha256(json.dumps(fixture, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+        if setup_sha256 != ALIGO_SETUP_SHA256:
+            parser.error("Restore the public aLIGO optical setup; its physical input has changed.")
+    print(f"Workload: {len(frequencies)} frequencies; {len(parameters)} physical design variables; no optimizer", flush=True)
 
     forward = compile_phase("forward", "Forward", forward_with_pullback, parameters, arrays)
     outputs, simulation_pullback = timed("forward", "Forward simulation + AD residuals", "execute", lambda: forward(parameters, arrays))
@@ -243,19 +273,19 @@ def main():
     if host_sensitivity.shape != expected.shape or np.any(host_sensitivity <= 0):
         raise ValueError("Expected one positive sensitivity per frequency")
     log_error = np.abs(np.log(host_sensitivity) - np.log(np.asarray(expected)))
-    np.testing.assert_allclose(np.log(host_sensitivity), np.log(np.asarray(expected)), atol=1e-5, rtol=0)
+    np.testing.assert_allclose(np.log(host_sensitivity), np.log(np.asarray(expected)), atol=sensitivity_tolerance, rtol=0)
     if host_gradient.shape != parameters.shape or not np.any(host_gradient != 0):
         raise ValueError("Expected a finite, nonzero full parameter gradient")
 
     # Independent central-difference spot check, away from near-bound reflectivities.
-    check_index = pairs.index(["mb11", "tuning"])
+    check_index = pairs.index(check_pair)
     def loss_only(p, a, detector_ports, target):
         return readout(df.simulate(**dict(a, optimized_parameters=p)), detector_ports, target)[0]
     evaluate_loss = jax.jit(loss_only)
     autodiff = float(host_gradient[check_index])
     finite_differences = []
     # Two step sizes check convergence; smaller 1e-5 perturbations are noisy
-    # for this saved, highly sensitive optical setup in float64 arithmetic.
+    # for the saved grid setup in float64 arithmetic. For aLIGO, check squeezing.
     for check_step in (1e-3, 5e-4):
         upper = float(evaluate_loss(parameters.at[check_index].add(check_step), arrays, ports, expected))
         lower = float(evaluate_loss(parameters.at[check_index].add(-check_step), arrays, ports, expected))
@@ -266,12 +296,13 @@ def main():
 
     totals = [sum(sample.values()) for sample in repeat_samples]
     report = {
-        "benchmark": "start-munich-2026-public-differometor-uifo-v2",
+        "benchmark": "start-munich-2026-public-differometor-aligo-v1" if is_aligo else "start-munich-2026-public-differometor-uifo-v2",
         "measured_at_utc": datetime.now(timezone.utc).isoformat(),
-        "starter_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
+        "starter_sha256": hashlib.sha256(entrypoint.read_bytes()).hexdigest(),
+        "benchmark_harness_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
         "source": {"public_repository": PUBLIC_REPO, "baseline_commit": BASELINE_COMMIT, **source},
-        "inputs": {"setup": fixture_path.name, "setup_sha256": FIXTURE_SHA256, "reference": reference_path.name, "reference_sha256": REFERENCE_SHA256, "frequency_count": len(frequencies), "gradient_parameter_count": len(parameters), "optimization_pairs": pairs},
-        "workload": {"objective": "mean(log10(sensitivity / public_reference))", "gradient_coordinates": "physical parameter values; public grid-length tying", "optimizer_steps": 0, "forward_residuals": "saved for separately compiled reverse pass", "total_scope": "imports, CPU initialization, input I/O, setup, all lowering/compilation, forward, sensitivity/powers/loss, reverse-mode gradient and host transfer", "excluded": "validation and benchmark harness bookkeeping, repeated profiling, plot/report generation; interpreter launch before the first timer"},
+        "inputs": {"setup": "differometor.setups.aligo(mode='space_modulation')" if is_aligo else fixture_path.name, "label": "aLIGO optical setup" if is_aligo else "Complete optical setup", "setup_sha256": setup_sha256, "reference": reference_path.name, "reference_sha256": reference_sha256, "frequency_count": len(frequencies), "frequency_min_hz": float(frequencies.min()), "frequency_max_hz": float(frequencies.max()), "gradient_parameter_count": len(parameters), "optimization_pairs": pairs},
+        "workload": {"objective": "mean(log10(sensitivity / public_reference))", "gradient_coordinates": "physical parameter values; independent lengths" if is_aligo else "physical parameter values; public grid-length tying", "optimizer_steps": 0, "forward_residuals": "saved for separately compiled reverse pass", "total_scope": "imports, CPU initialization, input I/O, setup, all lowering/compilation, forward, sensitivity/powers/loss, reverse-mode gradient and host transfer", "excluded": "validation and benchmark harness bookkeeping, repeated profiling, plot/report generation; interpreter launch before the first timer"},
         "environment": {
             "cpu_model": cpu_model(), "cpu_affinity_count": len(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else None,
             "cpu_affinity_ids": sorted(os.sched_getaffinity(0)) if hasattr(os, "sched_getaffinity") else None,
@@ -286,8 +317,8 @@ def main():
         "repeat_samples": repeat_samples,
         "timing_seconds": {"end_to_end": total, "trace_lower_and_compile": sum(p["seconds"] for p in first_phases if p["category"] == "compile"), "runtime_samples": totals, "runtime_median": statistics.median(totals), "runtime_min": min(totals), "runtime_max": max(totals), "phase_runtime_medians": {key: statistics.median(sample[key] for sample in repeat_samples) for key in repeat_samples[0]}},
         "validation": {
-            "all_outputs_and_gradients_finite": True, "upstream_sensitivity_check_passed": True, "max_absolute_log_sensitivity_error": float(log_error.max()),
-            "gradient_check": {"parameter": "mb11.tuning", "autodiff": autodiff, "finite_differences": finite_differences, "rtol": 0.01, "atol": 1e-6, "passed": True},
+            "all_outputs_and_gradients_finite": True, "upstream_sensitivity_check_passed": True, "sensitivity_log_atol": sensitivity_tolerance, "max_absolute_log_sensitivity_error": float(log_error.max()),
+            "gradient_check": {"parameter": ".".join(check_pair), "autodiff": autodiff, "finite_differences": finite_differences, "rtol": 0.01, "atol": 1e-6, "passed": True},
             "gradient_shape": list(host_gradient.shape), "gradient_norm": float(np.linalg.norm(host_gradient)), "loss": float(host_loss),
             "output_shapes": {name: list(value.shape) for name, value in zip(("carrier", "signal", "noise"), host_outputs)},
             "output_dtypes": {name: str(value.dtype) for name, value in zip(("carrier", "signal", "noise"), host_outputs)},

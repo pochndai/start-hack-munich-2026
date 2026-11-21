@@ -2,7 +2,7 @@
 
 Make **Differometor** faster for general optical setups while preserving its physical predictions and gradients.
 
-This repository includes the public simulator source, example data, [challenge PDF](challenge.pdf), [judging criteria PDF](judging-criteria.pdf), [editable brief](challenge.docx), a short [start-here example](start_here.py), and a [full benchmark](benchmark.py). No separate simulator checkout or GPU is required.
+This repository includes the public simulator source, example data, [challenge PDF](challenge.pdf), [judging criteria PDF](judging-criteria.pdf), [editable brief](challenge.docx), a short [start-here example](start_here.py), the [original benchmark](benchmark.py), and a second [aLIGO benchmark](benchmark_aligo.py). No separate simulator checkout or GPU is required.
 
 **Final evaluation uses a different optical setup**, a slight variation of the supplied example. Use this example to develop and benchmark improvements that carry over to other optical setups.
 
@@ -83,6 +83,18 @@ In `benchmark.py`, the complete first-run total includes input preparation, all 
 
 The benchmark’s five bars group the detailed measurements without dropping work. Setup includes imports, initialization and loading/building inputs. Compilation combines lowering and compilation for all stages. Sensitivity includes readout and host transfer. The raw JSON retains every stage and all warm repetitions.
 
+## Second benchmark: aLIGO
+
+Try another optical setup to check whether your improvements generalize:
+
+```bash
+python benchmark_aligo.py --cpus 1 --output benchmark-aligo.json
+```
+
+This uses the public **simplified Advanced LIGO (aLIGO)** setup, including mirror mechanics and squeezed light, with all **101 reference frequencies from 20–5000 Hz**. It computes the full simulation, sensitivity, powers and gradients for **29 design variables**: reflectivity, tuning, squeezing strength/angle, laser power, mass and independent optical lengths.
+
+The script shares the original benchmark's five-phase timing harness. Setup, all compilation, forward simulation, sensitivity and gradients count toward the total; validation and plotting are excluded. It writes `benchmark-aligo.json` and `benchmark-aligo.png`, and accepts the same `--repeats`, `--save-arrays` and `--plot` options. A successful run prints `PASS` after checking the public sensitivity reference, finite outputs and a gradient sanity check. The aLIGO reference uses its upstream log-sensitivity tolerance of `1e-6`.
+
 ## Improve and compare
 
 1. Run the unmodified baseline in a fresh Python process.
@@ -139,10 +151,26 @@ Tested on **16 November 2026** on an **Intel Xeon Platinum 8468**, pinned to **o
 
 All 101 frequencies and 193 gradients were evaluated. The public sensitivity test and two-step numerical gradient check passed. This was measured on a shared worker, so record your own baseline. The full benchmark adds archive support and output-path checks to the measured version; its numerical workload is unchanged. The short starter compiles simulation and differentiation together, so its timings are not directly comparable to this staged benchmark.
 
-Replot any saved report without running the simulation:
+### aLIGO — second setup
+
+Tested on **21 November 2026** on an **Intel Xeon Platinum 8468**, pinned to **one logical CPU** with 32 GB RAM allocated. The run covered all **101 frequencies and 29 gradients**; reference-sensitivity and gradient checks passed. See the [raw aLIGO report](benchmarks/aligo-cpu-baseline.json).
+
+![aLIGO time per phase](benchmarks/aligo-cpu-baseline.png)
+
+| Measurement | Seconds |
+| --- | ---: |
+| Complete first-run total, including compilation | **25.309** |
+| Total tracing/lowering and compilation | 22.897 |
+| Median warm evaluation, ten repetitions | **0.124** |
+| Warm minimum / maximum | 0.122 / 0.162 |
+
+These are different optical workloads; use each setup's own baseline when measuring a speedup.
+
+Replot either saved report without running the simulation:
 
 ```bash
 python plot_timings.py benchmark-baseline.json --output benchmark-baseline.png
+python plot_timings.py benchmark-aligo.json --output benchmark-aligo.png
 ```
 
 ## Public source and license

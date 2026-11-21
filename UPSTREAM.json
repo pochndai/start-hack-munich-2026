@@ -13,6 +13,7 @@
     "differometor/utils.py": "73ee8a862cbc435363904addc363071ed7dc8b1546956f82e1746998fe3b09ff"
   },
   "fixtures": {
+    "examples/data/aligo_test_data.json": "e3419da07888d0260800be08ba873dc22518de0b103582740cc447e0014c5cb4",
     "examples/data/uifo_800_3000.json": "ff4ba353a2a03cdce7f3e61bad729c2e00888d842c28ba9cf699f95afb87e138",
     "examples/data/uifo_800_3000_test_data.json": "726f2cfe6986cb991fa48d5a28127b9330c3dc7e69d5bd193c8748acef03adc3"
   }
