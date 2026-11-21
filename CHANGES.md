@@ -1,0 +1,193 @@
+# Changes and why
+
+Everything we changed in Differometor for the Feyer "Faster Physics" challenge, in the order we made the changes, with the reason for each one.
+
+## Result so far
+
+Official benchmark (`python benchmark.py --cpus 1`), complete first run, one CPU core:
+
+| Machine | Original | Ours |
+| --- | ---: | ---: |
+| Intel Xeon Platinum 8468 (Feyer's published baseline) | 44.2 s | not measured yet |
+| AMD EPYC 7763, GitHub Codespace, Python 3.12 | does not fit in 16 GB of RAM | **3.2 s** |
+
+Same Codespace, one core, both versions in the style of `start_here.py` (one compile, one run):
+
+| | Original | Ours |
+| --- | ---: | ---: |
+| Setup | 1.4 s | 0.5 s |
+| Compile | 22.6 s | 2.4 s |
+| First run | 11.7 s | 0.2 s |
+| **Total** | **35.8 s** | **3.1 s** |
+
+A repeat run, once compiled, takes 0.20 s in the official benchmark (the published baseline is 17.7 s).
+
+The two machines in the first table are different, so 44.2 s and 3.2 s are not a same-hardware comparison. The second table is.
+
+The report and chart of our run are in `benchmarks/codespace-candidate.json` and `benchmarks/codespace-candidate.png`.
+
+## The eleven changes
+
+Most of the code changes are in `differometor/simulate.py`. In `components.py` the physics formulas are the same; only the mirror function was rewritten in an equivalent, shorter form (change 10).
+
+### 1. Solve the signal system with a sparse solver
+
+- **What:** the three solves of the signal matrix now call `klujax.solve` instead of `jnp.linalg.solve`. klujax is a JAX wrapper around KLU, a solver for matrices that are mostly zeros.
+- **Why:** the signal matrix is 751×751, but only 2,597 of its 564,001 entries (0.46%) can be non-zero. A dense solver does arithmetic on all of them, for each of the 101 frequencies, three times. KLU only touches the non-zero ones. Finesse, the simulator Differometor is modelled on, uses KLU for the same reason.
+- **How it stays general:** the build step reads the positions of the non-zero entries from whatever setup it is given. Nothing is specific to the example setup.
+- **Cost:** one new dependency, `klujax==0.5.3`, added to `requirements.txt` and `pyproject.toml`.
+
+### 2. Compile each physics function once, only where it is used
+
+- **What:** the build step now passes the "which function fills which entry" arrays to `simulate` as build-time data (the small `Static` class). `evaluate()` uses them to group the entries by function.
+- **Why:** before, the function was chosen with `lax.switch` inside `vmap`, on an input JAX could not see while compiling. JAX therefore compiled all 19 physics functions for every entry, three times (carrier, signal, noise). Now each function is compiled once, for the entries that use it.
+- **Effect:** outputs are bit-for-bit the same as after change 1. Compile time fell by about a third.
+
+### 3. Build only the non-zero entries
+
+- **What:** `simulate` no longer creates the full 751×752 signal matrix for each frequency, or the full noise matrix. The new `sparse_layout()` in the build step numbers the entries that can be non-zero, and `simulate` fills, scales, conjugates and solves on that list only.
+- **Why:** after change 1 the solver was fast, but the code still filled about 57 million numbers per matrix copy to use 0.5% of them, and the gradient had to remember all of it.
+- **Effect:** a repeat run went from about 3 s to 0.07 s on an Apple M5. Peak memory went from 3.8 GiB to 0.5 GiB in our test script (the original needs about 14.4 GiB in the official benchmark).
+
+### 4. Ask the compiler to compile quickly
+
+- **What:** `differometor/__init__.py` adds four settings to `XLA_FLAGS` before JAX starts, unless the user has already set them:
+  - `--xla_backend_optimization_level=0`: do not optimise the generated code.
+  - `--xla_cpu_use_fusion_emitters=false`: use the simpler of XLA's two code generators.
+  - `--xla_llvm_disable_expensive_passes=true`: skip slow optimisation passes.
+  - `--xla_cpu_parallel_codegen_split_count=1`: do not split the program for parallel compiling, which only costs time on one core.
+- **Why:** after changes 1–3, compiling is about 85% of a first run and the compiled program then runs in a fraction of a second. Code that is quick to produce matters more than code that is quick to run.
+- **Effect:** measured on the Codespace with the official benchmark, complete first run:
+
+  | Settings | Total | Compile |
+  | --- | ---: | ---: |
+  | None (XLA defaults) | 17.8 s | 15.9 s |
+  | Optimisation level 0 | 10.9 s | 9.2 s |
+  | All four | 5.8 s | 4.2 s |
+
+  The repeat run went from 0.23 s to 0.34 s.
+- **Safety:** XLA stops with an error on a flag it does not know. The second and fourth flag exist in the pinned jaxlib 0.9.0 but not in every release, so they are only added when jaxlib is a 0.9 version.
+- **Transparency:** the benchmark records the flags in its report under `environment.xla_flags`.
+
+### 5. Drop the third signal solve
+
+- **What:** the noise calculation solved the signal system three times per frequency. The third solve is gone; the noise is computed directly from the result of the second.
+- **Why:** it was algebraically redundant. With `A` the signal matrix, `N` the noise matrix, `c` the detector selection and `w` the solution of `Aᴴw = c`, the code computed `y = A⁻¹Nw` and then `Re(cᴴy)`. Substituting gives `Re(wᴴA·A⁻¹Nw) = Re(wᴴNw)`, which needs no solve.
+- **What it is not:** nothing is skipped or stored. The signal and noise systems are still assembled and solved for every frequency from the current parameters; one internal solve whose result cancels out is removed.
+
+### 6. Call each physics function once on whole arrays
+
+- **What:** `evaluate()` calls each physics function once with all its inputs as arrays, instead of wrapping it in `vmap` per entry. `standardize_output()` in `components.py` now broadcasts its entries so this works; for single numbers it behaves as before.
+- **Why:** tracing through two layers of `vmap` is slow in Python. All 19 functions work elementwise and give identical results when called this way (checked for each one).
+
+### 7. Fill in the build step's constants with NumPy
+
+- **What:** `components.numpy_backend()` makes the physics functions use NumPy while the build step evaluates them on plain numbers to fill in constant matrix entries.
+- **Why:** with JAX, each of those scalar operations was sent to the device and compiled on first use: 65 small compilations, about half the build time. The built arrays are bit-for-bit the same.
+
+### Changes 5–7 measured one at a time
+
+Official benchmark on the Codespace, one core, each version run twice:
+
+| Version | Total | Build | Forward trace | Repeat run |
+| --- | ---: | ---: | ---: | ---: |
+| Changes 1–4 | 5.75 s, 5.70 s | 0.77 s | 1.2 s | 0.34 s |
+| + change 7 | 5.36 s, 5.35 s | 0.40 s | 1.2 s | 0.35 s |
+| + change 5 | 5.28 s, 5.20 s | 0.39 s | 1.2 s | 0.29 s |
+| + change 6 | 5.15 s, 5.09 s | 0.40 s | 1.0 s | 0.27 s |
+
+### 8. Keep the parameters real
+
+- **What:** the parameter vector is stored as real numbers (`float64`) instead of complex ones. Matrix entries and function outputs stay `complex128`.
+- **Why:** every parameter is a real quantity (mass, reflectivity, length, angle). Stored as complex, they turned all the arithmetic on them, including sines, cosines and hyperbolic functions, into complex arithmetic, which is much more code to compile and to differentiate.
+- **Out-of-range values:** with complex parameters, a reflectivity pushed slightly above 1 gave an imaginary square root; with real ones it would give NaN. So the three square roots of a reflectivity, transmissivity or power are still taken as complex (`as_complex`). Our perturbed-parameter check caught this.
+- **Snell's law:** `cos(arcsin(x))` is computed by `cos_arcsin`, a closed form with one square root that returns the same values, also beyond total internal reflection (checked on 6,000 points from -3 to 3, largest difference 1e-14). The complex arcsine it replaces is one of the slowest functions to compile.
+
+### 9. Only build the coefficients that are read
+
+- **What:** which coefficient of which function goes where is now build-time data too, and `evaluate()` reads the functions' coefficients directly (`raw_outputs`).
+- **Why:** every function returned four values, most of them padding zeros. They were broadcast, stacked, differentiated, written into a table and mostly never read.
+- **Effect:** bit-for-bit the same outputs as after change 8.
+
+### 10. Share the common steps of the mirror function
+
+- **What:** `surface()` computes its two reflection coefficients and its transmission coefficient from shared phases, angles and square roots, instead of calling three helpers that each recompute them.
+- **Why:** it is the largest function and is traced twice. Its compiled size with gradient fell by a third.
+- **Effect:** bit-for-bit the same outputs, and gradients equal to 6e-17.
+
+### 11. Convert build results on the host
+
+- **What:** the build step converts its lists to JAX arrays through NumPy (`device_array`) and reads the parameter vector as a NumPy array.
+- **Why:** `jnp.array(list, dtype=...)` and indexing a JAX array each ran, and at first use compiled, a small device program. That was 36 more small compilations.
+- **Effect:** the build step went from 0.42 s to 0.11 s on the Codespace. Outputs are bit-for-bit the same.
+
+### Changes 8–11 measured one at a time
+
+Official benchmark on the Codespace, one core, each version run three times:
+
+| Version | Total (three runs) | Build | Forward trace | Forward compile |
+| --- | ---: | ---: | ---: | ---: |
+| Changes 1–7 | 5.61, 5.45, 5.53 s | 0.46 s | 1.05 s | 2.14 s |
+| + change 8, without the out-of-range handling | 4.70, 4.49, 4.33 s | 0.45 s | 1.04 s | 1.19 s |
+| + change 9 | 3.60, 3.69, 3.50 s | 0.46 s | 0.88 s | 0.70 s |
+| + change 10 | 3.30, 3.29, 3.44 s | 0.42 s | 0.80 s | 0.66 s |
+| + change 11 | 3.01, 3.01, 3.05 s | 0.11 s | 0.82 s | 0.66 s |
+| + out-of-range handling with a complex arcsine | 3.33, 3.38, 3.33 s | 0.11 s | 0.82 s | 0.97 s |
+| + `cos_arcsin` in its place (final) | 3.16, 3.30, 3.24 s | 0.11 s | 0.85 s | 0.82 s |
+
+The Codespace was a little slower in this session than when changes 5–7 were measured, which is why the first row reads 5.5 s and not 5.1 s.
+
+### Tried and not adopted
+
+- **`cos(x) + 1j*sin(x)` instead of `exp(1j*x)`:** no measurable difference in compile time (about 3 ms per use either way).
+- **Reusing one factorisation for both remaining solves:** the whole repeat run is 0.2 s, so there is little to gain, and it would need a hand-written gradient rule.
+
+## Step by step, changes 1–3 (Apple M5, official benchmark without CPU pinning)
+
+| Version | Total | Compile | Forward | Gradient |
+| --- | ---: | ---: | ---: | ---: |
+| Original | 12.44 s | 3.69 s | 4.42 s | 3.70 s |
+| + change 1 | 8.20 s | 3.73 s | 1.76 s | 1.57 s |
+| + change 2 | 7.37 s | 2.39 s | 1.96 s | 1.78 s |
+| + change 3 | 3.61 s | 2.41 s | 0.04 s | 0.06 s |
+
+Change 4 was measured on Linux only (table above).
+
+## Correctness checks
+
+- **Official checks:** `benchmark.py` prints `PASS` on macOS and on Linux with one CPU: positive sensitivities within 1e-5 of the public reference, all outputs finite, non-zero gradient, finite-difference gradient spot check.
+- **Distance from the public reference:** 5.374e-06 in log sensitivity, the same as the original code (limit 1e-5).
+- **Original against ours, same Linux machine, all outputs:**
+
+  | Output | Largest difference, relative to its largest value |
+  | --- | ---: |
+  | Carrier, powers | below 1e-19 |
+  | Signal | 5.9e-08 |
+  | Noise | 1.5e-08 |
+  | Sensitivity | 2.6e-09 |
+  | Gradient (193 values) | 2.7e-08 |
+
+  The remaining differences come from using a different solver on a matrix that is very sensitive to rounding.
+- **Other parameter values:** at three parameter sets with every design variable moved randomly by about 0.1%, original and ours agree to 2e-07 or better in log sensitivity and 5e-08 or better in the gradient (Apple M5).
+- **Other public setups:** `examples/aligo.py` still passes its own comparison with Finesse (limit 1e-6). `examples/cavity.py` and `examples/voyager.py` run.
+- **What is computed:** all 101 frequencies, all 193 design variables, double precision. No answers are stored and no calculation is skipped.
+
+## Reproduce
+
+```bash
+python3.12 -m venv .venv
+source .venv/bin/activate
+python -m pip install -r requirements.txt
+python -m pip install -e .
+python benchmark.py --cpus 1 --output benchmark-candidate.json
+```
+
+For the original, run the same commands on the `main` branch. It needs about 16 GB of free RAM.
+
+## Known limits
+
+- No run yet on the contest's Intel Xeon; the Linux numbers are from an AMD EPYC Codespace.
+- The original could not complete the official benchmark on the 16 GB Codespace, so the official-style "before" on that machine is missing.
+- Setups with several detectors or a homodyne detector use code paths the example does not exercise; we have not tested one.
+- The carrier system (286×286, solved once) still uses the dense solver.
+- `cos_arcsin` returns the same values as the complex arcsine route, but beyond total internal reflection its derivative has the opposite sign in the imaginary part. That only matters when a refractive index or an incidence angle is itself a design variable in such a setup; the benchmark's design variables are reflectivity, tuning, squeezing, angle of squeezing, power, mass and length.

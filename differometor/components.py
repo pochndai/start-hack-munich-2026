@@ -34,8 +34,75 @@ to match phase conventions and signs.
 
 from __future__ import annotations
 
+from contextlib import contextmanager
+
 import jax.numpy as jnp
 import numpy as np
+
+
+@contextmanager
+def numpy_backend():
+    """
+    Evaluate the functions of this module with NumPy instead of JAX.
+
+    The build step evaluates component functions on plain numbers to fill in the
+    constant matrix entries. With JAX every such scalar operation is dispatched to,
+    and at first use compiled for, the device, which made up about half of the build
+    time. Nothing computed inside this context is traced or differentiated.
+    """
+    global jnp
+    jax_numpy, jnp = jnp, np
+    try:
+        yield
+    finally:
+        jnp = jax_numpy
+
+
+def as_complex(value):
+    """
+    Cast a real quantity to complex before a function that is not real for all inputs.
+
+    Parameters are real numbers, but an optimiser or a finite-difference check can push
+    one slightly out of its physical range, for example a reflectivity above 1. The
+    square root then has to give an imaginary number, as it did when all parameters
+    were stored as complex, and not NaN.
+    """
+    return jnp.asarray(value, dtype=jnp.complex128)
+
+
+def cos_arcsin(value):
+    """
+    Compute cos(arcsin(value)) for a real `value`, also outside [-1, 1].
+
+    Snell's law gives the cosine of a refraction angle this way. Beyond total internal
+    reflection the argument exceeds 1 and the cosine is imaginary. Taking the complex
+    arcsine and cosine gives exactly that, but they are among the slowest functions to
+    compile; this closed form returns the same values (to rounding) from one square root.
+    """
+    inside = 1 - value * value
+    root = jnp.sqrt(jnp.abs(inside))
+    return jnp.where(inside >= 0, root, -1j * jnp.sign(value) * root)
+
+
+_RAW_OUTPUTS = False
+
+
+@contextmanager
+def raw_outputs():
+    """
+    Make the component functions return their list of coefficients as it is.
+
+    Most functions produce one coefficient and pad it with three zeros. `simulate`
+    only reads the coefficients it needs, so inside this context
+    `standardize_output` skips the padding, broadcasting and stacking, which would
+    otherwise be traced and differentiated for nothing.
+    """
+    global _RAW_OUTPUTS
+    _RAW_OUTPUTS = True
+    try:
+        yield
+    finally:
+        _RAW_OUTPUTS = False
 
 
 # -----------------------------------------------------------------------------
@@ -101,14 +168,14 @@ def standardize_output(output: list) -> jnp.ndarray:
     Parameters
     ----------
     output:
-        Python list of scalars (real or complex). If shorter than 4, it is padded
-        with zeros to length 4.
+        Python list of scalars or equally shaped arrays (real or complex). If shorter
+        than 4, it is padded with zeros to length 4.
 
     Returns
     -------
     jax.numpy.ndarray
-        A length-4 complex vector (`complex128`) suitable for stacking into a
-        global simulation matrix.
+        A complex array (`complex128`) of shape (4, ...) suitable for stacking into a
+        global simulation matrix. For scalar entries this is a length-4 vector.
 
     Rationale
     ---------
@@ -116,10 +183,14 @@ def standardize_output(output: list) -> jnp.ndarray:
     benefits from a uniform output length so that multiple components can be
     evaluated and stacked without shape-dependent branching.
     """
+    if _RAW_OUTPUTS:
+        return output
     output_length = len(output)
     if output_length < 4:
         output.extend([0] * (4 - output_length))
-    return jnp.array(output, dtype=jnp.complex128)
+    # Broadcasting lets a component function be called once on whole arrays of inputs.
+    shape = jnp.broadcast_shapes(*(jnp.shape(entry) for entry in output))
+    return jnp.stack([jnp.broadcast_to(jnp.asarray(entry, dtype=jnp.complex128), shape) for entry in output])
 
 
 # -----------------------------------------------------------------------------
@@ -253,7 +324,7 @@ def laser(parameters: jnp.ndarray) -> jnp.ndarray:
         field = sqrt(2 * power / EPSILON_0C) * exp(i * phase)
     with `phase` interpreted in degrees.
     """
-    field = jnp.sqrt(2 * parameters[0] / EPSILON_0C) * jnp.exp(1j * jnp.radians(parameters[1]))
+    field = jnp.sqrt(as_complex(2 * parameters[0] / EPSILON_0C)) * jnp.exp(1j * jnp.radians(parameters[1]))
     return standardize_output([field])
 
 
@@ -503,7 +574,7 @@ def susceptibility(parameters: jnp.ndarray) -> jnp.ndarray:
     finesse > components > mechanical.pyx > FreeMass > fill
     """
     factor = -1 / (parameters[1] * (2 * jnp.pi * parameters[0]) ** 2)
-    return -standardize_output([factor])
+    return standardize_output([-factor])
 
 
 def force_calculation_left(parameters: jnp.ndarray) -> jnp.ndarray:
@@ -528,7 +599,7 @@ def force_calculation_left(parameters: jnp.ndarray) -> jnp.ndarray:
     - finesse > components > modal > mirror.pyx > c_mirror_signal_mech_fill, ws.field_to_F
     - finesse > components > modal > beamsplitter.pyx > c_beamsplitter_signal_fill, ws.field1_to_F
     """
-    return -standardize_output([incidence_angle_left(parameters[0]) / (C_LIGHT * X_SCALE)])
+    return standardize_output([-incidence_angle_left(parameters[0]) / (C_LIGHT * X_SCALE)])
 
 
 def force_calculation_right(parameters: jnp.ndarray) -> jnp.ndarray:
@@ -679,7 +750,7 @@ def corrected_optomechanical_phase_left(parameters: jnp.ndarray) -> jnp.ndarray:
         * optomechanical_phase_left(parameters[5])
         * reflectivity_left(absolute_reflectivity, parameters[1], parameters[0], parameters[4], parameters[5])
     )
-    return -standardize_output([factor])
+    return standardize_output([-factor])
 
 
 def corrected_optomechanical_phase_right(parameters: jnp.ndarray) -> jnp.ndarray:
@@ -724,7 +795,7 @@ def corrected_optomechanical_phase_right(parameters: jnp.ndarray) -> jnp.ndarray
             parameters[6],
         )
     )
-    return -standardize_output([factor])
+    return standardize_output([-factor])
 
 
 # -----------------------------------------------------------------------------
@@ -906,29 +977,33 @@ def surface(parameters: jnp.ndarray) -> jnp.ndarray:
     -----
     This is a compact form used for assembling larger scattering matrices.
     """
+    # Same formulas as `reflectivity_left`, `transmissivity` and `reflectivity_right`, written
+    # out so the phases, angles and square roots they share are computed (and traced) once.
+    tuning, frequency, refractive_index_left, refractive_index_right, alpha = (
+        parameters[2],
+        parameters[3],
+        parameters[4],
+        parameters[5],
+        parameters[6],
+    )
     absolute_reflectivity = (1 - parameters[0]) * parameters[1]
     absolute_transmissivity = (1 - parameters[0]) * (1 - parameters[1])
-
-    reflectivity_left_entry = reflectivity_left(
-        absolute_reflectivity, parameters[2], parameters[3], parameters[4], parameters[6]
+    negative_sqrt_reflectivity = -jnp.sqrt(as_complex(absolute_reflectivity))
+    sin_alpha = jnp.sin(jnp.radians(alpha))
+    left_phase = phase_shift(tuning, frequency, refractive_index_left) * incidence_angle_left(alpha)
+    right_phase_shift = phase_shift(tuning, frequency, refractive_index_right)
+    # The transmission and the right reflection use the two refractive indices in opposite order.
+    right_phase_transmission = right_phase_shift * cos_arcsin(
+        refractive_index_left / refractive_index_right * sin_alpha
     )
-    transmissivity_entry = transmissivity(
-        absolute_transmissivity,
-        parameters[2],
-        parameters[3],
-        parameters[4],
-        parameters[5],
-        parameters[6],
+    right_phase_reflection = right_phase_shift * cos_arcsin(
+        refractive_index_right / refractive_index_left * sin_alpha
     )
-    reflectivity_right_entry = reflectivity_right(
-        absolute_reflectivity,
-        parameters[2],
-        parameters[3],
-        parameters[4],
-        parameters[5],
-        parameters[6],
+    reflectivity_left_entry = negative_sqrt_reflectivity * jnp.exp(1j * left_phase)
+    transmissivity_entry = -jnp.sqrt(as_complex(absolute_transmissivity)) * jnp.exp(
+        1j * (jnp.pi / 2 + 0.5 * (left_phase - right_phase_transmission))
     )
-
+    reflectivity_right_entry = negative_sqrt_reflectivity * jnp.exp(-1j * right_phase_reflection)
     return standardize_output([reflectivity_left_entry, transmissivity_entry, reflectivity_right_entry])
 
 
