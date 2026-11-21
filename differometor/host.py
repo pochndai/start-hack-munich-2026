@@ -27,23 +27,18 @@ included (see `_forward`).
 mode differentiation with respect to `optimized_parameters`.
 """
 
+import glob
+import importlib
+import importlib.machinery
+import importlib.util
 import operator
+import os
+import sys
 import types
 
 import jax
 import jax.numpy as jnp
 import numpy as np
-from scipy.sparse import csc_array, csr_array
-from scipy.sparse.linalg import splu
-
-try:
-    # SciPy's own entry point to SuperLU. `splu` is the public way in, but for a column order
-    # that is already fixed it switches SuperLU to pivoting on the diagonal, which these
-    # badly scaled matrices do not tolerate. Present in the pinned scipy 1.18.1; without it
-    # `_factorize` falls back to `splu` and lets SuperLU choose the order itself.
-    from scipy.sparse.linalg._dsolve._superlu import gstrf as _gstrf
-except ImportError:  # pragma: no cover
-    _gstrf = None
 
 from differometor import components
 from differometor.components import F0, FUNCTIONS, H_PLANCK, UNIT_VACUUM
@@ -419,6 +414,52 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
 # Sparse solves
 # -----------------------------------------------------------------------------
 
+
+def _load_superlu():
+    """
+    SciPy's own entry point to SuperLU (`gstrf`), without the rest of `scipy.sparse.linalg`.
+
+    `scipy.sparse.linalg.splu` is the public way in. It is not used for two reasons. For
+    a column order that is already fixed it switches SuperLU to pivoting on the
+    diagonal, which these badly scaled matrices do not tolerate. And importing
+    `scipy.sparse.linalg` also loads SciPy's eigenvalue and iterative solvers,
+    `scipy.linalg` and `scipy.sparse`, which takes longer than every other import of this
+    package together, in a benchmark that counts imports. Only the compiled SuperLU
+    module is needed, so it is loaded from its file. It is not registered in
+    `sys.modules`, so a later `import scipy.sparse.linalg` behaves as usual.
+
+    `gstrf` is private to SciPy and present in the pinned scipy 1.18.1. If loading it
+    this way fails, the normal import is tried; if that fails too, `_factorize` uses
+    `splu`.
+    """
+    name = "scipy.sparse.linalg._dsolve._superlu"
+    if name in sys.modules:
+        return sys.modules[name].gstrf
+    try:
+        import scipy
+
+        folder = os.path.join(os.path.dirname(scipy.__file__), "sparse", "linalg", "_dsolve")
+        for path in sorted(glob.glob(os.path.join(folder, "_superlu*"))):
+            if path.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)):
+                loader = importlib.machinery.ExtensionFileLoader(name, path)
+                module = importlib.util.module_from_spec(importlib.util.spec_from_loader(name, loader))
+                loader.exec_module(module)
+                return module.gstrf
+    except Exception:
+        pass
+    try:
+        return importlib.import_module(name).gstrf
+    except Exception:
+        return None
+
+
+_gstrf = _load_superlu()
+
+
+def _no_factor_matrices(*arguments):
+    raise NotImplementedError("the L and U factors are only used for solves here, never read as matrices")
+
+
 REFINEMENT_STEPS = 1
 """
 Rounds of iterative refinement after every solve: compute the residual b - A x, solve for
@@ -443,9 +484,12 @@ def _factorize(size, data, indices, pointers, ordering="NATURAL"):
     """
     data = np.ascontiguousarray(data)
     if _gstrf is None:
+        from scipy.sparse import csc_array
+        from scipy.sparse.linalg import splu
+
         return splu(csc_array((data, indices, pointers), shape=(size, size)), permc_spec="MMD_ATA", relax=1, panel_size=1)
     options = dict(ColPerm=ordering, DiagPivotThresh=None, PanelSize=1, Relax=1, SymmetricMode=False)
-    return _gstrf(size, len(data), data, indices, pointers, csc_construct_func=csc_array, ilu=False, options=options)
+    return _gstrf(size, len(data), data, indices, pointers, csc_construct_func=_no_factor_matrices, ilu=False, options=options)
 
 
 def _solver_layout(layout, size, value_count, entries):
@@ -480,16 +524,23 @@ def _solver_layout(layout, size, value_count, entries):
         fills = [_factorize(size, middle[gather], indices, pointers).nnz for gather, indices, pointers in map(block, candidates)]
         column_order = candidates[int(np.argmin(fills))]
     gather, indices, pointers = block(column_order)
-    offsets = size * np.arange(value_count, dtype=np.int64)[:, None]
+    blocks = np.arange(value_count, dtype=np.int64)[:, None]
+    row_starts = np.concatenate([[0], np.cumsum(np.bincount(rows, minlength=size))])
+    if (np.diff(row_starts) == 0).any() or (np.diff(column_starts) == 0).any():
+        raise ValueError("The signal matrix has an empty row or column; it is singular.")
     known = {
         "column_order": column_order,
         "gather": gather,
-        # The stacked matrix column by column, for the factorisation ...
-        "indices": (indices[None, :] + offsets).ravel().astype(np.intc),
+        # The stacked matrix column by column, for the factorisation.
+        "indices": (indices[None, :] + size * blocks).ravel().astype(np.intc),
         "pointers": np.concatenate([[0], np.cumsum(np.tile(np.diff(pointers), value_count))]).astype(np.intc),
-        # ... and row by row, the order the entries are stored in, for residuals.
-        "row_columns": (columns[None, :] + offsets).ravel().astype(np.intc),
-        "row_pointers": np.concatenate([[0], np.cumsum(np.tile(np.bincount(rows, minlength=size), value_count))]).astype(np.intc),
+        # For products with the matrix (`_Factors._apply`): the entries of one block row by row, as they
+        # are stored, and column by column, and where each row or column starts in the stacked entries.
+        "columns": columns,
+        "by_column": order,
+        "rows_by_column": rows[order],
+        "row_starts": (row_starts[None, :-1] + len(rows) * blocks).ravel(),
+        "column_starts": (column_starts[None, :-1] + len(rows) * blocks).ravel(),
     }
     if len(_LAYOUTS) >= 8:
         _LAYOUTS.clear()
@@ -521,7 +572,6 @@ class _Factors:
         self.known = _solver_layout(layout, size, entries.shape[0], entries)
         self.entries, self.total = entries, entries.shape[0] * size
         self.factors = _factorize(self.total, entries[:, self.known["gather"]].ravel(), self.known["indices"], self.known["pointers"])
-        self.matrix = None
 
     def _once(self, right_hand_side, transpose):
         order = self.known["column_order"]
@@ -535,19 +585,18 @@ class _Factors:
         return restored
 
     def _apply(self, vectors, transpose):
-        """A x, A^T x or A^H x for every frequency."""
-        if self.matrix is None:
-            self.matrix = csr_array(
-                (self.entries.ravel(), self.known["row_columns"], self.known["row_pointers"]), shape=(self.total, self.total)
-            )
-        flat = vectors.reshape(self.total, *vectors.shape[2:])
+        """A x, A^T x or A^H x for every frequency: multiply entry by entry, then sum each row (or column)."""
+        known = self.known
         if transpose == "N":
-            product = self.matrix @ flat
-        elif transpose == "T":
-            product = self.matrix.T @ flat
+            entries, sources, starts = self.entries, known["columns"], known["row_starts"]
         else:
-            product = np.conj(self.matrix.T @ np.conj(flat))
-        return product.reshape(vectors.shape)
+            entries, sources, starts = self.entries[:, known["by_column"]], known["rows_by_column"], known["column_starts"]
+            if transpose == "H":
+                entries = np.conj(entries)
+        if vectors.ndim == 3:
+            entries = entries[:, :, None]
+        products = entries * vectors[:, sources]
+        return np.add.reduceat(products.reshape(-1, *vectors.shape[2:]), starts, axis=0).reshape(vectors.shape)
 
     def solve(self, right_hand_side, transpose="N"):
         """Solve for every frequency. `right_hand_side` has shape (SV, SN) or (SV, SN, D)."""

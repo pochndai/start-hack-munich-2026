@@ -8,7 +8,7 @@
 Per frequency the simulation solves four systems with one matrix A: A x = b,
 A^H w = c, A^T lambda = x_bar and conj(A) mu = w_bar. Today each is a separate
 klujax.solve, which factorises A every time. This script takes the assembled
-systems of one scenario from `differometor.host._forward`, solves them with KLU
+systems of one scenario from `differometor.host._assemble`, solves them with KLU
 as today and with several ways of using SciPy's SuperLU (`splu`), factorising
 once per frequency, and prints for each:
 
@@ -206,7 +206,10 @@ def main():
     arrays, ports, values, frequencies = load(args.scenario, args.frequencies)
     static = {name: arrays[name].array for name in host.STATIC_NAMES}
     a = host._numpy({key: value for key, value in arrays.items() if key not in (*host.STATIC_NAMES, "linking_function_indices", "optimized_parameters")})
-    carrier, signal_values, right_hand_side, selections, noise_values = host._forward(values, a, static)
+    assembled = host._assemble(np.asarray(values), a, static, differentiate=False)
+    carrier, signal_values, right_hand_side, selections, noise_values = (
+        assembled[key] for key in ("carrier", "signal_values", "right_hand_side", "selections", "noise_values")
+    )
     layout, noise_layout = a["signal_sparse_indices"], a["noise_sparse_indices"]
     system = {
         "rows": layout["rows"], "columns": layout["columns"], "order": layout["transposed_order"], "size": a["signal_matrix"].shape[0],

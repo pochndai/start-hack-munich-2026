@@ -82,10 +82,17 @@ def refined(Ai, Aj, Ax, b):
     return out[..., 0] if single else out
 
 
-class RefinedSolver:
-    @staticmethod
-    def solve(Ai, Aj, Ax, b):
-        return jax.pure_callback(refined, jax.ShapeDtypeStruct(b.shape, jnp.complex128), Ai, Aj, Ax, b)
+class RefinedFactors:
+    """Stands in for `differometor.host._Factors`: the same solves, each refined to the correctly rounded result."""
+
+    def __init__(self, layout, entries, size):
+        self.rows, self.columns, self.order, self.entries = layout["rows"], layout["columns"], layout["transposed_order"], entries
+
+    def solve(self, right_hand_side, transpose="N"):
+        if transpose == "N":
+            return refined(self.rows, self.columns, self.entries, right_hand_side)
+        entries = self.entries[:, self.order] if transpose == "T" else np.conj(self.entries[:, self.order])
+        return refined(self.columns[self.order], self.rows[self.order], entries, right_hand_side)
 
 
 def main():
@@ -113,13 +120,13 @@ def main():
 
     run = lambda p: jax.value_and_grad(loss, has_aux=True)(p)
     (_, ours), ours_gradient = run(parameters)
-    normal_solver, host.klujax = host.klujax, RefinedSolver
+    normal_solver, host._Factors = host._Factors, RefinedFactors
     try:
         (_, exact), exact_gradient = run(parameters)
         last_digit = np.random.default_rng(0).choice([-1.0, 0.0, 1.0], size=parameters.shape)
         (_, moved), moved_gradient = run(parameters * (1 + 2e-16 * last_digit))
     finally:
-        host.klujax = normal_solver
+        host._Factors = normal_solver
 
     print(f"{name}: {len(STATS['iterations'])} solves refined, at most {max(STATS['iterations'])} rounds each. "
           f"The first correction, which is the error of a plain double-precision solve, was {np.median(STATS['first_correction']):.0e} of the solution "
