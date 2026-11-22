@@ -187,7 +187,7 @@
   <li>The NumPy path computes gradients in reverse mode only, and only with respect to the design values. Setups with custom linking functions take the slower JAX path (about 2.5 s on the judges' processor type).</li>
   <li>A negative reflectivity gives "not a number" in ours and a number in the original. The optimisation examples bound reflectivities to 0 to 1.</li>
   <li>On a busy shared machine an earlier version showed first runs between 0.74 and 2.8 s. If the scoring machine is such a machine, <code>NUMPY_MADVISE_HUGEPAGE=0</code> is the setting to try.</li>
-  <li>The single-run official report of v12 on the Intel Xeon is not in the repository (the ten-run session and the check against the original are). <code>python bench/run.py official --versions v12-kept-assembly</code> on that machine produces it.</li>
+  <li>The single-run official report of v12 on the Intel Xeon is in the repository since 22 November, 10:55 UTC: first run 0.657 s, repeat median 0.107 s, PASS (<code>bench/results/intel-xeon-platinum-8468-197g-linux/official/v12-kept-assembly.json</code>).</li>
   <li>The repository is private: the judges need access, or it has to be made public.</li>
 </ul>
 

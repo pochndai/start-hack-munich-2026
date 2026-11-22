@@ -29,10 +29,11 @@ That is about 66 times faster. On another VM of the same type the original took 
 | After: `v12`, same VM, 10 fresh runs through our harness (0.626 s median) | [session](bench/results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T10-05-52Z_run.json), [check against the original](bench/results/intel-xeon-platinum-8468-197g-linux/validation/f4f5c40@f4f5c40d53d8.json) | [png](bench/results/intel-xeon-platinum-8468-197g-linux/summary.png) |
 | After: `v12`, official report, one pinned core of an AMD EPYC 7763 (0.734 s) | [json](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly.json) | [png](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly.png) |
 | After: `v12`, official aLIGO report, same machine (0.595 s) | [json](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly-aligo.json) | [png](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly-aligo.png) |
+| After: `v12`, official single-run report on the Intel Xeon Platinum 8468, same VM as the original (0.657 s, `PASS`) | [json](bench/results/intel-xeon-platinum-8468-197g-linux/official/v12-kept-assembly.json), [check against the original](bench/results/intel-xeon-platinum-8468-197g-linux/validation/v12-kept-assembly@f4f5c40d53d8.json) | [png](bench/results/intel-xeon-platinum-8468-197g-linux/official/v12-kept-assembly.png) |
 | After: `v11`, official report on the Intel Xeon Platinum 8468 (0.667 s) | [json](bench/results/intel-xeon-platinum-8468-197g-linux/official/v11-scipy-stacked-solver.json) | [png](bench/results/intel-xeon-platinum-8468-197g-linux/official/v11-scipy-stacked-solver.png) |
 | Before and after on one more machine (AMD EPYC 9334, `v07`: 35.62 s and 0.715 s) | [original](benchmarks/amd-epyc-9334-original.json), [ours](benchmarks/amd-epyc-9334-candidate.json) | [original](benchmarks/amd-epyc-9334-original.png), [ours](benchmarks/amd-epyc-9334-candidate.png) |
 
-An official single-run report of `v12` itself on the Intel Xeon is not in the repository; `python bench/run.py official --versions v12-kept-assembly` on that machine produces it.
+The official single-run report of `v12` on the Intel Xeon was made with `python bench/run.py official --versions v12-kept-assembly` (22 November, 10:55 UTC, logical CPU 15, 32 GiB memory cap): first run 0.657 s, repeat median 0.107 s over 10 repeats, `PASS`.
 
 ### Our approach in short
 
