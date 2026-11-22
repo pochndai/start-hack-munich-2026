@@ -136,10 +136,11 @@ void main() {
   sky += vec3(0.008, 0.045, 0.05) * pow(fbm(q * 1.2 - 4.0), 5.0) * 2.0;
   sky += (stars(q, 26.0, 1.0) + stars(q * 1.3 + 3.0, 52.0, 9.0) * 0.6 + stars(q + 8.0, 110.0, 21.0) * 0.35) * (0.55 + 0.9 * band);
   sky *= uDim;
-  // the ground under the machine: dark, with faint height lines like a map, lit where the machine stands
-  vec2 m = p * 2.4 + vec2(3.0, 1.0); float hgt = fbm(m), line = smoothstep(0.0, 0.03, abs(fract(hgt * 15.0) - 0.5) - 0.45);
-  vec3 ground = vec3(0.0035, 0.006, 0.008) + vec3(0.004, 0.012, 0.014) * exp(-dot(p + vec2(0.2, -0.04), p + vec2(0.2, -0.04)) * 2.2);
-  ground += vec3(0.01, 0.034, 0.038) * line * (0.3 + 0.7 * exp(-dot(p, p) * 1.5));
+  // behind the diagrams: a calm drawing board. A dark gradient, a fine regular grid of dots, and a soft pool of light where the machine stands
+  vec3 ground = mix(vec3(0.0075, 0.0105, 0.0175), vec3(0.002, 0.003, 0.006), smoothstep(0.0, 1.15, length(p * vec2(0.8, 1.0))));
+  vec2 pool = p - vec2(-0.22, 0.03); ground += vec3(0.006, 0.011, 0.02) * exp(-dot(pool, pool) * 2.4);
+  vec2 cell = fract(p * 20.0) - 0.5; float dots = smoothstep(0.075, 0.035, length(cell));
+  ground += vec3(0.03, 0.043, 0.065) * dots * (0.18 + 0.82 * exp(-dot(pool, pool) * 1.3));
   o = vec4(mix(sky, ground, uGround), 1.0);
 }`;
 const POINTS_VS = `#version 300 es
@@ -498,7 +499,7 @@ function draw() {
   later.length = 0; pointCount = 0;
   g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; g.clearRect(0, 0, W, H);
   const crash = shows("crash"), machine = shows("machine"), design = shows("design");
-  const look = { dim: 1 - 0.55 * design, ground: machine, wave: 0, waveTime: 0, source: [W / 2, 480], glow: 4, bloom: 0.17 };
+  const look = { dim: 1, ground: clamp(machine + design), wave: 0, waveTime: 0, source: [W / 2, 480], glow: 4, bloom: 0.17 };
   if (crash > 0.01) {
     const t = since("crash"); look.source = drawCrash(t, crash * span(t, 0, 1.6));
     look.wave = crash * (t < MERGE ? 0.35 + 0.65 * t / MERGE : 0.5 + 1.3 * Math.exp(-(t - MERGE) / 2.5)); look.waveTime = t;
