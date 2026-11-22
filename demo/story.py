@@ -6,7 +6,8 @@
 
 The presenter drives it. Every press of the space bar (or a click, or the right arrow) goes one
 step further, and each step keeps moving until the next press. Left arrow = one step back,
-1 to 8 = jump to a step, R = play all eight steps at a fixed pace and record them.
+1 to 8 = jump to a step, R = play all eight steps at a fixed pace and record them
+(opening the page with ?record at the end of the address does the same without a key press).
 
 The eight steps: title; the crash and its ripples; the machine (a laser, two tunnels, mirrors);
 a ripple passing through it; a bigger machine with 193 settings; the live search for good
