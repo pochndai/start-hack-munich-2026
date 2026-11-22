@@ -3,30 +3,34 @@
 - Machine: AMD EPYC 7763 64-Core Processor, 16 GiB RAM, Linux-6.8.0-1070-azure-x86_64-with-glibc2.39
 - CPU limit: pinned to logical CPU 3 with the official `--cpus 1`
 - Noise floor: not measured yet. Run `python bench/run.py aa`.
-- Sessions on record: 1
+- Sessions on record: 3
 
-## Latest session: `2026-11-22T00-14-30Z_run`
+## Latest session: `2026-11-22T09-52-29Z_run`
 
-10 rounds, shuffled order per round, one fresh process per sample.
+8 rounds, shuffled order per round, one fresh process per sample.
 
-| Version                | n     | median s | min s | spread | vs v07-numpy-host  | vs parent          | Setup | Compile | Forward | Sens. | Grad. | peak mem | cpu/wall | valid | flags                                   |
-| ---------------------- | ----- | -------- | ----- | ------ | ------------------ | ------------------ | ----- | ------- | ------- | ----- | ----- | -------- | -------- | ----- | --------------------------------------- |
-| v07-numpy-host         | 10/10 | 1.03     | 1.00  | 5.7%   | -                  | -                  | 0.54  | 0.26    | 0.09    | 0.00  | 0.13  | 0.36 GiB | 1.01     | -     | slow-machine 1/10                       |
-| v09-active-derivatives | 10/10 | 1.00     | 0.99  | 4.7%   | 1.02x (0.99-1.05)~ | 1.02x (0.99-1.05)~ | 0.53  | 0.26    | 0.09    | 0.00  | 0.11  | 0.35 GiB | 1.01     | -     | unofficial-benchmark                    |
-| v10-host-swept-values  | 10/10 | 0.98     | 0.96  | 3.5%   | 1.04x (1.03-1.08)  | 1.02x (0.99-1.06)~ | 0.52  | 0.26    | 0.09    | 0.00  | 0.11  | 0.36 GiB | 1.01     | -     | slow-machine 3/10, unofficial-benchmark |
+| Version                  | n   | median s | min s | spread | vs v11-scipy-stacked-solver | vs parent | Setup | Compile | Forward | Sens. | Grad. | peak mem | cpu/wall | valid | flags                                  |
+| ------------------------ | --- | -------- | ----- | ------ | --------------------------- | --------- | ----- | ------- | ------- | ----- | ----- | -------- | -------- | ----- | -------------------------------------- |
+| v11-scipy-stacked-solver | 8/8 | 0.79     | 0.78  | 3.9%   | -                           | -         | 0.48  | 0.14    | 0.11    | 0.00  | 0.06  | 0.31 GiB | 1.02     | -     | unofficial-benchmark                   |
+| cand2                    | 8/8 | 0.76     | 0.74  | 6.4%   | 1.05x (1.01-1.06)           | -         | 0.47  | 0.14    | 0.10    | 0.00  | 0.04  | 0.30 GiB | 1.02     | -     | unofficial-benchmark                   |
+| cand4                    | 8/8 | 0.75     | 0.74  | 7.2%   | 1.05x (0.99-1.08)~          | -         | 0.48  | 0.14    | 0.10    | 0.00  | 0.03  | 0.30 GiB | 1.02     | PASS  | slow-machine 1/8, unofficial-benchmark |
 
 ## Speed-up over the session's reference, across sessions
 
 One column per session. A version whose factor stays put from column to column is a trustworthy result.
 Against the stored baseline every session divides into the same number, so those factors are directly comparable.
 
-| Version                | 11-22T00-14 run |
-| ---------------------- | --------------- |
-| v07-numpy-host         | ref             |
-| v09-active-derivatives | 1.02x           |
-| v10-host-swept-values  | 1.04x           |
+| Version                  | 11-22T00-14 run | 11-22T09-42 run | 11-22T09-52 run |
+| ------------------------ | --------------- | --------------- | --------------- |
+| v07-numpy-host           | ref             |                 |                 |
+| v09-active-derivatives   | 1.02x           |                 |                 |
+| v10-host-swept-values    | 1.04x           |                 |                 |
+| v11-scipy-stacked-solver |                 | ref             | ref             |
+| cand2                    |                 | 1.07x           | 1.05x           |
+| tmp-cand3                |                 | 1.07x           |                 |
+| cand4                    |                 |                 | 1.05x           |
 
-![First-run total per version, session 2026-11-22T00-14-30Z_run](summary.png)
+![First-run total per version, session 2026-11-22T09-52-29Z_run](summary.png)
 
 ## Reading the tables
 

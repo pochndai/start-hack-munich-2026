@@ -65,6 +65,9 @@ Follow-up on a third instance of the same kind (21:55 UTC; a container with 16 C
 | 00:13 | `run.py calibrate` | The one-CPU limit holds: at most 1.00 CPU-seconds per wall-second | `machine.json` |
 | 00:14 | `run.py run`: `v07`, `v09`, `v10`, 10 shuffled rounds | Medians 1.026, 0.999 and 0.976 s; `v10` against `v07` 1.04x (1.03 to 1.08) | `sessions/2026-11-22T00-14-30Z_run.json`, `SUMMARY.md` |
 | 00:27 | `validate.py` on `v10` and `v07` | `PASS` for both; first runs 0.997 and 1.031 s | `validation/` |
+| 09:42 | `run.py run`: `v11`, `cand2` (`f1bc7a7`, changes 19 and 20), `tmp-cand3` (change 21 as first written), 8 shuffled rounds | Medians 0.791, 0.748 and 0.739 s; gradient run 54.9, 35.1, 26.2 ms | `sessions/2026-11-22T09-42-13Z_run.json` |
+| 09:50 | `validate.py cand4` (`f4f5c40` = `v12`), `tests/test_host.py`, `benchmark_aligo.py --cpus 1` | `PASS`, `ALL CHECKS PASSED`, `PASS` | `validation/cand4@f4f5c40d53d8.json` |
+| 09:52 | `run.py run`: `v11`, `cand2`, `cand4` (= `v12`), 8 shuffled rounds | Medians 0.789, 0.755 and 0.751 s; gradient run 56.2, 36.3, 27.2 ms | `sessions/2026-11-22T09-52-29Z_run.json`, `SUMMARY.md` |
 
 ## 2. By hand, with a saved report
 

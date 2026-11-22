@@ -491,7 +491,14 @@ Intel Xeon Platinum 8468 (second Nebius VM, pinned to logical CPU 15 with the of
 
 `v12` against `v11`, as the ratio within each round: 1.07 times faster (1.03 to 1.11), in all ten rounds; the noise floor of that machine is ±2.4%. Change 21 on its own is 1.01 times (0.98 to 1.03) for the total, inside the noise; its effect is the gradient run. `bench/validate.py` on that machine gives `PASS` for `v12`. `v11` took 0.71 s in the session of the night before on the first VM and 0.67 s here: a different VM, so compare within a session only.
 
-One pinned core of an AMD EPYC 7763 (GitHub Codespace, 8 shuffled rounds, run from a copy of the repository, session not stored here): 0.791 s for `v11`, 0.748 s with changes 19 and 20, 0.739 s with change 21 as well.
+One pinned core of an AMD EPYC 7763 (GitHub Codespace, official `--cpus 1`, 8 shuffled rounds per session, `bench/results/amd-epyc-7763-64-core-processor-16g-linux/sessions/`; the sessions list the commits as `cand2` = `f1bc7a7`, `tmp-cand3` = change 21 as first written, `cand4` = `f4f5c40` = `v12`):
+
+| Session | `v11` | + changes 19 and 20 | + change 21 | Gradient run, the same three |
+| --- | ---: | ---: | ---: | --- |
+| `2026-11-22T09-42-13Z_run.json` | 0.791 s | 0.748 s | 0.739 s | 54.9, 35.1, 26.2 ms |
+| `2026-11-22T09-52-29Z_run.json` | 0.789 s | 0.755 s | 0.751 s (`v12`) | 56.2, 36.3, 27.2 ms |
+
+`bench/validate.py` on that machine gives `PASS` for `v12` (`bench/results/amd-epyc-7763-64-core-processor-16g-linux/validation/cand4@f4f5c40d53d8.json`), and `tests/test_host.py` and `benchmark_aligo.py` pass there.
 
 ### Tried and not adopted
 
