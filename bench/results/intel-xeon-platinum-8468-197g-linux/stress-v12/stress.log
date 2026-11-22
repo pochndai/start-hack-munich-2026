@@ -1,0 +1,175 @@
+v11=/home/jia/shm/bench/.cache/snapshots/f3f14542ea40 v12=/home/jia/shm/bench/.cache/snapshots/f4f5c40d53d8 cpu=15 siblings=14-15 thp=always [madvise] never
+== A1 variations
+[amplitude-modulation] working tree...
+[amplitude-modulation] PASS
+[band-20-5000] working tree...
+[band-20-5000] DEVIATION
+    gradient: 2 of 193 entries outside |a-b| <= 1.7e-08 + 1e-03*|baseline|; worst is entry 17: -1.692515e-01 vs baseline -1.701932e-01
+[boundary-swap] working tree...
+[boundary-swap] PASS
+[center-swap] working tree...
+[center-swap] PASS
+[detector-moved] working tree...
+[detector-moved] PASS
+[frequencies-201] working tree...
+[frequencies-201] PASS
+[frequencies-51] working tree...
+[frequencies-51] PASS
+[frequency-modulation] working tree...
+[frequency-modulation] PASS
+[homodyne-readout] working tree...
+[homodyne-readout] PASS
+[random-layout-1] working tree...
+[random-layout-1] PASS
+[random-layout-2] working tree...
+[random-layout-2] PASS
+[random-layout-3] working tree...
+[random-layout-3] PASS
+[size-2] working tree...
+[size-2] PASS
+[size-4] working tree...
+[size-4] PASS
+[size-4-full] working tree...
+[size-4-full] PASS
+[supplied] working tree...
+[supplied] PASS
+[uifo-20-5000] working tree...
+[uifo-20-5000] PASS
+[values-random] working tree...
+[values-random] PASS
+[values-shifted] working tree...
+[values-shifted] PASS
+
+Stored /home/jia/shm/bench/results/intel-xeon-platinum-8468-197g-linux/variations/2026-11-22T10-36-33Z.json
+Table  /home/jia/shm/bench/results/intel-xeon-platinum-8468-197g-linux/VARIATIONS.md
+PASS: 18  DEVIATION: 1  FAIL: 0  NO_REFERENCE: 0
+== A2 test_host
+   cells written twice: the second write changes the result by 2.9e+00 (so the case is not empty)
+   cells written twice, gradient against finite differences: 2.1e-03 (4 of 4 directions settled)
+
+ALL CHECKS PASSED
+== A3 handwritten_jacobians
+laser_frequency_modulation_lower            1       1   0.0e+00  0.0e+00  0.0e+00  0.0e+00
+cases: typical, equal indices, 45 degrees, beyond total internal reflection, reflectivity above 1
+ALL RULES AGREE WITH JAX (worst 6.9e-16)
+== A4 aligo v12 run 1
+Complete first-run total (excluding validation): 0.497779 s
+PASS: reference sensitivity and gradient spot check; full runtime median 0.012625 s
+== A4 aligo v12 run 2
+Complete first-run total (excluding validation): 0.499546 s
+PASS: reference sensitivity and gradient spot check; full runtime median 0.012647 s
+== A4 aligo v12 run 3
+Complete first-run total (excluding validation): 0.496367 s
+PASS: reference sensitivity and gradient spot check; full runtime median 0.012550 s
+== A4 aligo v12 run 4
+Complete first-run total (excluding validation): 0.494915 s
+PASS: reference sensitivity and gradient spot check; full runtime median 0.012402 s
+== B quiet
+quiet,v11,1,0.683535,1,0
+quiet,v12,1,0.644520,1,0
+quiet,v12,2,0.650355,1,0
+quiet,v11,2,0.686997,1,0
+quiet,v11,3,0.689620,1,0
+quiet,v12,3,0.638829,1,0
+quiet,v12,4,0.650793,1,0
+quiet,v11,4,0.679843,1,0
+quiet,v11,5,0.667449,1,0
+quiet,v12,5,0.638332,1,0
+quiet,v12,6,0.646707,1,0
+quiet,v11,6,0.684437,1,0
+quiet,v11,7,0.689266,1,0
+quiet,v12,7,0.649736,1,0
+quiet,v12,8,0.641263,1,0
+quiet,v11,8,0.664266,1,0
+quiet,v11,9,0.675333,1,0
+quiet,v12,9,0.645084,1,0
+quiet,v12,10,0.629973,1,0
+quiet,v11,10,0.678787,1,0
+== B others-busy (15 other logical CPUs at 100%)
+others-busy,v11,1,1.058258,1,0
+others-busy,v12,1,0.959686,1,0
+others-busy,v12,2,0.944416,1,0
+others-busy,v11,2,0.955307,1,0
+others-busy,v11,3,0.966688,1,0
+others-busy,v12,3,0.906913,1,0
+others-busy,v12,4,0.916538,1,0
+others-busy,v11,4,0.937133,1,0
+others-busy,v11,5,0.947724,1,0
+others-busy,v12,5,0.939399,1,0
+others-busy,v12,6,0.930092,1,0
+others-busy,v11,6,0.953200,1,0
+others-busy,v11,7,0.963640,1,0
+others-busy,v12,7,0.919979,1,0
+others-busy,v12,8,0.910227,1,0
+others-busy,v11,8,0.990944,1,0
+others-busy,v11,9,0.993004,1,0
+others-busy,v12,9,0.926659,1,0
+others-busy,v12,10,0.934497,1,0
+others-busy,v11,10,0.986237,1,0
+== B memory-churn (4 processes allocating and freeing 2 GiB)
+memory-churn,v11,1,0.750179,1,0
+memory-churn,v12,1,0.696282,1,0
+memory-churn,v12,2,0.697138,1,0
+memory-churn,v11,2,0.730737,1,0
+memory-churn,v11,3,0.746235,1,0
+memory-churn,v12,3,0.696368,1,0
+memory-churn,v12,4,0.682733,1,0
+memory-churn,v11,4,0.747769,1,0
+memory-churn,v11,5,0.736671,1,0
+memory-churn,v12,5,0.700629,1,0
+memory-churn,v12,6,0.700945,1,0
+memory-churn,v11,6,0.736920,1,0
+memory-churn,v11,7,0.743654,1,0
+memory-churn,v12,7,0.702138,1,0
+memory-churn,v12,8,0.697511,1,0
+memory-churn,v11,8,0.701448,1,0
+memory-churn,v11,9,0.741205,1,0
+memory-churn,v12,9,0.702127,1,0
+memory-churn,v12,10,0.702713,1,0
+memory-churn,v11,10,0.733429,1,0
+== B busy-and-churn
+busy-and-churn,v11,1,1.021540,1,0
+busy-and-churn,v12,1,0.964273,1,0
+busy-and-churn,v12,2,0.964925,1,0
+busy-and-churn,v11,2,1.014615,1,0
+busy-and-churn,v11,3,1.041525,1,0
+busy-and-churn,v12,3,0.971058,1,0
+busy-and-churn,v12,4,0.977437,1,0
+busy-and-churn,v11,4,1.037734,1,0
+busy-and-churn,v11,5,1.033112,1,0
+busy-and-churn,v12,5,0.984210,1,0
+busy-and-churn,v12,6,0.966392,1,0
+busy-and-churn,v11,6,1.037509,1,0
+busy-and-churn,v11,7,1.033217,1,0
+busy-and-churn,v12,7,0.971422,1,0
+busy-and-churn,v12,8,0.965433,1,0
+busy-and-churn,v11,8,1.033334,1,0
+busy-and-churn,v11,9,1.033895,1,0
+busy-and-churn,v12,9,0.968006,1,0
+busy-and-churn,v12,10,0.951968,1,0
+busy-and-churn,v11,10,1.041799,1,0
+== B same-cpu (a busy loop on the benchmark's own CPU)
+same-cpu,v11,1,1.340737,1,0
+same-cpu,v12,1,1.239533,1,0
+same-cpu,v12,2,1.260190,1,0
+same-cpu,v11,2,1.351824,1,0
+same-cpu,v11,3,1.346790,1,0
+same-cpu,v12,3,1.296032,1,0
+same-cpu,v12,4,1.287737,1,0
+same-cpu,v11,4,1.348793,1,0
+same-cpu,v11,5,1.364074,1,0
+same-cpu,v12,5,1.281099,1,0
+same-cpu,v12,6,1.304778,1,0
+same-cpu,v11,6,1.367529,1,0
+== C memory caps (swap off)
+cap-1G,v11,1,0.694267,1,0
+cap-1G,v12,1,0.649977,1,0
+cap-512M,v11,1,0.676601,1,0
+cap-512M,v12,1,0.640213,1,0
+cap-384M,v11,1,0.687947,1,0
+cap-384M,v12,1,0.645618,1,0
+cap-320M,v11,1,0.684341,1,0
+cap-320M,v12,1,0.650143,1,0
+cap-256M,v11,1,0.681216,1,0
+cap-256M,v12,1,0.639756,1,0
+== DONE
