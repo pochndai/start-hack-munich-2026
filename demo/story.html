@@ -3,26 +3,39 @@
 <title>Hearing the universe, faster</title>
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-  canvas { position: fixed; inset: 0; margin: auto; max-width: 100vw; max-height: 100vh; aspect-ratio: 16 / 9; width: 100vw; height: auto; display: block; background: #04060b; }
+  canvas { position: fixed; inset: 0; margin: auto; max-width: 100vw; max-height: 100vh; aspect-ratio: 16 / 9; width: 100vw; height: auto; display: block; background: #04060b; cursor: pointer; }
   @media (min-aspect-ratio: 16/9) { canvas { width: auto; height: 100vh; } }
 </style></head><body>
-<canvas id="stage" width="1920" height="1080" role="img" aria-label="An animated story in four scenes: two neutron stars collide, the ripples reach a detector on Earth, the detector design with its beams of light, and the live search for better settings."></canvas>
+<canvas id="stage" width="1920" height="1080" role="img" aria-label="A demo in eight steps, advanced with the space bar: two stars crash and send ripples through space, a machine on Earth feels them with laser light, a bigger machine with 193 settings, and the live search for good settings by our code and by the original code."></canvas>
 <script>
 "use strict";
-// Everything is drawn on one 1920x1080 canvas, text included, so that a recording of the canvas is the whole film.
+// One 1920x1080 canvas, text included, so a recording of the canvas is the whole demo.
+// The presenter drives it: every press of the space bar goes one step further, and each step keeps moving until the next press.
 const stage = document.getElementById("stage"), g = stage.getContext("2d"), W = 1920, H = 1080;
-const T = { source: 0, arrival: 12, design: 25, search: 36, end: 60 };
 const INK = "#f3efe6", SOFT = "rgba(243,239,230,0.62)", LASER = [255, 86, 48], CORE = [255, 205, 170], RIPPLE = [130, 180, 255], OURS = [96, 226, 160], THEIRS = [236, 122, 104];
 const SANS = '"Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif', MONO = '"SF Mono", Menlo, Consolas, monospace';
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), lerp = (a, b, k) => a + (b - a) * k;
 const smooth = k => { k = clamp(k); return k * k * (3 - 2 * k); };
 const span = (t, a, b) => smooth((t - a) / (b - a));                              // 0 before a, 1 after b
-const window_ = (t, a, b, edge = 0.6) => Math.min(span(t, a, a + edge), 1 - span(t, b - edge, b));  // fade in at a, out at b
 const rgba = (c, a) => `rgba(${c[0]},${c[1]},${c[2]},${a})`;
 function random(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let k = Math.imul(seed ^ seed >>> 15, 1 | seed); k = k + Math.imul(k ^ k >>> 7, 61 | k) ^ k; return ((k ^ k >>> 14) >>> 0) / 4294967296; }; }
 
-let SCENE = null, time = 0, playing = false, hold = false, lastFrame = 0;
-const live = { stream: null, steps: 0, seconds: 0, best: [], shown: null, target: null, loss: null, started: false };
+// ---------------------------------------------------------------- the steps
+const STEPS = ["title", "crash", "machine", "ripple", "design", "search", "compare", "end"];
+const PART = { title: "sky", crash: "crash", machine: "machine", ripple: "machine", design: "design", search: "design", compare: "design", end: "design" };
+const AUTO = [2, 14, 8, 10, 9, 11, 10, 7];                                       // seconds per step when recording
+let SCENE = null, time = 0, lastFrame = 0, step = 0, previous = 0, changed = -10;
+const entered = STEPS.map(() => -100), at_ = name => STEPS.indexOf(name), since = name => time - entered[at_(name)];
+const live = { stream: null, steps: 0, seconds: 0, best: [], shown: null, target: null, started: false, radius: 0, theirs: 0 };
+function go(to) {
+  to = clamp(to, 0, STEPS.length - 1); if (to === step) return;
+  previous = step; step = to; changed = time; entered[to] = time;
+  if (to >= at_("search")) startSearch(); else { stopSearch(); live.started = false; }
+}
+function shows(part) {                                                            // how visible a part of the demo is right now, with a soft change between parts
+  const now = PART[STEPS[step]], before = PART[STEPS[previous]], k = span(time - changed, 0, 0.9);
+  return now === before ? +(now === part) : now === part ? k : before === part ? 1 - k : 0;
+}
 
 // ---------------------------------------------------------------- the sky
 const sky = document.createElement("canvas"); sky.width = W * 2; sky.height = H;
@@ -32,9 +45,9 @@ const bright = [];
   s.fillStyle = "#04060b"; s.fillRect(0, 0, sky.width, H);
   for (let i = 0; i < 260; i++) {                      // a faint band of dust and far stars across the sky
     const x = r() * sky.width, y = H * 0.55 + (x / sky.width - 0.5) * -420 + (r() - 0.5) * 300 * (0.4 + r()), size = 90 + r() * 260;
-    const glow = s.createRadialGradient(x, y, 0, x, y, size), tint = r() < 0.5 ? [70, 96, 170] : [120, 84, 150];
-    glow.addColorStop(0, rgba(tint, 0.05 * r())); glow.addColorStop(1, rgba(tint, 0));
-    s.fillStyle = glow; s.fillRect(x - size, y - size, size * 2, size * 2);
+    const glow_ = s.createRadialGradient(x, y, 0, x, y, size), tint = r() < 0.5 ? [70, 96, 170] : [120, 84, 150];
+    glow_.addColorStop(0, rgba(tint, 0.05 * r())); glow_.addColorStop(1, rgba(tint, 0));
+    s.fillStyle = glow_; s.fillRect(x - size, y - size, size * 2, size * 2);
   }
   for (let i = 0; i < 5200; i++) {
     const x = r() * sky.width, y = r() * H, m = Math.pow(r(), 5.5), size = 0.35 + m * 1.9, warm = r();
@@ -43,19 +56,18 @@ const bright = [];
     if (m > 0.7 && bright.length < 20) bright.push({ x, y, size: size + 0.6, tint, phase: r() * 6.28, rate: 0.7 + r() * 1.6 });
   }
 })();
-function drawSky(drift, alpha = 1) {
-  g.globalAlpha = alpha;
+function drawSky(drift) {
   const x = ((drift % sky.width) + sky.width) % sky.width;
   g.drawImage(sky, -x, 0); g.drawImage(sky, sky.width - x, 0);
   g.globalCompositeOperation = "lighter";
   for (const star of bright) {                         // the brightest stars twinkle and carry a faint cross
     const sx = ((star.x - x) % sky.width + sky.width) % sky.width; if (sx > W + 40) continue;
     const k = 0.55 + 0.45 * Math.sin(time * star.rate + star.phase), reach = star.size * (4.5 + 3 * k);
-    const halo = g.createRadialGradient(sx, star.y, 0, sx, star.y, reach); halo.addColorStop(0, rgba(star.tint, 0.42 * k * alpha)); halo.addColorStop(1, rgba(star.tint, 0));
+    const halo = g.createRadialGradient(sx, star.y, 0, sx, star.y, reach); halo.addColorStop(0, rgba(star.tint, 0.42 * k)); halo.addColorStop(1, rgba(star.tint, 0));
     g.fillStyle = halo; g.fillRect(sx - reach, star.y - reach, reach * 2, reach * 2);
-    g.strokeStyle = rgba(star.tint, 0.3 * k * alpha); g.lineWidth = 1; g.beginPath(); g.moveTo(sx - reach * 2.4, star.y); g.lineTo(sx + reach * 2.4, star.y); g.moveTo(sx, star.y - reach * 2.4); g.lineTo(sx, star.y + reach * 2.4); g.stroke();
+    g.strokeStyle = rgba(star.tint, 0.3 * k); g.lineWidth = 1; g.beginPath(); g.moveTo(sx - reach * 2.4, star.y); g.lineTo(sx + reach * 2.4, star.y); g.moveTo(sx, star.y - reach * 2.4); g.lineTo(sx, star.y + reach * 2.4); g.stroke();
   }
-  g.globalCompositeOperation = "source-over"; g.globalAlpha = 1;
+  g.globalCompositeOperation = "source-over";
 }
 
 // ---------------------------------------------------------------- words
@@ -65,45 +77,48 @@ function words(text, x, y, size, width, alpha, weight = 500, color = INK, lineGa
   const lines = []; let line = "";
   for (const word of text.split(" ")) { const next = line ? line + " " + word : word; if (g.measureText(next).width > width && line) { lines.push(line); line = word; } else line = next; }
   lines.push(line);
-  g.save(); g.globalAlpha = alpha; g.shadowColor = "rgba(0,0,0,0.85)"; g.shadowBlur = 18; g.fillStyle = color;
+  g.save(); g.globalAlpha = alpha; g.shadowColor = "rgba(0,0,0,0.9)"; g.shadowBlur = 18; g.fillStyle = color;
   lines.forEach((part, i) => g.fillText(part, x, y + i * size * lineGap)); g.restore();
   return lines.length;
 }
-const CAPTIONS = [
-  [0.9, 7.6, "A hundred million years ago, two dead stars spiralled into each other."],
-  [8.5, 11.8, "The collision sent ripples through space itself."],
-  [12.4, 16.3, "The ripples are still travelling. Some of them reach Earth."],
-  [16.9, 20.6, "A detector: laser light racing down two long arms and back."],
-  [20.9, 24.7, "A ripple stretches one arm and squeezes the other. The light flickers. That flicker is the signal."],
-  [25.5, 30.2, "To hear fainter collisions, physicists design new detectors."],
-  [30.5, 35.7, () => `This one has ${SCENE ? SCENE.variables : 193} knobs. Every beam you see is computed by the simulator.`],
-  [36.5, 43.6, "Finding good settings means simulating it again and again. Here it runs live."],
-  [44.0, 54.6, () => SCENE && SCENE.original ? `The original code needs ${SCENE.original.toFixed(0)} seconds for every step. Ours does ${rate()} steps a second.` : `Ours does ${rate()} design steps a second.`],
-];
 const rate = () => live.seconds > 0.4 ? Math.round(live.steps / live.seconds) : 19;
-function captions(t) {
-  for (const [a, b, text] of CAPTIONS) words(typeof text === "function" ? text() : text, 96, 968, 46, 1500, window_(t, a, b, 0.55), 500);
+const CAPTION = {                                       // one or two short sentences per step, in everyday words
+  title: () => "",
+  crash: () => since("crash") < MERGE + 0.4 ? "Far out in space, two burnt-out stars circle each other. Closer and closer." : "They crash. The crash sends ripples through space, like a stone dropped in a pond.",
+  machine: () => "On Earth, this machine listens for those ripples. A laser shoots light down two tunnels. Mirrors send it back.",
+  ripple: () => "When a ripple passes, one tunnel gets a tiny bit longer and the other a tiny bit shorter. The light flickers. That flicker is what we measure.",
+  design: () => `To hear fainter crashes, scientists plan bigger machines. This one has ${SCENE ? SCENE.variables : 193} settings to get right.`,
+  search: () => "The computer finds good settings by trying. Change a little, test, keep what helps. Every test works out all the light in the machine.",
+  compare: () => SCENE && SCENE.original ? `Our code runs ${rate()} tests every second. The original code needs ${SCENE.original.toFixed(0)} seconds for one test.` : `Our code runs ${rate()} tests every second.`,
+  end: () => "",
+};
+const caption = { now: "", before: "", when: 0 };
+function captions() {
+  const text = CAPTION[STEPS[step]]();
+  if (text !== caption.now && !(caption.now && text.replace(/\d+/g, "") === caption.now.replace(/\d+/g, ""))) { caption.before = caption.now; caption.when = time; }
+  caption.now = text;                                    // a number that changes inside a sentence does not make it fade
+  words(caption.before, 96, 952, 45, 1720, 1 - span(time - caption.when, 0, 0.35), 500);
+  words(caption.now, 96, 952, 45, 1720, span(time - caption.when, 0.25, 0.85), 500);
 }
 
-// ---------------------------------------------------------------- scene 1: the collision
+// ---------------------------------------------------------------- step "crash": the two stars and the ripples
 const MERGE = 8.3, RATE = 120, orbit = { angle: [], gap: [], height: [] };
 (function integrate() {
   let angle = 0;
-  for (let i = 0; i <= 16 * RATE; i++) {
-    const t = i / RATE, left = Math.max(1 - t / MERGE, 0);
-    const gap = t < MERGE ? 2.5 * Math.pow(left, 0.27) : 0, spin = t < MERGE ? Math.min(1.5 * Math.pow(Math.max(left, 0.004), -0.62), 7.5) : 7.5;
+  for (let i = 0; i <= MERGE * RATE; i++) {
+    const left = Math.max(1 - i / RATE / MERGE, 0), spin = Math.min(1.5 * Math.pow(Math.max(left, 0.004), -0.62), 7.5);
     angle += spin / RATE;
-    orbit.angle.push(angle); orbit.gap.push(gap);
-    orbit.height.push(t < MERGE ? 0.3 + 0.75 * Math.pow(spin / 7.5, 0.8) : 1.05 * Math.exp(-(t - MERGE) / 0.8));
+    orbit.angle.push(angle); orbit.gap.push(2.5 * Math.pow(left, 0.27)); orbit.height.push(0.3 + 0.75 * Math.pow(spin / 7.5, 0.8));
   }
 })();
-const at = (list, t) => list[clamp(Math.round(t * RATE), 0, list.length - 1)];
+const pick = (list, t) => list[clamp(Math.round(t * RATE), 0, list.length - 1)];
+const angleAt = t => t <= MERGE ? pick(orbit.angle, t) : orbit.angle[orbit.angle.length - 1] + 3.1 * (t - MERGE);   // after the crash the ripples keep spreading, more gently
+const heightAt = t => t <= MERGE ? pick(orbit.height, t) : 0.3 + 0.75 * Math.exp(-(t - MERGE) / 1.1);
 const CAMERA = { back: 12, height: 3.3, focal: 900, horizon: 318 };
 function ripple(u, v, t) {                               // height of the fabric of space at (u, v): a two-armed spiral moving outwards
   const r = Math.hypot(u, v), then = t - r / 3.4;
   if (then <= 0) return 0;
-  const lift = at(orbit.height, then) * Math.cos(2 * (Math.atan2(v, u) - at(orbit.angle, then))) / (1 + r * 0.16);
-  return lift * smooth(r / 2.6) * smooth(then / 0.6);
+  return heightAt(then) * Math.cos(2 * (Math.atan2(v, u) - angleAt(then))) / (1 + r * 0.16) * smooth(r / 2.6) * smooth(then / 0.6);
 }
 function project(u, v, z) { const d = v + CAMERA.back; return [W / 2 + u / d * CAMERA.focal, CAMERA.horizon + (CAMERA.height - z) / d * CAMERA.focal, d]; }
 function drawFabric(t, alpha) {
@@ -112,7 +127,7 @@ function drawFabric(t, alpha) {
   g.lineWidth = 1.3; g.lineCap = "round"; g.lineJoin = "round";
   for (let v = -8.4; v <= 21; v += 0.7) {                // lines across: one depth each, so one opacity each
     const fade = Math.pow(clamp(1 - (v + 8.4) / 30), 1.5) * alpha;
-    g.strokeStyle = rgba(RIPPLE, 0.07 + 0.62 * fade); g.beginPath();
+    g.strokeStyle = rgba(RIPPLE, 0.07 * alpha + 0.62 * fade); g.beginPath();
     for (let i = 0; i <= 304; i++) { const u = -19 + i * 0.125, p = project(u, v, ripple(u, v, t)); i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); }
     g.stroke();
   }
@@ -136,50 +151,26 @@ function drawStars(t, alpha) {
     for (const side of [0, Math.PI]) {
       for (let k = 46; k >= 0; k--) {                    // a fading trail behind each star
         const then = t - k * 0.012; if (then < 0) continue;
-        const a = at(orbit.angle, then) + side, gap = at(orbit.gap, then), p = project(gap * Math.cos(a), gap * Math.sin(a), lift);
+        const a = angleAt(then) + side, gap = pick(orbit.gap, then), p = project(gap * Math.cos(a), gap * Math.sin(a), lift);
         glow(p[0], p[1], 15 * 12 / p[2], [150, 190, 255], 0.05 * (1 - k / 46) * alpha);
       }
-      const a = at(orbit.angle, t) + side, gap = at(orbit.gap, t), p = project(gap * Math.cos(a), gap * Math.sin(a), lift), scale = 12 / p[2];
+      const a = angleAt(t) + side, gap = pick(orbit.gap, t), p = project(gap * Math.cos(a), gap * Math.sin(a), lift), scale = 12 / p[2];
       glow(p[0], p[1], 120 * scale, [120, 170, 255], 0.5 * alpha); glow(p[0], p[1], 34 * scale, [235, 244, 255], alpha);
       g.fillStyle = rgba([255, 255, 255], alpha); g.beginPath(); g.arc(p[0], p[1], 7 * scale, 0, 6.2832); g.fill();
     }
   }
-  const p = project(0, 0, lift), since = t - MERGE;
-  if (since > 0) {                                       // the collision: a flash, a streak of light, then a fading ember
-    const flash = Math.exp(-since / 0.42), ember = Math.exp(-since / 2.6);
+  const p = project(0, 0, lift), after = t - MERGE;
+  if (after > 0) {                                       // the crash: a flash, a streak of light, then a glowing ember that stays
+    const flash = Math.exp(-after / 0.42), ember = 0.3 + 0.7 * Math.exp(-after / 2.6);
     glow(p[0], p[1], 150 + 1250 * (1 - flash), [255, 244, 225], 0.85 * flash * alpha);
     glow(p[0], p[1], 240, [255, 190, 120], 0.8 * ember * alpha); glow(p[0], p[1], 46, [255, 255, 255], ember * alpha);
     g.fillStyle = rgba([255, 240, 215], 0.75 * flash * alpha);
-    g.beginPath(); g.ellipse(p[0], p[1], 880 * Math.min(1, since * 4 + 0.1), 5 + 11 * flash, 0, 0, 6.2832); g.fill();
+    g.beginPath(); g.ellipse(p[0], p[1], 880 * Math.min(1, after * 4 + 0.1), 5 + 11 * flash, 0, 0, 6.2832); g.fill();
   }
   g.globalCompositeOperation = "source-over";
 }
 
-// ---------------------------------------------------------------- scene 2: Earth and the detector
-const land = []; { const r = random(21);
-  for (let c = 0; c < 9; c++) { let u = r() * 4 - 2, v = r() * 1.3 - 0.65; for (let i = 0; i < 26; i++) { u += (r() - 0.5) * 0.16; v += (r() - 0.5) * 0.13; land.push([u, v, 0.035 + r() * 0.085, 0.03 + r() * 0.07, r() * 3.14, r() < 0.3 ? 1 : 0]); } }
-  for (let i = 0; i < 46; i++) land.push([r() * 4 - 2, r() * 1.7 - 0.85, 0.12 + r() * 0.3, 0.012 + r() * 0.03, (r() - 0.5) * 0.5, 2]); }
-function drawEarth(x, y, R, alpha) {
-  if (alpha <= 0.01) return;
-  g.save(); g.globalAlpha = alpha;
-  g.globalCompositeOperation = "lighter"; glow(x, y, R * 1.34, [80, 150, 255], 0.5); g.globalCompositeOperation = "source-over";
-  g.beginPath(); g.arc(x, y, R, 0, 6.2832); g.clip();
-  const sea = g.createRadialGradient(x - R * 0.42, y - R * 0.38, R * 0.05, x, y, R * 1.05);
-  sea.addColorStop(0, "#3f86d6"); sea.addColorStop(0.5, "#15407e"); sea.addColorStop(1, "#061a3a");
-  g.fillStyle = sea; g.fillRect(x - R, y - R, R * 2, R * 2);
-  const turn = time * 0.012;
-  for (const [u, v, a, b, tilt, kind] of land) {         // soft patches of land and cloud drifting with the rotation
-    const lx = ((u + turn + 2) % 4 + 4) % 4 - 2;
-    g.fillStyle = kind === 2 ? "rgba(240,246,255,0.2)" : kind === 1 ? "rgba(150,138,96,0.5)" : "rgba(62,120,82,0.55)";
-    g.beginPath(); g.ellipse(x + lx * R * 0.7, y + v * R, a * R, b * R, tilt, 0, 6.2832); g.fill();
-  }
-  const night = g.createLinearGradient(x - R * 0.2, y - R * 0.3, x + R * 0.95, y + R * 0.8);
-  night.addColorStop(0, "rgba(2,4,12,0)"); night.addColorStop(0.55, "rgba(2,4,12,0.62)"); night.addColorStop(1, "rgba(2,4,12,0.96)");
-  g.fillStyle = night; g.fillRect(x - R, y - R, R * 2, R * 2);
-  const rim = g.createRadialGradient(x, y, R * 0.86, x, y, R); rim.addColorStop(0, "rgba(120,190,255,0)"); rim.addColorStop(1, "rgba(120,190,255,0.5)");
-  g.fillStyle = rim; g.fillRect(x - R, y - R, R * 2, R * 2);
-  g.restore();
-}
+// ---------------------------------------------------------------- steps "machine" and "ripple": the detector
 function beam(x1, y1, x2, y2, strength, scale = 1, alpha = 1) {   // a beam of laser light: wide soft halo, glow, hot core
   if (strength <= 0.004 || alpha <= 0.01) return;
   g.lineCap = "round";
@@ -187,70 +178,77 @@ function beam(x1, y1, x2, y2, strength, scale = 1, alpha = 1) {   // a beam of l
     g.strokeStyle = rgba(color, a * alpha); g.lineWidth = width; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
   }
 }
-const chirp = t => {                                     // the stretch of the arms while the ripple passes: slow, then faster and stronger, then gone
-  const k = clamp((t - 19.4) / 4.4), size = t < 23.8 ? 0.012 + 0.05 * Math.pow(k, 2.2) : 0.062 * Math.exp(-(t - 23.8) / 0.25);
-  return size * smooth((t - 19.4) / 0.8) * Math.sin(6.2832 * (0.55 * (t - 19.4) + 0.36 * Math.pow(Math.max(t - 19.4, 0), 2.1)));
+const CYCLE = 8;                                         // a ripple passes every eight seconds for as long as the step is shown
+const chirp = x => {                                     // the stretch of the tunnels x seconds into a pass: slow, then faster and stronger, then gone
+  if (x < 0.8 || x > 6.6) return 0;
+  const k = clamp((x - 0.8) / 4.4), size = x < 5.2 ? 0.012 + 0.05 * Math.pow(k, 2.2) : 0.062 * Math.exp(-(x - 5.2) / 0.25);
+  return size * smooth((x - 0.8) / 0.8) * Math.sin(6.2832 * (0.55 * (x - 0.8) + 0.36 * Math.pow(x - 0.8, 2.1)));
 };
-function drawDetector(t, alpha) {
+function drawMachine(alpha) {
   if (alpha <= 0.01) return;
+  const rippling = step >= at_("ripple") && PART[STEPS[step]] === "machine", x = rippling ? since("ripple") % CYCLE : -1;
+  const on = span(since("machine"), 0.2, 1.6);
   g.save(); g.globalAlpha = alpha;
   const ground = g.createRadialGradient(820, 520, 80, 820, 520, 1250); ground.addColorStop(0, "rgba(22,40,46,0.96)"); ground.addColorStop(1, "rgba(5,9,14,0.98)");
   g.fillStyle = ground; g.fillRect(0, 0, W, H);
   g.strokeStyle = "rgba(160,200,200,0.05)"; g.lineWidth = 1;                // faint survey lines on the ground
   for (let i = -6; i < 30; i++) { g.beginPath(); g.moveTo(i * 110, 0); g.lineTo(i * 110 + 600, H); g.stroke(); }
-  const stretch = chirp(t), cx = 560, cy = 610, across = 900 * (1 + stretch), up = 470 * (1 - stretch * 1.7);
-  const strength = clamp(Math.abs(stretch) / 0.05), bands = clamp(span(t, 19.2, 20.4) - span(t, 23.9, 24.8));
+  const stretch = rippling ? chirp(x) : 0, cx = 560, cy = 610, across = 900 * (1 + stretch), up = 470 * (1 - stretch * 1.7);
+  const strength = clamp(Math.abs(stretch) / 0.05), bands = rippling ? clamp(span(x, 0.6, 1.8) - span(x, 5.3, 6.4)) : 0;
   g.save(); g.translate(cx + 300, cy - 200); g.rotate(-0.62);               // the ripple itself, passing over the site
   for (let k = -9; k <= 9; k++) {
-    const x = k * 250 + ((t * 330) % 250), band = g.createLinearGradient(x - 90, 0, x + 90, 0);
-    band.addColorStop(0, rgba(RIPPLE, 0)); band.addColorStop(0.5, rgba(RIPPLE, 0.1 * bands)); band.addColorStop(1, rgba(RIPPLE, 0));
-    g.fillStyle = band; g.fillRect(x - 90, -1500, 180, 3000);
+    const bx = k * 250 + ((time * 330) % 250), band = g.createLinearGradient(bx - 90, 0, bx + 90, 0);
+    band.addColorStop(0, rgba(RIPPLE, 0)); band.addColorStop(0.5, rgba(RIPPLE, 0.12 * bands)); band.addColorStop(1, rgba(RIPPLE, 0));
+    g.fillStyle = band; g.fillRect(bx - 90, -1500, 180, 3000);
   }
   g.restore();
-  g.strokeStyle = "rgba(205,220,235,0.34)"; g.lineWidth = 2;                // the vacuum tubes and the buildings
+  g.strokeStyle = "rgba(205,220,235,0.34)"; g.lineWidth = 2;                // the tunnels and the buildings
   for (const d of [-11, 11]) { g.beginPath(); g.moveTo(cx, cy + d); g.lineTo(cx + across, cy + d); g.moveTo(cx + d, cy); g.lineTo(cx + d, cy - up); g.stroke(); }
   g.fillStyle = "rgba(14,22,28,0.95)"; g.strokeStyle = "rgba(205,220,235,0.5)";
-  for (const [x, y, w, h] of [[cx - 58, cy - 58, 116, 116], [cx + across - 26, cy - 34, 74, 68], [cx - 34, cy - up - 48, 68, 74], [cx - 330, cy - 30, 96, 60], [cx - 36, cy + 150, 72, 62]]) { g.beginPath(); g.roundRect(x, y, w, h, 8); g.fill(); g.stroke(); }
+  for (const [bx, by, w, h] of [[cx - 58, cy - 58, 116, 116], [cx + across - 26, cy - 34, 74, 68], [cx - 34, cy - up - 48, 68, 74], [cx - 330, cy - 30, 96, 60], [cx - 36, cy + 150, 72, 62]]) { g.beginPath(); g.roundRect(bx, by, w, h, 8); g.fill(); g.stroke(); }
   g.globalCompositeOperation = "lighter";
-  const on = span(t, 16.9, 18.3);
   beam(cx - 234, cy, cx, cy, 0.95 * on); beam(cx, cy, cx + across + 8, cy, 0.9 * on); beam(cx, cy, cx, cy - up - 8, 0.9 * on);
   beam(cx, cy, cx, cy + 172, (0.05 + 0.95 * strength) * on);
+  for (let k = 0; k < 4; k++) {                          // flashes of light running down each tunnel and back
+    const there = ((time * 0.55 + k / 4) % 1), back = there < 0.5 ? there * 2 : 2 - there * 2;
+    glow(cx + back * across, cy, 26, [255, 235, 215], 0.9 * on); glow(cx, cy - back * up, 26, [255, 235, 215], 0.9 * on);
+  }
   glow(cx - 262, cy, 60, LASER, 0.8 * on); glow(cx, cy, 70, CORE, 0.5 * on);
   glow(cx, cy + 182, 30 + 90 * strength, [255, 236, 190], (0.2 + 0.8 * strength) * on);
   g.globalCompositeOperation = "source-over";
   g.strokeStyle = "rgba(236,242,250,0.95)"; g.lineWidth = 6; g.lineCap = "round";   // mirrors at the ends, the splitter in the corner
   g.beginPath(); g.moveTo(cx + across + 12, cy - 22); g.lineTo(cx + across + 12, cy + 22); g.moveTo(cx - 22, cy - up - 12); g.lineTo(cx + 22, cy - up - 12); g.stroke();
   g.lineWidth = 3; g.beginPath(); g.moveTo(cx - 20, cy + 20); g.lineTo(cx + 20, cy - 20); g.stroke();
-  const label = (text, x, y, a, align = "left") => words(text, x, y, 25, 600, a * alpha, 500, SOFT, 1.25, align);
+  const label = (text, lx, ly, a, align = "left") => words(text, lx, ly, 27, 700, a * alpha, 500, SOFT, 1.25, align);
   label("laser", cx - 282, cy - 46, on, "center"); label("mirror", cx + across + 12, cy - 56, on, "center"); label("mirror", cx + 60, cy - up - 4, on);
-  label("light detector", cx + 56, cy + 192, on);
-  label("each arm: 4 kilometres", cx + across / 2, cy + 52, span(t, 17.6, 18.6), "center");
-  const trace = span(t, 20.6, 21.2);                                         // the signal, drawn as it arrives
-  if (trace > 0.01) {
-    const x0 = 1000, x1 = 1800, y0 = 290;
-    g.globalAlpha = alpha * trace; g.strokeStyle = "rgba(243,239,230,0.16)"; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y0); g.stroke();
-    g.strokeStyle = rgba([255, 236, 190], 0.95); g.lineWidth = 3; g.lineJoin = "round"; g.beginPath();
-    for (let s = 19.4; s <= Math.min(t, 24.9); s += 0.008) { const x = x0 + (s - 19.4) / 5.5 * (x1 - x0), y = y0 - chirp(s) * 1900; s === 19.4 ? g.moveTo(x, y) : g.lineTo(x, y); }
+  label("light sensor", cx + 56, cy + 192, on);
+  label("each tunnel: 4 km long", cx + across / 2, cy + 56, span(since("machine"), 1.2, 2.2), "center");
+  if (rippling) {                                        // what the sensor measures, drawn as it happens
+    const x0 = 1000, x1 = 1800, y0 = 290, show = span(since("ripple"), 0.3, 1.2);
+    g.globalAlpha = alpha * show; g.strokeStyle = "rgba(243,239,230,0.16)"; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y0); g.stroke();
+    g.strokeStyle = rgba([255, 236, 190], 0.95); g.lineWidth = 3; g.lineJoin = "round"; g.beginPath(); g.moveTo(x0, y0);
+    for (let s = 0; s <= Math.min(x, 7); s += 0.008) g.lineTo(x0 + s / 7 * (x1 - x0), y0 - chirp(s) * 1900);
     g.stroke(); g.globalAlpha = alpha;
-    label("the signal, as the light detector sees it", x0, y0 - 150, trace);
-    words("the stretch is drawn fifty billion billion times too large", x1, y0 + 168, 21, 900, trace * alpha * 0.9, 400, "rgba(243,239,230,0.45)", 1.2, "right");
+    label("what the light sensor measures", x0, y0 - 150, show);
+    words("the stretch is drawn 50 billion billion times too big", x1, y0 + 168, 22, 900, show * alpha, 400, "rgba(243,239,230,0.5)", 1.2, "right");
   }
   g.restore();
 }
 
-// ---------------------------------------------------------------- scenes 3 and 4: the design and the search
-const frame = t => { const k = span(t, T.search - 0.3, T.search + 1.3); return { x: lerp(606, 96, k), y: lerp(60, 104, k), unit: lerp(177, 158, k) }; };
+// ---------------------------------------------------------------- steps "design" to "end": the bigger machine and the search
 const strengthOf = power => clamp((power + 3) / 9.5);                        // from one thousandth of a watt to three million watts
-function drawDesign(t, alpha) {
+function drawDesign(alpha) {
   if (!SCENE || alpha <= 0.01) return;
-  const f = frame(t), u = f.unit / 177, at_ = name => { const n = SCENE.nodes[name]; return [f.x + n.x * f.unit, f.y + n.y * f.unit]; };
-  const middle = (SCENE.size + 1) / 2, arrive = name => { const n = SCENE.nodes[name]; return span(t, T.design + 0.5 + Math.hypot(n.x - middle, n.y - middle) * 0.75, T.design + 1.3 + Math.hypot(n.x - middle, n.y - middle) * 0.75); };
-  const powers = t >= T.search && live.shown ? live.shown : SCENE.published_light;
+  const searching = step >= at_("search"), aside = searching ? span(since("search"), 0, 1.4) : 0, born = since("design");
+  const f = { x: lerp(606, 96, aside), y: lerp(60, 104, aside), unit: lerp(177, 158, aside) }, u = f.unit / 177;
+  const where = name => { const n = SCENE.nodes[name]; return [f.x + n.x * f.unit, f.y + n.y * f.unit]; };
+  const middle = (SCENE.size + 1) / 2, arrive = name => { const n = SCENE.nodes[name], far = Math.hypot(n.x - middle, n.y - middle) * 0.75; return span(born, 0.4 + far, 1.2 + far); };
+  const powers = searching && live.shown ? live.shown : SCENE.published_light;
   g.save(); g.globalCompositeOperation = "lighter";
-  SCENE.beams.forEach((b, i) => { const p = at_(b.a), q = at_(b.b); beam(p[0], p[1], q[0], q[1], strengthOf(powers[i]), u, alpha * Math.min(arrive(b.a), arrive(b.b)) * span(t, T.design + 1.6, T.design + 3.4)); });
+  SCENE.beams.forEach((b, i) => { const p = where(b.a), q = where(b.b); beam(p[0], p[1], q[0], q[1], strengthOf(powers[i]), u, alpha * Math.min(arrive(b.a), arrive(b.b)) * span(born, 1.5, 3.3)); });
   g.restore();
   for (const [name, n] of Object.entries(SCENE.nodes)) {
-    const [x, y] = at_(name), a = alpha * arrive(name); if (a <= 0.01) continue;
+    const [x, y] = where(name), a = alpha * arrive(name); if (a <= 0.01) continue;
     g.save(); g.globalAlpha = a; g.translate(x, y); g.lineCap = "round";
     if (n.kind === "mirror") { g.strokeStyle = "rgba(232,239,250,0.95)"; g.lineWidth = 5 * u; g.beginPath(); n.turn === "v" ? (g.moveTo(0, -17 * u), g.lineTo(0, 17 * u)) : (g.moveTo(-17 * u, 0), g.lineTo(17 * u, 0)); g.stroke(); }
     else if (n.kind === "splitter" || n.kind === "director") {
@@ -270,48 +268,42 @@ function drawDesign(t, alpha) {
     }
     g.restore();
   }
-  const counting = clamp((t - (T.design + 5.6)) / 3.6), shownKnobs = Math.floor(counting * SCENE.knobs.length);   // one small flash per knob
-  if (t < T.search - 0.2) for (let i = Math.max(0, shownKnobs - 22); i < shownKnobs; i++) {
-    const [kx, ky] = SCENE.knobs[i], age = (shownKnobs - i) / 22;
-    g.strokeStyle = rgba(OURS, (1 - age) * alpha); g.lineWidth = 2.5; g.beginPath(); g.arc(f.x + kx * f.unit, f.y + ky * f.unit, 6 + 16 * age, 0, 6.2832); g.stroke();
+  if (!searching) {                                       // one small flash per setting, and a counter
+    const counting = clamp((born - 3.4) / 3.6), counted = Math.floor(counting * SCENE.knobs.length);
+    if (counting < 1) for (let i = Math.max(0, counted - 22); i < counted; i++) {
+      const [kx, ky] = SCENE.knobs[i], age = (counted - i) / 22;
+      g.strokeStyle = rgba(OURS, (1 - age) * alpha); g.lineWidth = 2.5; g.beginPath(); g.arc(f.x + kx * f.unit, f.y + ky * f.unit, 6 + 16 * age, 0, 6.2832); g.stroke();
+    }
+    const a = alpha * span(born, 3.2, 3.9);
+    if (a > 0.01) { g.save(); g.globalAlpha = a; g.fillStyle = rgba(OURS, 1); g.font = `600 130px ${MONO}`; g.textAlign = "right"; g.fillText(String(counted), 1830, 260); g.restore(); words("settings to get right", 1830, 310, 32, 600, a, 500, SOFT, 1.2, "right"); }
   }
-  if (counting > 0 && t < T.search - 0.2) {
-    const a = alpha * span(t, T.design + 5.5, T.design + 6.1) * (1 - span(t, T.search - 0.9, T.search - 0.2));
-    g.save(); g.globalAlpha = a; g.fillStyle = rgba(OURS, 1); g.font = `600 118px ${MONO}`; g.textAlign = "right"; g.fillText(String(shownKnobs), 1830, 250);
-    g.restore(); words("knobs to set", 1830, 296, 30, 500, a, 500, SOFT, 1.2, "right");
-  }
-  const key = alpha * span(t, T.design + 3.2, T.design + 4.2), ky = f.y + (SCENE.size + 1) * f.unit + 58 * u, kx = f.x - 0.1 * f.unit;   // what the symbols mean
+  const key = alpha * span(born, 2.6, 3.6), ky = f.y + (SCENE.size + 1) * f.unit + 58 * u, kx = f.x - 0.1 * f.unit;   // what the symbols mean
   if (key > 0.01) {
     g.save(); g.globalAlpha = key; g.lineCap = "round";
-    const item = (x, draw, text) => { g.save(); g.translate(x, ky); draw(); g.restore(); words(text, x + 24, ky + 8, 23, 400, key, 500, SOFT); };
+    const item = (x, draw, text) => { g.save(); g.translate(x, ky); draw(); g.restore(); words(text, x + 24, ky + 8, 25, 400, key, 500, SOFT); };
     item(kx, () => { g.fillStyle = rgba(CORE, 1); g.strokeStyle = rgba(CORE, 0.95); g.lineWidth = 2; g.beginPath(); g.roundRect(-10, -10, 20, 20, 5); g.stroke(); g.beginPath(); g.arc(0, 0, 3.5, 0, 6.2832); g.fill(); }, "laser");
-    item(kx + 130, () => { g.strokeStyle = "rgba(232,239,250,0.95)"; g.lineWidth = 5; g.beginPath(); g.moveTo(0, -12); g.lineTo(0, 12); g.stroke(); }, "mirror");
-    item(kx + 262, () => { g.strokeStyle = "rgba(232,239,250,0.95)"; g.lineWidth = 3; g.beginPath(); g.moveTo(-9, 9); g.lineTo(9, -9); g.stroke(); }, "beam splitter");
-    item(kx + 470, () => { g.strokeStyle = rgba([150, 236, 220], 0.95); g.lineWidth = 2.4; g.beginPath(); g.ellipse(0, 0, 11, 6, 0.5, 0, 6.2832); g.stroke(); }, "squeezed light");
-    item(kx + 696, () => { g.fillStyle = "rgba(255,244,214,1)"; g.beginPath(); g.arc(0, 0, 8, 0, 6.2832); g.fill(); }, "detector");
+    item(kx + 150, () => { g.strokeStyle = "rgba(232,239,250,0.95)"; g.lineWidth = 5; g.beginPath(); g.moveTo(0, -12); g.lineTo(0, 12); g.stroke(); }, "mirror");
+    item(kx + 310, () => { g.fillStyle = "rgba(255,244,214,1)"; g.beginPath(); g.arc(0, 0, 8, 0, 6.2832); g.fill(); }, "light sensor");
     g.restore();
   }
 }
 const sources = []; { const r = random(99); for (let i = 0; i < 230; i++) sources.push({ angle: r() * 6.2832, far: Math.sqrt(0.012 + r() * 0.988), phase: r() * 6.28, reached: 0 }); }
-const REACH = 300, radius = loss => REACH * clamp(1 - loss / 5.9, 0.035, 1);                 // a logarithmic scale: each ring out is ten times farther
-function drawReach(t, alpha) {
+const REACH = 300, radius = loss => REACH * clamp(1 - loss / 5.9, 0.035, 1);    // a scale of tens: each ring out is ten times farther
+function drawReach(alpha) {
   if (!SCENE || alpha <= 0.01) return;
-  const cx = 1420, cy = 432, shown = live.best.length ? live.best[live.best.length - 1] : 5.9;
+  const cx = 1420, cy = 432, shown = live.best.length ? live.best[live.best.length - 1] : 5.9, comparing = step === at_("compare");
   live.radius = lerp(live.radius || 0, radius(shown), 0.12);
   g.save(); g.globalAlpha = alpha;
-  words("How far this detector can hear", cx, 62, 36, 900, alpha, 600, INK, 1.2, "center");
-  words("each ring out is ten times farther", cx, 98, 22, 900, alpha, 500, SOFT, 1.2, "center");
+  words("How far this machine can hear", cx, 62, 38, 900, alpha, 600, INK, 1.2, "center");
+  words("each ring out is 10 times farther", cx, 100, 24, 900, alpha, 500, SOFT, 1.2, "center");
   g.lineWidth = 1.4; g.setLineDash([3, 9]);
-  for (const [loss, text] of [[4, "1 / 10,000"], [3, "1 / 1,000"], [2, "1 / 100"], [1, "1 / 10"]]) {
-    g.strokeStyle = "rgba(243,239,230,0.2)"; g.beginPath(); g.arc(cx, cy, radius(loss), 0, 6.2832); g.stroke();
-    words(text, cx + radius(loss) * 0.8192 + 7, cy + radius(loss) * 0.5736 + 20, 19, 300, alpha, 500, "rgba(243,239,230,0.62)");
-  }
+  for (const loss of [4, 3, 2, 1]) { g.strokeStyle = "rgba(243,239,230,0.22)"; g.beginPath(); g.arc(cx, cy, radius(loss), 0, 6.2832); g.stroke(); }
   g.setLineDash([12, 9]); g.strokeStyle = "rgba(243,239,230,0.85)"; g.lineWidth = 2.2; g.beginPath(); g.arc(cx, cy, radius(0), 0, 6.2832); g.stroke(); g.setLineDash([]);
-  words("the best published design", cx + radius(0) * 0.8192 + 7, cy + radius(0) * 0.5736 + 20, 19, 300, alpha, 600, "rgba(243,239,230,0.92)");
+  words("the best design known", cx + radius(0) * 0.8192 + 7, cy + radius(0) * 0.5736 + 22, 22, 300, alpha, 600, "rgba(243,239,230,0.92)");
   g.globalCompositeOperation = "lighter";
   const disc = g.createRadialGradient(cx, cy, 0, cx, cy, live.radius); disc.addColorStop(0, rgba(OURS, 0.05)); disc.addColorStop(0.82, rgba(OURS, 0.16)); disc.addColorStop(1, rgba(OURS, 0.34));
   g.fillStyle = disc; g.beginPath(); g.arc(cx, cy, live.radius, 0, 6.2832); g.fill();
-  for (const source of sources) {                        // collisions out there: each lights up once the detector can hear that far
+  for (const source of sources) {                        // crashes out there: each lights up once the machine can hear that far
     const far = source.far * REACH, x = cx + far * Math.cos(source.angle), y = cy + far * Math.sin(source.angle), inside = far < live.radius;
     if (inside && !source.reached) source.reached = time;
     if (!inside) source.reached = 0;
@@ -321,34 +313,34 @@ function drawReach(t, alpha) {
   }
   g.globalCompositeOperation = "source-over";
   g.strokeStyle = rgba(OURS, 1); g.lineWidth = 3.5; g.shadowColor = rgba(OURS, 0.9); g.shadowBlur = 22; g.beginPath(); g.arc(cx, cy, live.radius, 0, 6.2832); g.stroke(); g.shadowBlur = 0;
-  const theirSteps = SCENE.original ? Math.floor(live.seconds / SCENE.original) : 0;
+  const theirTests = SCENE.original ? Math.floor(live.seconds / SCENE.original) : 0, loud = comparing ? 0.5 + 0.5 * Math.sin(time * 4) : 0;
   if (SCENE.original && live.best.length) {                // the original code: the same search, at its own measured pace
-    const theirs = radius(live.best[Math.min(theirSteps, live.best.length - 1)]);
+    const theirs = radius(live.best[Math.min(theirTests, live.best.length - 1)]);
     live.theirs = lerp(live.theirs || theirs, theirs, 0.08);
-    g.strokeStyle = rgba(THEIRS, 1); g.lineWidth = 3; g.setLineDash([9, 7]); g.beginPath(); g.arc(cx, cy, live.theirs, 0, 6.2832); g.stroke(); g.setLineDash([]);
-    g.font = `600 21px ${SANS}`; const wide = g.measureText("original code").width, lx = cx - live.theirs - 16, ly = cy + 7;
-    g.fillStyle = "rgba(5,9,14,0.78)"; g.beginPath(); g.roundRect(lx - wide - 12, ly - 24, wide + 24, 34, 8); g.fill();
-    words("original code", lx, ly, 21, 400, alpha, 600, rgba(THEIRS, 1), 1.2, "right");
+    g.strokeStyle = rgba(THEIRS, 1); g.lineWidth = 3 + 3 * loud; g.setLineDash([9, 7]); g.beginPath(); g.arc(cx, cy, live.theirs, 0, 6.2832); g.stroke(); g.setLineDash([]);
+    g.font = `600 23px ${SANS}`; const wide = g.measureText("original code").width, lx = cx - live.theirs - 16, ly = cy + 7;
+    g.fillStyle = "rgba(5,9,14,0.8)"; g.beginPath(); g.roundRect(lx - wide - 12, ly - 26, wide + 24, 37, 8); g.fill();
+    words("original code", lx, ly, 23, 400, alpha, 600, rgba(THEIRS, 1), 1.2, "right");
   }
-  words("our code", cx - live.radius * 0.9063 - 14, cy + live.radius * 0.4226 + 22, 21, 400, alpha * span(live.radius, 60, 110), 600, rgba(OURS, 1), 1.2, "right");
+  words("our code", cx - live.radius * 0.9063 - 14, cy + live.radius * 0.4226 + 24, 23, 400, alpha * span(live.radius, 60, 110), 600, rgba(OURS, 1), 1.2, "right");
   g.globalCompositeOperation = "lighter"; glow(cx, cy, 30, [110, 180, 255], 0.95); g.globalCompositeOperation = "source-over";
   g.fillStyle = "#bfe0ff"; g.beginPath(); g.arc(cx, cy, 4.5, 0, 6.2832); g.fill();
-  words("Earth", cx + 12, cy - 12, 19, 200, alpha, 500, "rgba(190,224,255,0.9)");
-  const figure = (x, value, label, color) => { g.fillStyle = color; g.font = `600 66px ${MONO}`; g.textAlign = "left"; g.fillText(value, x, 846); words(label, x, 880, 23, 330, alpha, 500, SOFT, 1.22); };
-  figure(1040, String(live.steps), "design steps by our code", rgba(OURS, 1));
-  figure(1340, String(rate()), "steps every second", INK);
-  if (SCENE.original) figure(1580, String(theirSteps), "steps by the original code", rgba(THEIRS, 1));
+  words("Earth", cx + 12, cy - 12, 21, 200, alpha, 500, "rgba(190,224,255,0.9)");
+  const figure = (x, value, label, color, grow) => { g.fillStyle = color; g.font = `600 ${66 + 14 * grow}px ${MONO}`; g.textAlign = "left"; g.fillText(value, x, 846); words(label, x, 882, 24, 330, alpha, 500, SOFT, 1.22); };
+  figure(1040, String(live.steps), "tests by our code", rgba(OURS, 1), loud * 0.4);
+  figure(1340, String(rate()), "tests every second", INK, 0);
+  if (SCENE.original) figure(1580, String(theirTests), "tests by the original code", rgba(THEIRS, 1), loud * 0.4);
   g.restore();
 }
-function drawEnding(t) {
-  const a = span(t, 55.2, 56.4); if (a <= 0.01) return;
-  g.fillStyle = `rgba(3,5,10,${0.84 * a})`; g.fillRect(0, 0, W, H);
-  words("One complete evaluation of a detector design", W / 2, 386, 40, 1500, a, 500, SOFT, 1.2, "center");
+function drawEnding() {
+  const a = step === at_("end") ? span(since("end"), 0, 1.1) : previous === at_("end") ? 1 - span(time - changed, 0, 0.6) : 0; if (a <= 0.01) return;
+  g.fillStyle = `rgba(3,5,10,${0.86 * a})`; g.fillRect(0, 0, W, H);
+  words("One full test of a machine design", W / 2, 386, 42, 1500, a, 500, SOFT, 1.2, "center");
   g.save(); g.globalAlpha = a; g.textAlign = "center"; g.font = `600 150px ${MONO}`;
   g.fillStyle = rgba(THEIRS, 1); g.fillText("35.62 s", W / 2 - 400, 590); g.fillStyle = INK; g.fillText("→", W / 2, 584); g.fillStyle = rgba(OURS, 1); g.fillText("0.72 s", W / 2 + 390, 590);
   g.restore();
-  words("Same physics. Same gradients. Fifty times faster.", W / 2, 702, 50, 1600, a * span(t, 56.6, 57.6), 600, INK, 1.2, "center");
-  words("official benchmark, one processor core, both on the same machine", W / 2, 768, 25, 1600, a * span(t, 57.2, 58.2), 500, SOFT, 1.2, "center");
+  words("Same answers. Fifty times faster.", W / 2, 706, 54, 1600, a * span(since("end"), 1.0, 2.0), 600, INK, 1.2, "center");
+  words("the official test, on one processor core, both on the same computer", W / 2, 772, 26, 1600, a * span(since("end"), 1.6, 2.6), 500, SOFT, 1.2, "center");
 }
 
 // ---------------------------------------------------------------- the live search
@@ -358,59 +350,51 @@ function startSearch() {
   sources.forEach(source => source.reached = 0);
   live.stream = new EventSource("/run?seed=2");
   live.stream.onmessage = message => {
-    const step = JSON.parse(message.data);
-    live.steps = step.step + 1; live.seconds = step.seconds; live.target = step.light;
-    live.best.push(Math.min(step.loss, live.best.length ? live.best[live.best.length - 1] : Infinity));
+    const test = JSON.parse(message.data);
+    live.steps = test.step + 1; live.seconds = test.seconds; live.target = test.light;
+    live.best.push(Math.min(test.loss, live.best.length ? live.best[live.best.length - 1] : Infinity));
   };
   live.stream.onerror = stopSearch;
 }
 function stopSearch() { if (live.stream) live.stream.close(); live.stream = null; }
 
-// ---------------------------------------------------------------- the film
-function draw(t) {
+// ---------------------------------------------------------------- putting it together
+function draw() {
   g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
   g.fillStyle = "#04060b"; g.fillRect(0, 0, W, H);
-  const travel = span(t, T.arrival - 0.6, T.arrival + 4.2);
-  drawSky(t * 6 + travel * 1500, 1);
-  const source = 1 - span(t, T.arrival - 0.9, T.arrival + 0.5);
-  if (source > 0.01) { drawFabric(t, source * span(t, 0.2, 2.2)); drawStars(t, source * span(t, 0.3, 1.8)); }
-  if (t > T.arrival - 0.5 && t < 18.8) {                 // the journey: wave fronts sweep past, Earth comes into view
-    const a = span(t, T.arrival - 0.2, T.arrival + 0.8) * (1 - span(t, 17.2, 18.4));
-    g.lineWidth = 2;
-    for (let k = 0; k < 16; k++) { const r = 900 + ((t - T.arrival) * 520 + k * 190) % 3040; g.strokeStyle = rgba(RIPPLE, 0.3 * a * (1 - Math.abs(r - 2400) / 1600)); g.beginPath(); g.arc(-1300, 620, r, -0.75, 0.6); g.stroke(); }
-    const near = span(t, T.arrival + 0.8, 16.6), dive = span(t, 16.5, 18.3);
-    drawEarth(lerp(1620, 1010, near) - dive * 260, lerp(470, 520, near) + dive * 420, lerp(46, 250, near * near) * (1 + dive * dive * 9), a * span(t, T.arrival + 0.6, T.arrival + 1.8));
-  }
-  drawDetector(t, span(t, 17.3, 18.5) * (1 - span(t, T.design - 0.7, T.design + 0.5)));
-  const design = span(t, T.design - 0.1, T.design + 0.9);
-  if (design > 0.01) { g.fillStyle = `rgba(4,6,11,${0.55 * design})`; g.fillRect(0, 0, W, H); drawDesign(t, design); }
-  if (t >= T.search - 0.2) drawReach(t, span(t, T.search + 0.6, T.search + 1.8));
-  drawEnding(t);
-  captions(t);
-  const title = 1 - span(t, 0.05, 0.9);                  // the opening card, held until the space bar
+  drawSky(time * 6);
+  const crash = shows("crash");
+  if (crash > 0.01) { const t = since("crash"); drawFabric(t, crash * span(t, 0, 1.6)); drawStars(t, crash * span(t, 0.2, 1.6)); }
+  drawMachine(shows("machine"));
+  const design = shows("design");
+  if (design > 0.01) { g.fillStyle = `rgba(4,6,11,${0.55 * design})`; g.fillRect(0, 0, W, H); drawDesign(design); }
+  if (step >= at_("search")) drawReach(design * span(since("search"), 0.6, 1.8));
+  drawEnding();
+  captions();
+  const title = shows("sky");                            // the opening card
   if (title > 0.01) {
     words("Hearing the universe, faster", W / 2, 470, 96, 1700, title, 600, INK, 1.2, "center");
     words("Feyer Faster Physics challenge  ·  START Hack Munich 2026", W / 2, 548, 31, 1700, title, 500, SOFT, 1.2, "center");
-    if (!playing) words("press the space bar", W / 2, 968, 25, 900, title * (0.5 + 0.3 * Math.sin(time * 2.4)), 500, SOFT, 1.2, "center");
+    if (!recorder) words("press the space bar to go on", W / 2, 968, 26, 900, title * (0.5 + 0.3 * Math.sin(time * 2.4)), 500, SOFT, 1.2, "center");
+  }
+  if (!recorder && step > 0) for (let i = 1; i < STEPS.length; i++) {      // where we are: one dot per step
+    g.fillStyle = i === step ? "rgba(243,239,230,0.9)" : i < step ? "rgba(243,239,230,0.4)" : "rgba(243,239,230,0.16)";
+    g.beginPath(); g.arc(W - 96 - (STEPS.length - 1 - i) * 22, 1040, i === step ? 5 : 3.5, 0, 6.2832); g.fill();
   }
   const edge = g.createRadialGradient(W / 2, H / 2, H * 0.55, W / 2, H / 2, H * 1.08); edge.addColorStop(0, "rgba(0,0,0,0)"); edge.addColorStop(1, "rgba(0,0,0,0.6)");
   g.fillStyle = edge; g.fillRect(0, 0, W, H);
 }
+let recorder = null, chunks = [];
 function tick(now) {
-  const passed = Math.min((now - lastFrame) / 1000, 0.1); lastFrame = now; time += passed;
-  if (playing) time_ = Math.min(time_ + passed, hold ? 54.4 : T.end);
-  if (time_ >= T.search) startSearch();
-  if (time_ >= T.end - 0.05 || time_ < T.search - 1) { stopSearch(); if (time_ < T.search - 1) live.started = false; }
+  time += Math.min((now - lastFrame) / 1000, 0.1); lastFrame = now;
   if (live.target) live.shown = live.shown ? live.shown.map((v, i) => lerp(v, live.target[i], 0.22)) : live.target.slice();
-  draw(time_);
-  if (recorder && time_ >= T.end) finishRecording();
+  if (recorder && time - changed > AUTO[step]) { if (step < STEPS.length - 1) go(step + 1); else finishRecording(); }
+  draw();
   requestAnimationFrame(tick);
 }
-let time_ = 0, recorder = null, chunks = [];
-function jump(to, keep) { time_ = to; hold = keep; playing = true; if (to < T.search) { stopSearch(); live.started = false; } }
-function record() {
+function record() {                                       // plays every step for a fixed time and saves the result as a video
   if (recorder) return;
-  jump(0, false); chunks = [];
+  go(0); changed = time; chunks = [];
   // H.264 where the browser offers it: it is encoded by the graphics chip and leaves the processor to the simulator
   const kind = ["video/mp4;codecs=avc1.640033", "video/webm;codecs=h264", "video/webm;codecs=vp9"].find(type => MediaRecorder.isTypeSupported(type));
   recorder = new MediaRecorder(stage.captureStream(30), { mimeType: kind, videoBitsPerSecond: 18000000 });
@@ -418,13 +402,15 @@ function record() {
   recorder.onstop = () => fetch("/recording", { method: "POST", headers: { "Content-Type": kind }, body: new Blob(chunks, { type: kind }) }).then(reply => reply.json()).then(reply => document.title = "Saved: " + reply.saved);
   recorder.start(1000); document.title = "Recording…";
 }
-function finishRecording() { const done = recorder; recorder = null; setTimeout(() => done.stop(), 900); }
+function finishRecording() { const done = recorder; recorder = null; stopSearch(); setTimeout(() => done.stop(), 400); }
 addEventListener("keydown", event => {
-  if (event.code === "Space") { event.preventDefault(); if (time_ >= T.end) jump(0, false); else { playing = !playing || hold; hold = false; } }
-  else if (event.key >= "1" && event.key <= "4") jump([T.source, T.arrival, T.design, T.search][event.key - 1], event.key === "4");
+  if (recorder) return;
+  if (event.code === "Space" || event.key === "ArrowRight" || event.key === "Enter" || event.key === "PageDown") { event.preventDefault(); go(step === STEPS.length - 1 ? 0 : step + 1); }
+  else if (event.key === "ArrowLeft" || event.key === "Backspace" || event.key === "PageUp") { event.preventDefault(); go(step - 1); }
+  else if (event.key >= "1" && event.key <= "8") go(+event.key - 1);
   else if (event.key === "r" || event.key === "R") record();
 });
-stage.addEventListener("click", () => { if (time_ >= T.end) jump(0, false); else { playing = !playing || hold; hold = false; } });
+stage.addEventListener("click", () => { if (!recorder) go(step === STEPS.length - 1 ? 0 : step + 1); });
 fetch("/scene.json").then(reply => reply.json()).then(scene => { SCENE = scene; });
 requestAnimationFrame(now => { lastFrame = now; tick(now); });
 </script></body></html>

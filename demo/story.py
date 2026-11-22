@@ -1,20 +1,27 @@
 #!/usr/bin/env python3
-"""The one-minute demo: a collision in space, the detector that hears it, and the design search, live.
+"""The demo: two stars crash, a machine on Earth feels the ripple, and our code finds good settings for a bigger machine, live.
 
     python demo/story.py           # then open http://127.0.0.1:8813 and press the space bar
     python demo/story.py 9000      # the same on another port
 
-Keys on the page: space = play / pause, 1 to 4 = jump to a scene, R = record the whole minute.
+The presenter drives it. Every press of the space bar (or a click, or the right arrow) goes one
+step further, and each step keeps moving until the next press. Left arrow = one step back,
+1 to 8 = jump to a step, R = play all eight steps at a fixed pace and record them.
+
+The eight steps: title; the crash and its ripples; the machine (a laser, two tunnels, mirrors);
+a ripple passing through it; a bigger machine with 193 settings; the live search for good
+settings; our code against the original code; the result.
 
 What is real and what is drawing:
-- Scenes 1 and 2 (the collision, the ripples, the stretching arms) are illustrations, exaggerated
-  so they can be seen.
-- Scenes 3 and 4 are driven by the simulator. Every beam in the grid is drawn at the light power
-  the simulation computes for it, and scene 4 runs the same search as demo/design.py live: each
-  step is one complete simulation of 101 frequencies plus the gradient for 193 design variables.
-- "How far it hears" uses a real relation (a detector twice as sensitive hears twice as far) on a
-  logarithmic scale, with the design published with the challenge as the outermost ring.
-- The original code's ring follows the same search at the original's measured time per step on
+- The crash, the ripples and the stretching tunnels are illustrations, exaggerated so they can be
+  seen.
+- The bigger machine is the grid from the challenge. Every beam in it is drawn at the light power
+  the simulation computes for it, and the search is the same one as in demo/design.py, run live:
+  each test is one complete simulation of 101 frequencies plus the gradient for 193 design
+  variables.
+- "How far this machine can hear" uses a real relation (a detector twice as sensitive hears twice
+  as far) on a scale of tens, with the design published with the challenge as the outermost ring.
+- The original code's ring follows the same search at the original's measured time per test on
   this machine (bench/results/<machine>/validation/v00-baseline@*.json), if that record exists.
 
 A recording (key R) is sent back to this program, saved in demo/recordings/ and converted to MP4
