@@ -526,6 +526,8 @@ def sparse_layout(matrix, update_indices, placing_indices=None, carrier_size=Non
         rows, columns : slots of the square part, row-major and unique, shape (NNZ,).
         transposed_order : order that makes the transposed slots row-major, shape (NNZ,).
         right_hand_side_rows : rows of the right-hand-side slots, shape (R,).
+        base : values of `matrix` in all slots, shape (NNZ + R,). With them `simulate`
+        on the host does not need the matrix itself.
         update_slots : slot of each entry of `update_indices`.
         placing_slots : slot of each entry of `placing_indices` (if given).
         conjugated : whether each slot lies in a conjugated block, shape (NNZ + R,) (if
@@ -548,6 +550,7 @@ def sparse_layout(matrix, update_indices, placing_indices=None, carrier_size=Non
         "columns": columns,
         "transposed_order": np.lexsort((rows, columns)),
         "right_hand_side_rows": right_hand_side_rows,
+        "base": base[slot_rows, slot_columns].astype(np.complex128),
         "update_slots": slots[index_pairs[0]],
     }
     if placing_indices is not None:

@@ -27,10 +27,8 @@ included (see `_forward`).
 mode differentiation with respect to `optimized_parameters`.
 """
 
-import glob
 import importlib
 import importlib.machinery
-import importlib.util
 import operator
 import os
 import sys
@@ -296,6 +294,11 @@ def _evaluate(parameters, function_input_indices, output_indices, function_indic
     return outputs, pull_back
 
 
+def _signal_size(a):
+    """SN, the size of the signal system, read from an array that has it as a dimension."""
+    return a["noise_selection_vectors"].shape[-1]
+
+
 def _expand(array, indices, values):
     """NumPy counterpart of `differometor.simulate.expand_parameters`."""
     expanded = np.tile(array, (values.shape[1], 1))
@@ -355,9 +358,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
     value_count = parameters.shape[0]
     layout = a["signal_sparse_indices"]
     rows, columns, right_hand_side_rows = layout["rows"], layout["columns"], layout["right_hand_side_rows"]
-    base = np.concatenate(
-        [a["signal_matrix"][rows, columns], a["signal_matrix"][right_hand_side_rows, -1]]
-    ).astype(np.complex128)
+    base = layout["base"]
     values = np.broadcast_to(base, (value_count, len(base))).copy()
     signal_outputs, s["pull_signal"] = _evaluate(
         parameters,
@@ -372,7 +373,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
     s["before_placing"] = values[:, placing_slots].copy()
     values[:, placing_slots] = -s["before_placing"] * carrier_at_places
     values = np.where(layout["conjugated"], np.conj(values), values)
-    right_hand_side = np.zeros((value_count, a["signal_matrix"].shape[0]), dtype=np.complex128)
+    right_hand_side = np.zeros((value_count, _signal_size(a)), dtype=np.complex128)
     right_hand_side[:, right_hand_side_rows] = values[:, len(rows) :]
 
     # Detector selections scaled by the carrier (upper sideband) and its conjugate (lower).
@@ -387,7 +388,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
 
     # Noise matrix entries.
     noise_layout = a["noise_sparse_indices"]
-    noise_base = a["noise_matrix"][noise_layout["rows"], noise_layout["columns"]].astype(np.complex128)
+    noise_base = noise_layout["base"]
     noise_values = np.broadcast_to(noise_base, (value_count, len(noise_base))).copy()
     noise_outputs, s["pull_noise"] = _evaluate(
         parameters,
@@ -436,13 +437,16 @@ def _load_superlu():
     if name in sys.modules:
         return sys.modules[name].gstrf
     try:
-        import scipy
+        # Where SciPy is installed, without importing it.
+        package = importlib.machinery.PathFinder.find_spec("scipy")
+        if os.name == "nt":
+            import scipy  # noqa: F401  on Windows this registers the folder of SciPy's bundled libraries
 
-        folder = os.path.join(os.path.dirname(scipy.__file__), "sparse", "linalg", "_dsolve")
-        for path in sorted(glob.glob(os.path.join(folder, "_superlu*"))):
-            if path.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)):
-                loader = importlib.machinery.ExtensionFileLoader(name, path)
-                module = importlib.util.module_from_spec(importlib.util.spec_from_loader(name, loader))
+        folder = os.path.join(os.path.dirname(package.origin), "sparse", "linalg", "_dsolve")
+        for entry in sorted(os.listdir(folder)):
+            if entry.startswith("_superlu") and entry.endswith(tuple(importlib.machinery.EXTENSION_SUFFIXES)):
+                loader = importlib.machinery.ExtensionFileLoader(name, os.path.join(folder, entry))
+                module = loader.create_module(importlib.machinery.ModuleSpec(name, loader, origin=loader.path))
                 loader.exec_module(module)
                 return module.gstrf
     except Exception:
@@ -572,6 +576,7 @@ class _Factors:
         self.known = _solver_layout(layout, size, entries.shape[0], entries)
         self.entries, self.total = entries, entries.shape[0] * size
         self.factors = _factorize(self.total, entries[:, self.known["gather"]].ravel(), self.known["indices"], self.known["pointers"])
+        self.entries_by_column = None
 
     def _once(self, right_hand_side, transpose):
         order = self.known["column_order"]
@@ -587,16 +592,22 @@ class _Factors:
     def _apply(self, vectors, transpose):
         """A x, A^T x or A^H x for every frequency: multiply entry by entry, then sum each row (or column)."""
         known = self.known
+        if transpose == "H":
+            return np.conj(self._apply(np.conj(vectors), "T"))
         if transpose == "N":
             entries, sources, starts = self.entries, known["columns"], known["row_starts"]
         else:
-            entries, sources, starts = self.entries[:, known["by_column"]], known["rows_by_column"], known["column_starts"]
-            if transpose == "H":
-                entries = np.conj(entries)
-        if vectors.ndim == 3:
-            entries = entries[:, :, None]
-        products = entries * vectors[:, sources]
-        return np.add.reduceat(products.reshape(-1, *vectors.shape[2:]), starts, axis=0).reshape(vectors.shape)
+            if self.entries_by_column is None:
+                self.entries_by_column = self.entries[:, known["by_column"]]
+            entries, sources, starts = self.entries_by_column, known["rows_by_column"], known["column_starts"]
+        # One right-hand side at a time, so that every array in the loop is flat and contiguous.
+        columns = vectors.reshape(*vectors.shape[:2], -1)
+        result = np.empty_like(columns)
+        for index in range(columns.shape[2]):
+            products = np.take(columns[:, :, index], sources, axis=1)
+            np.multiply(products, entries, out=products)
+            result[:, :, index] = np.add.reduceat(products.ravel(), starts).reshape(vectors.shape[:2])
+        return result.reshape(vectors.shape)
 
     def solve(self, right_hand_side, transpose="N"):
         """Solve for every frequency. `right_hand_side` has shape (SV, SN) or (SV, SN, D)."""
@@ -624,7 +635,7 @@ def _forward(optimized_parameters, a, static, adjoint):
     """
     a = _numpy(a)
     s = _assemble(np.asarray(optimized_parameters), a, static, differentiate=False)
-    factors = _Factors(a["signal_sparse_indices"], s["signal_values"], a["signal_matrix"].shape[0])
+    factors = _Factors(a["signal_sparse_indices"], s["signal_values"], _signal_size(a))
     weights = factors.solve(s["selections"], "H")
     noise_layout = a["noise_sparse_indices"]
     left, right = _weight_products(noise_layout, s["noise_values"], weights)
@@ -661,7 +672,7 @@ def _signal_adjoint(a, s, weights, cotangent):
             return np.einsum("fnd,fd->fn", np.conj(weights), coefficients)
     except np.linalg.LinAlgError:
         pass
-    factors = _Factors(a["signal_sparse_indices"], s["signal_values"], a["signal_matrix"].shape[0])
+    factors = _Factors(a["signal_sparse_indices"], s["signal_values"], _signal_size(a))
     return factors.solve(cotangent, "T")
 
 
@@ -822,7 +833,11 @@ def supported(linking_functions) -> bool:
 def simulate_host(optimized_parameters, **arrays):
     """Run `simulate` on the host. Same arguments and results as `simulate_jax`."""
     static = {name: arrays.pop(name).array for name in STATIC_NAMES}
-    arrays = {name: value for name, value in arrays.items() if name != "linking_function_indices"}
+    # The dense signal and noise matrices stay out: everything this path reads from them is in the
+    # sparse layouts (`base`). They are megabytes each, and whatever is handed to the callbacks is
+    # copied between JAX and the host on every call and kept for the reverse pass.
+    unused = ("linking_function_indices", "signal_matrix", "noise_matrix")
+    arrays = {name: value for name, value in arrays.items() if name not in unused}
     return _simulate(static_holder(static), optimized_parameters, arrays)
 
 
@@ -843,7 +858,7 @@ class static_holder:
 def _shapes(a):
     carrier_count = a["carrier_changing_values"].shape[1]
     value_count = carrier_count * a["signal_changing_values"].shape[1]
-    return carrier_count, value_count, a["carrier_matrix"].shape[0], a["signal_matrix"].shape[0], a["noise_selection_vectors"].shape[0]
+    return carrier_count, value_count, a["carrier_matrix"].shape[0], _signal_size(a), a["noise_selection_vectors"].shape[0]
 
 
 def _primal(holder, optimized_parameters, a, adjoint):

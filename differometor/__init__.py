@@ -1,5 +1,17 @@
 import os
-from importlib.metadata import version
+
+
+def _jaxlib_version():
+    """The installed jaxlib's version. Read from jaxlib itself, which JAX loads anyway; package metadata is slow to query."""
+    try:
+        import jaxlib.version
+
+        return jaxlib.version.__version__
+    except Exception:
+        from importlib.metadata import version
+
+        return version("jaxlib")
+
 
 # Compiling is most of a first evaluation on CPU, and the compiled program then runs in a
 # fraction of a second, so ask XLA to compile quickly rather than to produce fast code.
@@ -8,7 +20,7 @@ _FAST_COMPILE_FLAGS = {
     "xla_backend_optimization_level": "0",
     "xla_llvm_disable_expensive_passes": "true",
 }
-if version("jaxlib").startswith("0.9."):
+if _jaxlib_version().startswith("0.9."):
     # XLA aborts on flags it does not know, and these two come and go between releases.
     _FAST_COMPILE_FLAGS |= {
         "xla_cpu_use_fusion_emitters": "false",
@@ -21,5 +33,13 @@ os.environ["XLA_FLAGS"] = " ".join(
 
 from differometor.setups import Setup
 from differometor.simulate import run, run_build_step, run_simulation_step, simulate
-from differometor.plot import visualize_setup
 from differometor.components import power_detector, signal_detector
+
+
+def __getattr__(name):
+    # `visualize_setup` needs plotly, which a simulation does not; load it when it is first asked for.
+    if name == "visualize_setup":
+        from differometor.plot import visualize_setup
+
+        return visualize_setup
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")

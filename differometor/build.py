@@ -1751,9 +1751,12 @@ def prepare_arrays(
 
     # Normalize changing_values to shape (V, R) if provided.
     if changing_values is not None:
+        # In NumPy: on a JAX array the reshape and the copy would each be compiled as a small program.
+        changing_values = np.asarray(changing_values)
         if len(changing_values.shape) == 1:
             changing_values = changing_values.reshape(1, -1)
-        signal_changing_values = changing_values.copy()
+        changing_values = device_array(changing_values)
+        signal_changing_values = changing_values
 
     if len(carrier_changing_parameter_indices) != 0 and len(signal_changing_parameter_indices) != 0:
         raise ValueError("This combination of changing component-parameter pairs is not supported yet.")
