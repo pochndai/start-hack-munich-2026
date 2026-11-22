@@ -320,3 +320,59 @@ Same session as v09 (`results/apple-m5-16g-darwin/sessions/2026-11-21T23-38-07Z_
 **Dead ends and notes**
 
 The rest of the build step was profiled (Apple M5, about 10 ms once warm): 3.5 ms in `set_instructions`, 2 ms scanning the dense matrices for non-zero cells in `sparse_layout`. Not changed: a few milliseconds at most for edits to code that decides the sparsity pattern. Importing klujax takes 12 ms, of which 10 ms is `jaxtyping`, which klujax needs only for one type annotation; replacing that import with a stand-in was measured (12 ms to 2 ms) and not done, because it means interfering with another package's imports.
+
+## v11-scipy-stacked-solver
+
+- **Date:** 2026-11-22
+- **Commit:** `f3f14542ea40` (tag `v11-scipy-stacked-solver`)
+- **Builds on:** v10-host-swept-values
+- **Summary:** Solve with SciPy's sparse LU inside the host callbacks: all frequencies in one factorisation, one factorisation per evaluation
+
+**What changed**
+
+On the NumPy path the sparse signal systems are now solved with SciPy's sparse LU (SuperLU) instead of klujax. SciPy was already in the organizers' `requirements.txt`, so no package is added. Changes 16 to 18 in `CHANGES.md`. In `differometor/host.py`:
+
+- **All frequencies in one matrix.** The signal matrices of all frequencies are stacked into one block-diagonal matrix and factorised in a single call (`_Factors`). The column order is found once per sparsity pattern (`_solver_layout`: SuperLU's own ordering of the middle frequency's matrix) and reused for every frequency and every later evaluation.
+- **One factorisation per evaluation**, where v10 factorised four times per frequency (two solves in the forward pass, two in the gradient). The forward pass now also does the noise's adjoint solve, which is a vector known there times a real factor known only later. The signal's adjoint is a combination of the noise weights whenever the signal is read at the noise detector; `_signal_adjoint` checks that at run time and factorises again if it does not hold.
+- **One step of iterative refinement after every solve** (`REFINEMENT_STEPS`).
+- **Forward and gradient are one host callback each**, so no solver is left in the JAX program. The dense signal and noise matrices no longer travel into the callbacks: `sparse_layout` in `simulate.py` carries the entries the host needs (`base`). The arrays kept for the reverse pass shrink from 26.7 MB to 5.2 MB on the supplied setup.
+- **Imports.** SuperLU's compiled module is loaded from its file, without `import scipy.sparse.linalg` (`_load_superlu`); the jaxlib version is read from jaxlib itself; plotly is loaded when `visualize_setup` is first asked for (`differometor/__init__.py`); klujax is imported only when the JAX fallback runs.
+
+**Why it is faster**
+
+Three phases of a first run shrink (one pinned core of the Intel Xeon Platinum 8468, medians, session named under "Result"): tracing and compiling the forward and gradient functions takes 66 ms where v10 needs 158 ms, because the solver is no longer part of the program JAX compiles; the gradient run takes 58 ms against 109 ms, because it no longer factorises; imports take 313 ms against 335 ms. The forward run gets slower, 112 ms against 87 ms: it now carries the one factorisation, three solves and their refinement.
+
+**Why it is still correct**
+
+Every frequency and every design variable is still computed, in double precision; only the solver and the order of the solves changed. The numbers are not bit-for-bit those of v10 (a different solver). All on the Intel Xeon VM, commit `f3f1454`, logs in `results/intel-xeon-platinum-8468-197g-linux/no-klujax-scipy-logs/`:
+
+- `python bench/validate.py` (`results/intel-xeon-platinum-8468-197g-linux/validation/no-klujax-scipy@f3f14542ea40.json`): `PASS`. Against the original's arrays from the same VM: signal 1.3e-07, noise 4.0e-08, sensitivity 6.8e-08 in log, gradient 9.1e-08 of its largest entry, 0 of 193 gradient entries outside the tolerance. Distance from the public reference: 5.374e-06 in log (limit 1e-5), as for the original.
+- `tests/test_host.py`: `ALL CHECKS PASSED` (NumPy path against JAX path on 13 cases, `jit`, `vmap`, finite differences). `tests/handwritten_jacobians.py`: all 19 rules agree.
+- `tests/variations.py`, 19 scenarios against the original (`results/intel-xeon-platinum-8468-197g-linux/variations/2026-11-22T00-23-50Z.json`): 18 `PASS`, 1 `DEVIATION`, 0 `FAIL`. The deviation is `band-20-5000`, the one known since v07. v10 in the same hour: 17 `PASS`, 2 `DEVIATION`; its second one (a signal difference of 1.6e-06 on `uifo-20-5000`) does not occur here, where that scenario agrees with the original to 5e-11 in log sensitivity.
+- `benchmark_aligo.py`: `PASS` in all four runs.
+- On the Apple M5 (a teammate's session, from a separate checkout): `validate.py` `PASS`, `tests/test_host.py` all passed, `tests/variations.py` 18 `PASS` and the known `DEVIATION`.
+
+Nothing is tied to the supplied setup: the column order, the stacked layout and the check behind the one-factorisation shortcut are all derived from the setup the code is given, and a setup whose signal is read elsewhere takes the second factorisation.
+
+**Result**
+
+The sessions on the Xeon VM list this version under its branch name, `no-klujax-scipy`; it is the same commit, `f3f1454`. Session `results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T00-14-25Z_run.json` (Intel Xeon Platinum 8468, pinned to logical CPU 8 with the official `--cpus 1`, 32 GiB memory cap, swap off, 5 shuffled rounds, a fresh process per run):
+
+| Version | Median first run | Fastest | Slowest | Against the stored original (43.14 s) |
+| --- | ---: | ---: | ---: | ---: |
+| `v07-numpy-host` | 0.88 s | 0.85 s | 0.91 s | 49x |
+| `v10-host-swept-values` | 0.84 s | 0.82 s | 0.87 s | 51x |
+| `v11-scipy-stacked-solver` | 0.71 s | 0.68 s | 0.72 s | 61x |
+
+Against v10 within each round: 1.20x (1.17 to 1.21), faster in all five rounds. Against v07: 1.24x (1.22 to 1.29). The harness flagged a slower control workload in 2 to 3 of 5 rounds for every version, and the noise floor of this VM has not been measured; the per-round ratios are the evidence. An earlier session the same night, before the merge with v10 (`sessions/2026-11-22T00-08-43Z_run.json`), gave 0.67 s against 0.85 s for v07 (1.27x, 1.26 to 1.29).
+
+Two other setups on the same VM, by hand (`CHANGES.md`, "Changes 16 to 18 measured"): aLIGO 0.50 s against 0.62 s for v10, `random-layout-1` 0.69 s against 0.83 s. Apple M5, thread limits set to one, 10 shuffled rounds, machine busy (`results/apple-m5-16g-darwin/sessions/2026-11-22T00-31-37Z_run.json`): 0.35 s against 0.41 s for v10, 1.20x (0.93 to 1.54), faster in 9 of 10 rounds.
+
+**Dead ends and notes**
+
+- The factorisation calls SciPy's internal `gstrf` and loads its module from a file. Both exist in the pinned `scipy==1.18.1`. If either fails, the code falls back to the normal import and then to `splu`, which is slower but gives the same results.
+- klujax stays a requirement, for the JAX fallback (setups with linking functions). That path is not faster than in v10: 2.57 s against 2.47 s on `amplitude-modulation`, one run each.
+- Switching the refinement step off saves 13 ms of a first run (658 to 645 ms, VM, four alternating runs) and costs accuracy on the hardest scenario (`uifo-20-5000`: 5e-11 becomes 2e-08 in log sensitivity against the original). Kept on.
+- Tried and not adopted, with the measurements in `docs/no-klujax-scipy.md`: Krylov methods (no convergence in 2,000 iterations), a banded LAPACK solver (three times slower), scaling rows and columns without refinement, plain SuperLU without refinement (up to 5e-04 off on Voyager), loading SciPy's sparse-product module directly (49 ms to load).
+- Known and unchanged from v07: on one pinned CPU, starting the gradient before the previous JAX call has finished hangs inside the host callback. `benchmark.py` waits after every phase and is not affected.
+- The harness marks this version and v10 `unofficial-benchmark` because their `benchmark.py` is the organizers' newer file (with aLIGO), which differs from the one at the baseline commit. Nobody on the team edited it.

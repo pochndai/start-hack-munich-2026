@@ -1,6 +1,9 @@
-# Experiment: the simulator without klujax (branch `no-klujax-scipy`)
+# The simulator without klujax (version `v11-scipy-stacked-solver`)
 
-This note records an experiment that lives on the branch `no-klujax-scipy` and is not merged into `main`.
+This note records the work that replaced the klujax solver by SciPy's.
+It was developed on the branch `no-klujax-scipy` and became `main` on 22 November 2026, registered as version `v11-scipy-stacked-solver` (changes 16 to 18 in [CHANGES.md](../CHANGES.md)).
+The code before it, version `v10`, is kept on the branch `legacy-klujax`.
+The measurements below were made while it was still a branch, so "the branch" means `v11`, and "`main`" or "latest `main`" means `v10`.
 The readable summary with charts is [no-klujax-scipy-results.pdf](no-klujax-scipy-results.pdf); this file is the record behind it.
 
 Every result below was measured on the Nebius VM with the judges' CPU: Intel Xeon Platinum 8468, pinned to logical CPU 8 with the official `--cpus 1`, inside a 32 GiB memory cap with swap off, on 22 November 2026.
@@ -93,16 +96,16 @@ Quick comparisons while developing: the official benchmark, three or four altern
 - **A stall that `main` has too.** On one pinned CPU, starting the gradient before the previous JAX call has finished hangs inside the host callback. `benchmark.py` waits after every phase and is not affected. `v07` hangs in the same test.
 - **The harness flags `v10` and the branch as `unofficial-benchmark`** because their `benchmark.py` is the organizers' newer file (with aLIGO), which differs from the one at the baseline commit. Nobody on the team edited it.
 - **Not done:** a noise-floor session on the VM in its present state (one was started and stopped: `sessions/2026-11-22T00-10-37Z_aa.json` is incomplete), and timings of `v07` on the two extra setups.
-- **Not registered as a version.** If the branch is merged, it needs `add-version`, a numbered section in `CHANGES.md` and a harness session of its own.
+- **Registered after the measurements.** The version `v11-scipy-stacked-solver` is the commit that was measured (`f3f1454`); the stored sessions list it under the branch name `no-klujax-scipy`. The official report file and chart of a `v11` run on the VM (`python bench/run.py official --versions v11-scipy-stacked-solver`) have not been made yet.
 
 ## Reproduce
 
 ```bash
-git checkout no-klujax-scipy
+git checkout v11-scipy-stacked-solver
 python benchmark.py --cpus 1 --output benchmark-candidate.json
 python benchmark_aligo.py --cpus 1 --output benchmark-aligo.json
-python bench/run.py run --versions v07-numpy-host,v10-host-swept-values,no-klujax-scipy --rounds 5
-python bench/validate.py no-klujax-scipy --force
+python bench/run.py run --versions v07-numpy-host,v10-host-swept-values,v11-scipy-stacked-solver --rounds 5
+python bench/validate.py v11-scipy-stacked-solver --force
 python tests/test_host.py
 python tests/variations.py
 python docs/make_no_klujax_report.py      # rebuilds the PDF; needs matplotlib and reportlab

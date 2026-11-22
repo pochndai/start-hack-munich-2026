@@ -262,7 +262,10 @@ def build():
     story += [P("Differometor without klujax", TITLE),
               P("Results of the experiment branch <b>no-klujax-scipy</b> (commit f3f1454) on the judges' CPU. "
                 "Intel Xeon Platinum 8468, one pinned logical CPU, official <font face='DejaVuSansMono'>--cpus 1</font>, 32 GiB memory cap. "
-                "Measured on 22 November 2026.", SUBTITLE)]
+                "Measured on 22 November 2026.", SUBTITLE),
+              P("After this report the branch became <font face='DejaVuSansMono'>main</font>, as version <b>v11-scipy-stacked-solver</b> "
+                "(changes 16 to 18 in CHANGES.md). Wherever this report says \"main\" or \"latest main\", it means the code before that step, "
+                "version v10, which is kept on the branch <font face='DejaVuSansMono'>legacy-klujax</font>.", SMALL)]
 
     story += [P("In short", H1),
               P(f"The branch replaces the klujax solver by SciPy's sparse LU and moves the solves out of the JAX graph. "
@@ -398,7 +401,8 @@ def build():
 
     story += [P("Limits and open points", H1)]
     story += bullets([
-        "<b>The branch is not merged.</b> It is an experiment on a branch; main is unchanged.",
+        "<b>The branch is now main.</b> It was an experiment on a branch when these measurements were made. It has since become main as "
+        "v11-scipy-stacked-solver; the code before it is on the branch legacy-klujax.",
         "<b>A private SciPy entry point.</b> The factorisation calls SciPy's internal SuperLU function and loads its module from a file. Both exist in the pinned "
         "scipy 1.18.1; if either fails, the code falls back to the normal import and then to the public function, which is slower.",
         "<b>klujax is still a requirement</b> because of the JAX fallback. Removing it completely needs the fallback to change as well.",
@@ -410,14 +414,15 @@ def build():
     ])
 
     story += [P("Reproduce", H1)]
-    for line in ("git checkout no-klujax-scipy",
+    for line in ("git checkout v11-scipy-stacked-solver",
                  "# the scored number, and the second official setup",
                  "python benchmark.py --cpus 1 --output benchmark-candidate.json",
                  "python benchmark_aligo.py --cpus 1 --output benchmark-aligo.json",
                  "# three versions in shuffled rounds",
-                 "python bench/run.py run --versions v07-numpy-host,v10-host-swept-values,no-klujax-scipy --rounds 5",
+                 "python bench/run.py run --rounds 5 \\",
+                 "    --versions v07-numpy-host,v10-host-swept-values,v11-scipy-stacked-solver",
                  "# all outputs and gradients against the original, then the other setups",
-                 "python bench/validate.py no-klujax-scipy --force",
+                 "python bench/validate.py v11-scipy-stacked-solver --force",
                  "python tests/test_host.py",
                  "python tests/variations.py"):
         story.append(P(line.replace(" ", "&nbsp;"), CODE))

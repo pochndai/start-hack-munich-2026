@@ -4,7 +4,25 @@ Everything we changed in Differometor for the Feyer "Faster Physics" challenge, 
 
 ## Result so far
 
-Official benchmark, one CPU core (`--cpus 1`), original and current version on the same Linux machine (AMD EPYC 9334 on the AMD Radeon Cloud, 55 GB RAM, Python 3.12.15, 10 repeats). Both print `PASS`. This is the comparison to quote:
+**The current version (changes 1–18, `v11`) on the processor type the organizers use.** Intel Xeon Platinum 8468 (a teammate's Nebius machine, 197 GB RAM, Python 3.12.3), the official `benchmark.py --cpus 1`, pinned to one logical CPU, inside a 32 GiB memory cap with swap off. The original ran once there. Our versions ran five times each in shuffled order, a fresh process per run, and the table gives medians (`bench/results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T00-14-25Z_run.json`). This is the comparison to quote:
+
+| Step | Original (one run) | Changes 1–12 (`v07`) | Changes 1–15 (`v10`) | Changes 1–18 (`v11`) |
+| --- | ---: | ---: | ---: | ---: |
+| Imports | 0.33 s | 0.33 s | 0.34 s | 0.31 s |
+| Build the setup | 0.87 s | 0.11 s | 0.09 s | 0.09 s |
+| Trace and compile | 23.64 s | 0.22 s | 0.22 s | 0.13 s |
+| Forward simulation | 13.82 s | 0.09 s | 0.09 s | 0.11 s |
+| Gradient | 4.47 s | 0.13 s | 0.11 s | 0.06 s |
+| **Complete first run** | **43.14 s** | 0.88 s | 0.84 s | **0.71 s** |
+| Fastest and slowest of the five runs | | 0.85 and 0.91 s | 0.82 and 0.87 s | 0.68 and 0.72 s |
+
+That is about 61 times faster than the original for the scored first run (60 to 64 over the five runs). The rows are medians of each step, so a column need not add up exactly to its total. On that machine, for `v11`: `bench/validate.py` gives `PASS` (every output and all 193 gradient entries against the original's arrays from the same machine), the distance from the public reference is 5.374e-06 in log sensitivity (limit 1e-5), `tests/test_host.py` ends with `ALL CHECKS PASSED`, and of 19 other setups 18 get `PASS` and one the known `DEVIATION` ("Changes 16 to 18 measured" and "Correctness checks" below).
+
+What this table does not have: the original ran once, the noise of that machine has not been measured (within the session `v11` was faster than `v10` in every round, by 1.17 to 1.21 times), and the official report file and chart of a `v11` run on that machine have not been saved yet. The original's report and chart are in `bench/results/nebius-xeon-8468-200g-linux/original-reproduction/`.
+
+The tables in the rest of this section are for earlier states of the code, named in each heading. They are kept because they are complete pairs of official reports, and because they show how the total came down.
+
+**Changes 1–12 (`v07`), with the official reports of both sides.** Official benchmark, one CPU core (`--cpus 1`), original and changes 1–12 on the same Linux machine (AMD EPYC 9334 on the AMD Radeon Cloud, 55 GB RAM, Python 3.12.15, 10 repeats). Both print `PASS`:
 
 | Step | Original | Ours (changes 1–12) |
 | --- | ---: | ---: |
@@ -19,7 +37,7 @@ Official benchmark, one CPU core (`--cpus 1`), original and current version on t
 
 That is about 50 times faster for the scored first run. A second run of our version on the same machine gave 0.716 s against 0.715 s. On that machine `tests/test_host.py` ends with `ALL CHECKS PASSED` and `tests/handwritten_jacobians.py` with all 19 rules agreeing with JAX. The reports and charts are `benchmarks/amd-epyc-9334-original.*` and `benchmarks/amd-epyc-9334-candidate.*`; the file fingerprints inside them match the upstream code and the code on `main`. The saved output arrays of the two runs were compared on the machine but not brought back; the array comparisons recorded below are from the Apple M5 and the Codespace.
 
-The same pair on the processor type the organizers use (Intel Xeon Platinum 8468, a teammate's Nebius machine, 197 GB RAM, one logical CPU with the official `--cpus 1`): the original took **43.14 s** in its one run there, changes 1–12 (`v07`) took **0.90 s** (median of 5 fresh runs, fastest 0.89 s), about 48 times faster, with `PASS` from `bench/validate.py`. Data: `bench/results/intel-xeon-platinum-8468-197g-linux/SUMMARY.md`. Changes 14 and 15 below came after that session and have not been timed on that machine; on another Linux machine they take a further 4% off the first run ("Changes 14 and 15 measured").
+The same pair on the processor type the organizers use (Intel Xeon Platinum 8468, a teammate's Nebius machine, 197 GB RAM, one logical CPU with the official `--cpus 1`): the original took **43.14 s** in its one run there, changes 1–12 (`v07`) took **0.90 s** (median of 5 fresh runs, fastest 0.89 s), about 48 times faster, with `PASS` from `bench/validate.py`. Data: `bench/results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-21T22-53-03Z_run.json`. That was the first session on that machine, on 21 November; the table at the top of this section is from a later one, in which `v07` took 0.88 s.
 
 How the total came down on that machine (the AMD EPYC 9334): an earlier run of changes 1–11 there took 2.13 s (printed timings only, no report saved), so change 12 accounts for the step from 2.13 s to 0.72 s.
 
@@ -77,7 +95,7 @@ All seven registered versions side by side, through the team's harness (`bench/R
 | `v04-fast-compile-flags` | 4 | 1.69 s | 1.65 s | 1.58x |
 | `v05-two-solves-whole-arrays` | 5–7 | 1.79 s | 1.49 s | 0.94x, inside the noise |
 | `v06-real-parameters` | 8–11 | 1.27 s | 0.92 s | 1.34x |
-| `v07-numpy-host` (current) | 12 | 0.50 s | 0.35 s | 2.03x |
+| `v07-numpy-host` (the latest at the time) | 12 | 0.50 s | 0.35 s | 2.03x |
 
 Read this table for the order of the versions, not for exact factors. The noise floor of the Mac in that hour was ±16% (the same version against itself, `bench/results/apple-m5-16g-darwin/sessions/2026-11-21T20-38-57Z_aa.json`), the original's single run was short of memory, and `v01` to `v03` used more than one core in spite of the thread limits (flagged by the harness). Changes 5–7 were each measured on their own on one pinned Linux core, where they add up to about 10% (table further down). The official "after" report from this machine is `bench/results/apple-m5-16g-darwin/official/v07-numpy-host.json` (0.66 s first run, 0.051 s repeat, `PASS`; one sample on the same noisy machine). The one-core AMD comparison at the top stays the one to quote.
 
@@ -94,9 +112,9 @@ A second AMD cloud instance (AMD EPYC 9334, 128 logical CPUs, 504 GB, Linux, a s
 | `v04-fast-compile-flags` | 4 | 4.66 s | 4.03 s | 2.88x |
 | `v05-two-solves-whole-arrays` | 5–7 | 4.32 s | 3.74 s | 1.09x, inside the noise |
 | `v06-real-parameters` | 8–11 | 2.23 s | 2.15 s | 1.92x |
-| `v07-numpy-host` (current) | 12 | 1.46 s | 0.74 s | see below |
+| `v07-numpy-host` (the latest at the time) | 12 | 1.46 s | 0.74 s | see below |
 
-**The current version's time was not stable on this machine.** Its five runs took 0.74, 0.78, 2.31, 1.46 and 2.75 s, and ten more in the noise check took between 0.73 and 2.77 s. The earlier AMD instance gave 0.715 and 0.716 s for the same code. What the stored phase times show:
+**The time of `v07`, the latest version at the time, was not stable on this machine.** Its five runs took 0.74, 0.78, 2.31, 1.46 and 2.75 s, and ten more in the noise check took between 0.73 and 2.77 s. The earlier AMD instance gave 0.715 and 0.716 s for the same code. What the stored phase times show:
 
 - In a slow run, three steps carry extra time and nothing else does: the build step (0.09 s becomes 0.87 to 0.92 s), the forward simulation (0.08 s becomes 0.52 to 0.59 s) and the gradient (0.10 s becomes 0.38 to 0.83 s). Imports, tracing and compiling are identical to the millisecond.
 - The extra time is processor time of our own process, not waiting (CPU seconds equal wall seconds).
@@ -174,7 +192,7 @@ Not measured: a one-core Linux pair for this benchmark. The organizers' own run 
 
 ## The changes
 
-Most of the code changes are in `differometor/simulate.py`. In `components.py` the physics formulas are the same; only the mirror function was rewritten in an equivalent, shorter form (change 10).
+The code changes of 1–11 are mostly in `differometor/simulate.py`; from change 12 on they are mostly in `differometor/host.py`. In `components.py` the physics formulas are the same; only the mirror function was rewritten in an equivalent, shorter form (change 10).
 
 ### 1. Solve the signal system with a sparse solver
 
@@ -347,15 +365,110 @@ Apple M5 MacBook Air, 16 GB, thread limits set to one, 10 shuffled rounds, a fre
 
 The two phases moved as on Linux. The complete first run did not move by more than the noise of the Mac (the harness marks both steps as not distinguishable from noise); the Linux table above is the evidence for the total. Together the two changes remove about 12 ms of work on this Mac, where a first run is about 330 ms on a quiet machine and half of that is `import jax`.
 
+### 16. Solve with SciPy's sparse LU: all frequencies in one matrix, one factorisation per evaluation
+
+- **What:** on the NumPy path (change 12) the sparse signal systems are solved by SciPy's sparse LU solver (SuperLU), called from NumPy code, where klujax was called from the JAX program before. Three things change with it (`_Factors`, `_forward` and `_signal_adjoint` in `differometor/host.py`):
+  - **All frequencies in one matrix.** Every frequency has its own signal matrix with the same pattern of non-zero entries. They are stacked into one block-diagonal matrix, which is factorised in a single call and solved in a single call per right-hand side. The order in which the solver eliminates the columns is found once per pattern and reused for every frequency and every later evaluation.
+  - **One factorisation per evaluation.** An LU factorisation splits a matrix into two triangular factors; once they exist, a solve with the matrix, its transpose or its conjugate transpose is cheap. Before, each of the four solves per frequency (signal and noise in the forward pass, their two adjoints in the gradient) factorised again: 404 factorisations per evaluation at 101 frequencies. Now there is one. The gradient needs none of its own:
+    - the noise's adjoint solve is a vector known in the forward pass times a real factor that is only known in the reverse pass, so the solve is done in the forward pass and scaled later;
+    - the signal's adjoint is a combination of the noise weights whenever the signal is read out at the noise detector. The code checks this at run time, for the setup it is given, and factorises a second time if it does not hold.
+  - **One step of iterative refinement after every solve:** compute the residual, solve for the correction, add it.
+- **Why:** three costs went away at once. The solver was the last large piece of the program that JAX had to trace and compile. The factorisation was repeated four times per frequency. And klujax had to be imported on every run. SciPy is already in the organizers' `requirements.txt`, so no package is added.
+- **Why the earlier attempt failed and this one does not:** SciPy's solver was tried once before (branch `scipy-host`) and dropped: it was slower than KLU and up to 6e-05 off in the noise on setups with a homodyne detector. Both had causes that could be removed. It was slower because of SciPy's wrapper and SuperLU's default settings, which are tuned for much larger matrices; calling the factorisation directly, with the column order fixed beforehand and its block sizes set to one, cut the time for 101 matrices from 86.7 to 38.5 ms (development laptop under Windows, a guide for the decision and not a recorded result). It was less accurate because these matrices have entries from 5e-20 to 1e+13; the refinement step repairs that.
+- **This change alters the numbers**, because the solver is a different one. Against the original's arrays on the same machine (Intel Xeon, `bench/validate.py`), before and after:
+
+  | Largest difference from the original | Changes 1–15 (`v10`) | Changes 1–18 (`v11`) |
+  | --- | ---: | ---: |
+  | Signal, relative to its largest value | 1.36e-07 | 1.33e-07 |
+  | Noise, relative to its largest value | 4.00e-08 | 4.04e-08 |
+  | Sensitivity, in log (judges' limit 1e-5) | 7.1e-08 | 6.8e-08 |
+  | Gradient, relative to its largest entry | 9.15e-08 | 9.11e-08 |
+  | Gradient entries outside the harness tolerance | 0 of 193 | 0 of 193 |
+
+  So the new solver is as close to the original as the old one. On the hardest of the other setups (`uifo-20-5000`) it is closer: 5e-11 in log sensitivity, where `v10` shows a signal difference of 1.6e-06 and a `DEVIATION` verdict.
+- **Effect** (one pinned core of the Intel Xeon, medians of five, table below): tracing and compiling the forward and gradient functions went from 158 to 66 ms, the gradient run from 109 to 58 ms. The forward run went from 87 to 112 ms, because it now carries the factorisation, three solves and their refinement.
+- **General:** the stacked layout, the column order and the check behind the single factorisation are derived from the setup the code is given. No size and no pattern is written into the code. The fallback (`simulate_jax`, used for setups with linking functions) still uses klujax and is unchanged.
+
+### 17. Keep the dense matrices out of the calls into NumPy
+
+- **What:** with the solver gone from the JAX program (change 16), the forward stage and the gradient stage are each a single call from JAX into NumPy. The two dense system matrices that the build step prepares no longer travel through those calls: the sparse layouts carry the entries the NumPy code needs (`base` in `sparse_layout`, `differometor/simulate.py`).
+- **Why:** what is handed to such a call, and what the forward stage keeps for the gradient, is carried along by the JAX program. Most of that volume was two dense matrices of which only the non-zero entries are read.
+- **Effect:** the arrays kept for the reverse pass shrink from 26.7 MB to 5.2 MB on the supplied setup. The same values are read, from a different place, so no result should change; that was not checked separately from change 16. It was timed together with parts of change 18 (table below).
+
+### 18. Load less when the package is imported
+
+- **What:**
+  - SuperLU's compiled module is loaded directly from its file. `import scipy.sparse.linalg` would load the whole of SciPy's sparse and linear-algebra packages for one function.
+  - klujax is imported only when the fallback runs.
+  - The jaxlib version, which the package checks at import, is read from jaxlib itself, not from the installed-packages database.
+  - plotly, needed only for `visualize_setup`, is loaded when that function is first asked for.
+- **Why:** on a first run of 0.7 s, importing is the largest single step, and `benchmark.py` counts it.
+- **Effect:** the import step went from 335 to 313 ms (one pinned core of the Intel Xeon, medians of five, `v10` against `v11`). No calculation is touched.
+- **What it does not do:** it does not move work out of the timed region. Importing JAX before `benchmark.py` starts its timer (through a start-up hook) would look faster and was rejected for that reason.
+
+### Changes 16 to 18 measured
+
+All on the Nebius machine with the organizers' processor type: Intel Xeon Platinum 8468, pinned to logical CPU 8 with the official `--cpus 1`, 32 GiB memory cap, swap off, 22 November 2026. Raw data: `bench/results/intel-xeon-platinum-8468-197g-linux/`. The sessions there list `v11` under its branch name, `no-klujax-scipy`; it is the same commit (`f3f1454`).
+
+The supplied setup, through the harness, five shuffled rounds, a fresh process per run (`sessions/2026-11-22T00-14-25Z_run.json`), medians in milliseconds:
+
+| Step | `v07` (changes 1–12) | `v10` (1–15) | `v11` (1–18) | `v11` minus `v10` |
+| --- | ---: | ---: | ---: | ---: |
+| Imports | 329 | 335 | 313 | −22 |
+| Build the setup | 108 | 87 | 92 | +5 |
+| Forward: trace and compile | 61 | 61 | 19 | −42 |
+| Forward: run | 88 | 87 | 112 | +25 |
+| Readout: trace and compile (the benchmark's own function) | 59 | 60 | 63 | +3 |
+| Gradient: trace and compile | 99 | 97 | 47 | −50 |
+| Gradient: run | 129 | 109 | 58 | −51 |
+| **Complete first run** | **877** | **840** | **705** | **−135** |
+
+`v11` against `v10`, as the ratio within each round: 1.20 times faster (1.17 to 1.21), in all five rounds. Against `v07`: 1.24 times (1.22 to 1.29). `v10` against `v07`: 1.04 times (1.02 to 1.06), which is the first timing of changes 14 and 15 on this machine and agrees with the Codespace figure above. The harness noted a slower control workload in 2 to 3 of the 5 rounds for every version, and the noise floor of this machine has not been measured, so the per-round ratios are the evidence, not the seconds. An earlier session the same night, before changes 14 and 15 were merged in (`sessions/2026-11-22T00-08-43Z_run.json`): 0.67 s against 0.85 s for `v07`, 1.27 times (1.26 to 1.29).
+
+Two other setups, because the final evaluation uses a different one. Complete first run, by hand, versions run alternately, medians:
+
+| Setup | Original (one run) | `v10` | `v11` | Runs | Raw data |
+| --- | ---: | ---: | ---: | --- | --- |
+| aLIGO, the organizers' second benchmark (`benchmark_aligo.py`, 29 design variables) | 26.25 s | 0.62 s | 0.50 s | 4 each | `aligo/` |
+| `random-layout-1`: another 3×3 arrangement with a balanced homodyne readout (`tests/variations.py`) | 41.55 s | 0.83 s | 0.69 s | 4 and 6 | `variations/`, `variations-v10/` |
+
+Both benchmarks print `PASS` in every one of these runs. Over all 18 scenarios of `tests/variations.py` that take the NumPy path, `v11` needs 593 to 880 ms where `v10` needs 675 to 1045 ms (one run each, `variations/2026-11-22T00-23-50Z.json` and `variations-v10/2026-11-22T00-24-58Z.json`). The scenario that takes the JAX fallback (`amplitude-modulation`) is not faster: 2.57 s against 2.47 s, one run each.
+
+How the total moved while the three changes were built. Quick comparisons by hand, three or four alternating runs per version, medians. The machine's speed drifted during the night, so only the two numbers of one row can be compared:
+
+| State of the code | `v07` in the same minutes | New code |
+| --- | ---: | ---: |
+| Change 16, with SuperLU's module loaded directly (`b0b902a`) | 835 ms | 725 ms |
+| + change 17, + the jaxlib version and plotly parts of change 18 | 812 ms | 658 ms |
+| + the build step fixed and the matrix product of the refinement rewritten (`05da4b9`) | 834 ms | 667 ms |
+| + changes 14 and 15 merged in (`f3f1454`, which is `v11`); `v10` itself: 879 ms | 913 ms | 720 ms |
+
+The same pair on the Mac, by a teammate (Apple M5 MacBook Air, 16 GB, thread limits set to one, 10 shuffled rounds, the machine busy with a demo page, `bench/results/apple-m5-16g-darwin/sessions/2026-11-22T00-31-37Z_run.json`): `v11` 0.35 s against 0.41 s for `v10` (medians), 1.20 times (0.93 to 1.54), faster in 9 of 10 rounds. `bench/validate.py`, `tests/test_host.py` and `tests/variations.py` pass there too (18 `PASS` and the known `DEVIATION`).
+
+The longer record of this work, with every experiment, is [`docs/no-klujax-scipy.md`](docs/no-klujax-scipy.md); a summary with charts is [`docs/no-klujax-scipy-results.pdf`](docs/no-klujax-scipy-results.pdf).
+
 ### Tried and not adopted
 
+From the work on changes 16 to 18 (measurements and machines in [`docs/no-klujax-scipy.md`](docs/no-klujax-scipy.md); "development laptop" means short runs under Windows that guided a decision and are not recorded results):
+
+- **Switching the refinement step of change 16 off:** the forward run goes from 109 to 84 ms and the complete first run from 658 to 645 ms (Intel Xeon, one pinned core, four alternating runs). Agreement with the original on `uifo-20-5000` falls from 5e-11 to 2e-08 in log sensitivity. Kept on: 13 ms are not worth the margin on a setup we have not seen.
+- **SuperLU without refinement:** up to 5e-04 off in log sensitivity on Voyager with the default column order (development laptop, against a rounding-free solution). Not adopted.
+- **Scaling rows and columns before factorising:** no help without refinement, sometimes worse (development laptop). Not adopted.
+- **Iterative (Krylov) solvers, GMRES and BiCGSTAB,** also with the LU factors of the neighbouring frequency as a preconditioner: no convergence in 2,000 iterations (development laptop). Not adopted.
+- **A banded LAPACK solver after reordering the matrix into a band:** three times slower than SuperLU and 9e-06 away from the klujax result (development laptop). Not adopted.
+- **Loading SciPy's compiled sparse-product module directly,** the way change 18 loads SuperLU: the module took 49 ms to load on the laptop, more than the products it would speed up. Not adopted; the products are done in NumPy.
+- **Importing JAX before `benchmark.py` starts its timer** (through a start-up hook): not tried. It would move work out of the timed region instead of removing it.
+- **A different sparse solver package:** not tried. The aim was to use only packages the organizers' `requirements.txt` already lists.
+
+Older entries:
+
 - **Precomputing the index bookkeeping of the NumPy evaluation** (which cells belong to which formula, where each result goes): profiled at 1 to 2 ms per evaluation on the Apple M5, under half a percent of a first run. Not done.
-- **A stand-in for `jaxtyping` while klujax is imported:** klujax imports `jaxtyping` for one type annotation, and that import is 10 of the 12 ms klujax takes to load (Apple M5), about 3% of a first run. It would mean interfering with another package's imports. Measured, not done.
+- **A stand-in for `jaxtyping` while klujax is imported:** klujax imports `jaxtyping` for one type annotation, and that import is 10 of the 12 ms klujax takes to load (Apple M5), about 3% of a first run. It would mean interfering with another package's imports. Measured, not done. No longer relevant since change 18: klujax is only imported when the fallback runs.
 
 - **`cos(x) + 1j*sin(x)` instead of `exp(1j*x)`:** no measurable difference in compile time (about 3 ms per use either way).
-- **Reusing one factorisation for the solves:** change 12 already cut the sparse factorisations from six per frequency to four (two forward, two in the gradient). Going further was measured on the main example (Apple M5): the two forward solves take 12.2 ms when each factors from scratch and 7.4 ms when they share one factorisation. Over both stages that is about 10 ms per evaluation, roughly 3% of the complete first run. It needs the solver's factorisations to be kept in memory that Python does not manage and released by hand, where a mistake means a crash or a leak, not a wrong number. Not adopted.
-- **One extra refinement step in every sparse solve** (solve, compute the residual in double precision, solve again for the correction): it brings entry 17 of the 20 to 5000 Hz scenario from 0.1% to 0.002% of the refined value, and the supplied setup's gradient from 1e-08 to 1e-09. It costs a second solve per system: a compiled evaluation of loss and gradient goes from 52 to 79 ms on the supplied setup (Apple M5), about 8% of a complete first run. The judges' limit is 1e-5 in log sensitivity, where ours is at 3e-08 without it, and the supplied setup's gradient is already within 2e-07. Not adopted; it is the change to make if a gradient accurate to 0.01% outside the design band is ever required.
-- **SciPy's sparse solver (SuperLU) in place of KLU** (branch `scipy-host`): it would make klujax unnecessary except for the fallback, and it factors each matrix once per stage. The official benchmark passes, a little slower (Apple M5: 0.42 s against 0.33 s). But `tests/test_host.py` fails on the two setups with a homodyne detector: the noise differs from the KLU result by 2e-05 (second UIFO) and 6e-05 (Voyager), and the Voyager example's sensitivity ends up 7e-03 away from the original code in log, where KLU is 6e-11 away. The matrices there have entries from 5e-20 to 1e+13; SuperLU matches the dense reference solver in the large entries of the solution (1e-09) but is less accurate in the small ones that the noise depends on. Not adopted.
+- **Reusing one factorisation for the solves:** change 12 already cut the sparse factorisations from six per frequency to four (two forward, two in the gradient). Going further was measured on the main example (Apple M5): the two forward solves take 12.2 ms when each factors from scratch and 7.4 ms when they share one factorisation. Over both stages that is about 10 ms per evaluation, roughly 3% of the complete first run. It needs the solver's factorisations to be kept in memory that Python does not manage and released by hand, where a mistake means a crash or a leak, not a wrong number. Not adopted in this form. **Superseded by change 16**, which reuses one factorisation through SciPy, where Python manages that memory.
+- **One extra refinement step in every sparse solve** (solve, compute the residual in double precision, solve again for the correction): it brings entry 17 of the 20 to 5000 Hz scenario from 0.1% to 0.002% of the refined value, and the supplied setup's gradient from 1e-08 to 1e-09. It costs a second solve per system: a compiled evaluation of loss and gradient goes from 52 to 79 ms on the supplied setup (Apple M5), about 8% of a complete first run. The judges' limit is 1e-5 in log sensitivity, where ours is at 3e-08 without it, and the supplied setup's gradient is already within 2e-07. Not adopted with KLU; it was the change to make if a gradient accurate to 0.01% outside the design band was ever required. **Change 16 does refine once**, with SciPy's solver: there the second solve reuses the factors, and the step is what makes that solver accurate enough.
+- **SciPy's sparse solver (SuperLU) in place of KLU** (branch `scipy-host`): it would make klujax unnecessary except for the fallback, and it factors each matrix once per stage. The official benchmark passes, a little slower (Apple M5: 0.42 s against 0.33 s). But `tests/test_host.py` fails on the two setups with a homodyne detector: the noise differs from the KLU result by 2e-05 (second UIFO) and 6e-05 (Voyager), and the Voyager example's sensitivity ends up 7e-03 away from the original code in log, where KLU is 6e-11 away. The matrices there have entries from 5e-20 to 1e+13; SuperLU matches the dense reference solver in the large entries of the solution (1e-09) but is less accurate in the small ones that the noise depends on. Not adopted at the time. **Superseded by change 16**, which removes both causes (the solver's settings for the speed, a refinement step for the accuracy).
 
 ### Withdrawn: do not ask Linux for large memory pages (was change 13, version `v08`)
 
@@ -410,6 +523,19 @@ Change 4 was measured on Linux only (table above).
 
 ## Correctness checks
 
+- **The current version (`v11`, changes 1–18), on the Intel Xeon machine, 22 November 2026.** Change 16 replaced the solver, so every check was repeated for it. Logs: `bench/results/intel-xeon-platinum-8468-197g-linux/no-klujax-scipy-logs/`.
+
+  | Check | Result |
+  | --- | --- |
+  | Official `benchmark.py` and `benchmark_aligo.py` | `PASS` in every run; distance from the public reference 5.374e-06 in log sensitivity (limit 1e-5), as for the original |
+  | `bench/validate.py`: every output and all 193 gradient entries against the original's arrays from the same machine | `PASS`: signal 1.3e-07, noise 4.0e-08, sensitivity 6.8e-08 in log, gradient 9.1e-08 of its largest entry, 0 entries outside the tolerance (`validation/no-klujax-scipy@f3f14542ea40.json`) |
+  | `tests/test_host.py`: NumPy path against JAX path on 13 cases, `jit`, `vmap`, finite differences | `ALL CHECKS PASSED` |
+  | `tests/handwritten_jacobians.py` | all 19 rules agree with JAX |
+  | `tests/variations.py`: 19 other setups against the original | 18 `PASS`, 1 `DEVIATION`, 0 `FAIL` (`variations/2026-11-22T00-23-50Z.json`) |
+
+  The one `DEVIATION` is `band-20-5000`, the scenario discussed further down, where the original's own gradient is the less accurate one. `v10` in the same hour got 17 `PASS` and 2 `DEVIATION`; its second one, a signal difference of 1.6e-06 on `uifo-20-5000`, does not occur with `v11`. A teammate repeated `validate.py`, `tests/test_host.py` and `tests/variations.py` on the Apple M5 with the same verdicts.
+
+  The remaining entries of this section were made with earlier versions and are kept as they were written.
 - **Official checks:** `benchmark.py` prints `PASS` on macOS and on Linux with one CPU: positive sensitivities within 1e-5 of the public reference, all outputs finite, non-zero gradient, finite-difference gradient spot check.
 - **Distance from the public reference:** 5.374e-06 in log sensitivity, the same as the original code (limit 1e-5).
 - **Original against ours, same Linux machine, all outputs:**
@@ -474,7 +600,9 @@ Change 4 was measured on Linux only (table above).
 ## Where the measurements are
 
 - `bench/RUNS.md` lists every run made so far, on every machine, with its result and its raw data.
-- `bench/VERSIONS.md` describes the registered versions (`v01` to `v10`; `v08` is withdrawn) and the baseline; `bench/results/` holds what the harness stored.
+- `bench/VERSIONS.md` describes the registered versions (`v01` to `v11`; `v08` is withdrawn) and the baseline; `bench/results/` holds what the harness stored.
+- `docs/no-klujax-scipy.md` is the full record of changes 16 to 18, and `docs/no-klujax-scipy-results.pdf` its summary with charts.
+- The branch `legacy-klujax` holds `main` as it was before change 16 (version `v10` plus records), in case the klujax solver is needed again.
 - `benchmarks/runs/` holds the report files of the runs made by hand before the harness was used.
 
 ## Reproduce
@@ -491,18 +619,23 @@ For the original, run the same commands on commit `02ec741`. It needs about 16 G
 
 ```bash
 python bench/validate.py WORKTREE     # official benchmark, then every output and gradient entry against the original's
-python tests/variations.py            # sixteen other setups against the original, with times
+python tests/variations.py            # nineteen other setups against the original, with times
 python tests/test_host.py             # NumPy version against the JAX version
 ```
 
 ## Known limits
 
 - Change 12 is new code for the whole reverse pass. It is verified against the JAX version on the setups listed above; a setup that uses a feature none of them has would be new ground, and `HOST_SIMULATION = False` switches back.
-- Changes 14 and 15 have been timed on the Apple M5 and on one pinned core of an AMD EPYC 7763, not on the contest's processor type (Intel Xeon Platinum 8468). The run there is of changes 1–12.
+- On the contest's processor type (Intel Xeon Platinum 8468) the original ran once, the noise floor of that machine has not been measured (a session for it was started and stopped; `sessions/2026-11-22T00-10-37Z_aa.json` is incomplete), and `v07` was not timed on the two extra setups. The official report file and chart of a `v11` run there are not saved yet; `python bench/run.py official --versions v11-scipy-stacked-solver` on that machine is still owed. The complete pair of official reports is the AMD one, for changes 1–12.
+- Change 16 calls a private part of SciPy: the internal function `gstrf`, in a compiled module that is loaded from its file. Both exist in the pinned `scipy==1.18.1`. If either is missing, the code falls back to the normal import and then to the public `splu`, which is slower and gives the same results.
+- Change 16 is new code for the solves, like change 12 was for the reverse pass. It refines every solve exactly once; a setup whose matrices are worse than any we tested could need more (`REFINEMENT_STEPS` in `differometor/host.py`). `HOST_SIMULATION = False` switches back to the JAX path with klujax.
+- klujax is still a requirement, because the JAX fallback uses it.
+- On one pinned CPU, starting the gradient before the previous JAX call has finished hangs inside the call into NumPy. `benchmark.py` waits after every phase and is not affected. This is not new: `v07` hangs in the same test. A caller who runs on one CPU has to wait for each result (`jax.block_until_ready`) before starting the next call.
+- The harness marks `v10` and `v11` as `unofficial-benchmark`, because their `benchmark.py` is the organizers' newer file (with aLIGO), which differs from the one at the baseline commit. Nobody on the team edited it.
 - The original could not complete the official benchmark on the 16 GB Codespace, so the official-style "before" on that machine is missing.
 - On the AMD EPYC 9334 both versions have saved reports, but their output arrays were not brought back, so there is no array-by-array comparison from that machine. The comparisons on the Mac and the Codespace cover it.
 - The carrier system (286×286, solved once) still uses the dense solver.
-- A setup in amplitude-modulation mode has linking functions, so our code takes its JAX path there: correct, but 1.0 s where the NumPy path takes 0.34 s (Apple M5, case `amplitude-modulation`).
+- A setup in amplitude-modulation mode has linking functions, so our code takes its JAX path there: correct, but 1.0 s where the NumPy path takes 0.34 s (Apple M5, case `amplitude-modulation`, changes 1–12). Changes 16 to 18 do not speed that path up: 2.57 s on the Intel Xeon, where the NumPy path takes 0.6 to 0.9 s.
 - A negative reflectivity gives NaN in ours and a number in the original (seen while taking finite differences with too large a step). Reflectivities are bounded to 0..1 in the optimisation examples, so no setup we know has one.
-- **The current version's first-run time was unstable on a busy shared Linux host** (0.74 to 2.8 s on the second AMD instance; see "The same on one pinned Linux core"). The likely cause is NumPy's request for large memory pages. Switching it off was tried and withdrawn ("Withdrawn" above): it costs 4% on a quiet machine and its benefit showed in only one of two test sessions. On a shared scoring machine, `NUMPY_MADVISE_HUGEPAGE=0` is the setting to try. Under ordinary memory pressure every program gets slower, ours included (about 1.1 s against 0.71 s in the tests).
+- **The first-run time of `v07` was unstable on a busy shared Linux host; `v11` has not been run on such a host** (0.74 to 2.8 s on the second AMD instance; see "The same on one pinned Linux core"). The likely cause is NumPy's request for large memory pages. Switching it off was tried and withdrawn ("Withdrawn" above): it costs 4% on a quiet machine and its benefit showed in only one of two test sessions. On a shared scoring machine, `NUMPY_MADVISE_HUGEPAGE=0` is the setting to try. Under ordinary memory pressure every program gets slower, ours included (about 1.1 s against 0.71 s in the tests).
 - `cos_arcsin` returns the same values as the complex arcsine route, but beyond total internal reflection its derivative has the opposite sign in the imaginary part. That only matters when a refractive index or an incidence angle is itself a design variable in such a setup; the benchmark's design variables are reflectivity, tuning, squeezing, angle of squeezing, power, mass and length.

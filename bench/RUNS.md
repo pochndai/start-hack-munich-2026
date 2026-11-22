@@ -144,6 +144,28 @@ The second AMD session (19:01 to 19:08) has saved reports and is in section 2. O
 | 17:20 | Changes 1–12, first of two runs | 0.40 s | 0.049 s | Report overwritten by the second run (0.33 s). `PASS` |
 | 17:54 | SciPy SuperLU experiment, first of two runs | 0.51 s | 0.083 s | Report overwritten by the second run (0.42 s). `PASS` |
 
+### On the Nebius VM (Intel Xeon Platinum 8468, the organizers' processor type, 197 GB, Linux, one pinned core)
+
+21 and 22 November, times in UTC. Every run is pinned to logical CPU 8 with the official `--cpus 1`, inside a 32 GiB memory cap with swap off. Files under `bench/results/intel-xeon-platinum-8468-197g-linux/`. The repository reaches the VM by `git push` over SSH, because the VM cannot reach GitHub. The sessions of 22 November list version `v11-scipy-stacked-solver` under its branch name, `no-klujax-scipy`.
+
+| Time | What | Result | Raw data |
+| --- | --- | --- | --- |
+| 22:42 (21 Nov) | The original (`02ec741`), once, by hand with the official command; imported as this machine's stored baseline | First run 43.14 s, `PASS`, peak memory 15.3 GB | `baseline.json`, `bench/results/nebius-xeon-8468-200g-linux/original-reproduction/` |
+| 22:51 | `validate.py` on `v01` to `v08` | `PASS` for all eight | `validation/` |
+| 22:53 | `run.py run`: `v01` to `v08`, 5 shuffled rounds | Medians 33.39, 23.66, 15.66, 5.17, 4.61, 2.77, 0.90 and 0.91 s | `sessions/2026-11-21T22-53-03Z_run.json` |
+| 00:08 (22 Nov) | `run.py run`: `v07` and the SciPy branch at `05da4b9` (before changes 14 and 15 were merged in), 5 shuffled rounds; `validate.py` on the branch | Medians 0.85 and 0.67 s; branch 1.27x (1.26 to 1.29). `PASS` | `sessions/2026-11-22T00-08-43Z_run.json`, `validation/no-klujax-scipy@05da4b9818e9.json` |
+| 00:10 | `run.py aa` (noise floor) | Stopped by hand before it finished; kept, marked incomplete. The noise floor of this machine is not measured | `sessions/2026-11-22T00-10-37Z_aa.json` |
+| 00:14 | `run.py run`: `v07`, `v10` and `v11` (`f3f1454`), 5 shuffled rounds | Medians 0.88, 0.84 and 0.71 s; `v11` against `v10` 1.20x (1.17 to 1.21), against `v07` 1.24x (1.22 to 1.29). Slower control workload flagged in 2 to 3 of 5 rounds for every version | `sessions/2026-11-22T00-14-25Z_run.json`, `SUMMARY.md` |
+| 00:17 | `benchmark_aligo.py --cpus 1` by hand: the original once, then `v10` and `v11` alternately, 4 runs each | Original 26.25 s; `v10` 0.61 to 0.63 s (median 0.62); `v11` 0.50 to 0.53 s (median 0.50). `PASS` in every run | `aligo/` |
+| 00:18 | `tests/variations.py random-layout-1` by hand: the original once, then `v10` and `v11` alternately | Original 41.55 s; `v10` 0.83 s; `v11` 0.69 to 0.71 s. `PASS` | `variations/2026-11-22T00-18-*.json`, `variations-v10/2026-11-22T00-18-*.json` |
+| 00:20 | `tests/variations.py` on `v11`, five scenarios | 3 `PASS`, 1 `DEVIATION`, and a `FAIL` on `supplied` that is not about the code: the script found that its own run of the original differs from the stored reference arrays, because the VM held its own baseline arrays in place of the committed ones (from the Mac). Rerun at 00:23 with the committed arrays | `variations/2026-11-22T00-20-20Z.json` |
+| 00:23 | `validate.py --force` on `v11` and on `v10` | `PASS` for both; first runs 0.67 and 0.81 s; `v11` against the original's arrays from this VM: signal 1.3e-07, sensitivity 6.8e-08 in log, gradient 9.1e-08, 0 of 193 entries outside | `validation/no-klujax-scipy@f3f14542ea40.json`, `validation/v10-host-swept-values@49f887148515.json` |
+| 00:23 | `tests/variations.py` on `v11`, all 19 scenarios | 18 `PASS`, 1 `DEVIATION` (`band-20-5000`, known), 0 `FAIL`; NumPy path 0.59 to 0.88 s, JAX fallback 2.57 s | `variations/2026-11-22T00-23-50Z.json`, `VARIATIONS.md` |
+| 00:24 | `tests/variations.py` on `v10`, all 19 scenarios | 17 `PASS`, 2 `DEVIATION` (`band-20-5000` and `uifo-20-5000`); NumPy path 0.68 to 1.05 s, JAX fallback 2.47 s | `variations-v10/2026-11-22T00-24-58Z.json` |
+| between 00:14 and 00:30, time not noted | `tests/test_host.py` and `tests/handwritten_jacobians.py` on `v11` | `ALL CHECKS PASSED`; all 19 rules agree | `no-klujax-scipy-logs/` |
+
+The sessions up to 22:53 were made by a teammate's session; the ones of 22 November are those behind changes 16 to 18 in `CHANGES.md`. Still owed on this machine: a noise-floor session, and `run.py official --versions v11-scipy-stacked-solver` for the report file and chart of the final version.
+
 ## 4. Other setups
 
 `python tests/variations.py` runs 16 varied setups on the original code and on ours, compares them and times them. Its sessions are in `bench/results/<machine>/variations/`, the table of the latest one in `bench/results/<machine>/VARIATIONS.md`, and the original's results in `bench/reference/variation-<case>.npz`. See "Other setups" in `README.md`.

@@ -79,6 +79,13 @@
       "parent": "v09-active-derivatives",
       "summary": "Reshape and copy the swept values in NumPy, which removes two small compilations from the build step",
       "enabled": true
+    },
+    {
+      "name": "v11-scipy-stacked-solver",
+      "ref": "v11-scipy-stacked-solver",
+      "parent": "v10-host-swept-values",
+      "summary": "Solve with SciPy's sparse LU inside the host callbacks: all frequencies in one factorisation, one factorisation per evaluation",
+      "enabled": true
     }
   ]
 }

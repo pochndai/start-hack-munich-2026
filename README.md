@@ -10,7 +10,9 @@ This repository includes the public simulator source, example data, [challenge P
 
 This repository is our entry. The simulator in `differometor/` has been changed for speed; everything below this section is the organizers' original description of the challenge.
 
-Official benchmark, one logical CPU (`--cpus 1`), original and ours on the same machine (AMD EPYC 9334, Linux, Python 3.12, 10 repeats):
+**Current version (`v11`) on the organizers' processor type:** Intel Xeon Platinum 8468, one pinned logical CPU with the official `--cpus 1`. The original took 43.14 s in its one run there; ours takes **0.71 s** (median of 5 fresh runs, 0.68 to 0.72 s), about 61 times faster, with `PASS` from the official validation and from our comparison of every output and all 193 gradient entries with the original's. Details and raw data: CHANGES.md, "Result so far".
+
+An earlier version (`v07`, changes 1–12), for which the official reports of both sides are saved. Official benchmark, one logical CPU (`--cpus 1`), original and ours on the same machine (AMD EPYC 9334, Linux, Python 3.12, 10 repeats):
 
 | | Original | Ours |
 | --- | ---: | ---: |
@@ -33,10 +35,11 @@ python tests/test_host.py             # our NumPy path against our JAX path
 ```
 
 - **The second benchmark (aLIGO):** `python benchmark_aligo.py` prints `PASS` with our code; on the same laptop the complete first run takes 0.38 s against 4.10 s for the original ([reports](benchmarks/mac-aligo-candidate.json), details in CHANGES.md).
-- **What we changed and why:** [CHANGES.md](CHANGES.md), fourteen changes, each with its measurement and its correctness evidence.
+- **What we changed and why:** [CHANGES.md](CHANGES.md), seventeen changes, each with its measurement and its correctness evidence.
 - **Other setups:** the final evaluation uses a variation of the example, so [tests/variations/README.md](tests/variations/README.md) lists 19 varied setups (other values, frequencies, layouts, readouts, grid sizes, modulation modes) that are compared with the original code.
 - **Every run we made:** [bench/RUNS.md](bench/RUNS.md).
-- **One added dependency:** `klujax==0.5.3`, a JAX wrapper around the sparse solver KLU, pinned in `requirements.txt` and `pyproject.toml`.
+- **One added dependency:** `klujax==0.5.3`, a JAX wrapper around the sparse solver KLU, pinned in `requirements.txt` and `pyproject.toml`. Since change 16 the main path solves with SciPy, which the organizers' requirements already list; klujax is only used by the fallback for setups with linking functions.
+- **The code before the SciPy solver** is kept on the branch `legacy-klujax`.
 - **A caveat on timing:** on a busy shared Linux host the same code took between 0.74 and 2.8 s in one session. What we found out about it, and a setting that may help on such a host (`NUMPY_MADVISE_HUGEPAGE=0`), is in CHANGES.md ("The same on one pinned Linux core" and "Withdrawn").
 
 ## Start here
