@@ -32,6 +32,7 @@ import importlib.machinery
 import operator
 import os
 import sys
+import threading
 import types
 
 import jax
@@ -374,7 +375,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
     carrier_at_places = carrier[:, a["signal_carrier_indices"].ravel()]
     s["before_placing"] = values[:, placing_slots].copy()
     values[:, placing_slots] = -s["before_placing"] * carrier_at_places
-    values = np.where(layout["conjugated"], np.conj(values), values)
+    np.conjugate(values, out=values, where=layout["conjugated"])
     right_hand_side = np.zeros((value_count, _signal_size(a)), dtype=np.complex128)
     right_hand_side[:, right_hand_side_rows] = values[:, len(rows) :]
 
@@ -402,7 +403,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
     noise_values[:, noise_layout["update_slots"]] = noise_outputs
 
     s.update(
-        signal_values=np.ascontiguousarray(values[:, : len(rows)]),
+        signal_values=values[:, : len(rows)],
         right_hand_side=right_hand_side,
         selections=np.ascontiguousarray(selections),
         noise_values=noise_values,
@@ -631,6 +632,36 @@ class _Factors:
         return solution
 
 
+_KEPT = {}
+"""Ticket -> (optimized parameters, result of `_assemble`) for the latest forward passes with a pullback."""
+_KEPT_LOCK = threading.Lock()
+
+
+def _keep(optimized_parameters, s):
+    """
+    Keep what `_assemble` produced in a forward pass for the reverse pass that follows.
+
+    The reverse pass needs the same matrices and the derivatives of the component functions
+    at the same parameters. They are not JAX arrays (they include functions), so they stay
+    here, and the forward pass hands JAX a ticket for them. Two are kept; if a reverse pass
+    comes with a ticket that is gone, it assembles again, as it would without this.
+    """
+    ticket = int.from_bytes(os.urandom(6), "little")  # random, so a ticket from another process finds nothing
+    with _KEPT_LOCK:
+        while len(_KEPT) >= 2:
+            _KEPT.pop(next(iter(_KEPT)))
+        _KEPT[ticket] = (np.array(optimized_parameters), s)
+    return np.int64(ticket)
+
+
+def _kept(ticket, optimized_parameters):
+    with _KEPT_LOCK:
+        entry = _KEPT.get(int(ticket))
+    if entry is not None and np.array_equal(entry[0], optimized_parameters):
+        return entry[1]
+    return None
+
+
 def _weight_products(noise_layout, noise_values, weights):
     """The factors conj(w[r_e]) and N_e w[k_e] of the noise quadratic form, each of shape (SV, E, D)."""
     return np.conj(weights[:, noise_layout["rows"]]), noise_values[:, :, None] * weights[:, noise_layout["columns"]]
@@ -640,14 +671,17 @@ def _forward(optimized_parameters, a, static, adjoint):
     """
     The forward simulation: carrier (CV, CN), signal (SV, SN), noise weights (SV, SN, D), noise (D, SV).
 
-    With `adjoint`, also the solve the gradient of the noise will need, shape (SV, SN, D).
+    With `adjoint`, also the solve the gradient of the noise will need, shape (SV, SN, D),
+    and a ticket for the assembled systems (`_keep`), which are then built with the
+    derivatives of the component functions so that the reverse pass does not build them again.
     The noise is sqrt(2 K q) with q = Re(w^H N w). Its reverse pass has to solve
     conj(A) mu = w_bar, and w_bar is a real factor per frequency and detector (the
     cotangent of q, known only later) times a vector known now. So the solve is done
     here, with the factors that exist anyway, and the gradient only scales the result.
     """
     a = _numpy(a)
-    s = _assemble(np.asarray(optimized_parameters), a, static, differentiate=False)
+    optimized_parameters = np.asarray(optimized_parameters)
+    s = _assemble(optimized_parameters, a, static, differentiate=adjoint)
     factors = _Factors(a["signal_sparse_indices"], s["signal_values"], _signal_size(a))
     weights = factors.solve(s["selections"], "H")
     noise_layout = a["noise_sparse_indices"]
@@ -661,7 +695,7 @@ def _forward(optimized_parameters, a, static, adjoint):
     np.add.at(weight_cotangent, (everything, noise_layout["rows"]), np.conj(right))
     # The signal and the noise adjoint are solves with the same matrix: one call with several right-hand sides.
     both = factors.solve(np.concatenate([s["right_hand_side"][:, :, None], np.conj(weight_cotangent)], axis=2), refinement_steps=SIGNAL_REFINEMENT_STEPS)
-    return s["carrier"], np.ascontiguousarray(both[:, :, 0]), weights, noise, np.conj(both[:, :, 1:])
+    return s["carrier"], np.ascontiguousarray(both[:, :, 0]), weights, noise, np.conj(both[:, :, 1:]), _keep(optimized_parameters, s)
 
 
 def _signal_adjoint(a, s, weights, cotangent):
@@ -689,16 +723,19 @@ def _signal_adjoint(a, s, weights, cotangent):
     return factors.solve(cotangent, "T")
 
 
-def _backward(optimized_parameters, a, carrier, signal, weights, noise, noise_adjoint, carrier_cotangent, signal_cotangent, noise_cotangent, static):
+def _backward(optimized_parameters, a, carrier, signal, weights, noise, noise_adjoint, ticket, carrier_cotangent, signal_cotangent, noise_cotangent, static):
     """
     Reverse pass of the whole simulation: the cotangents of the three results in, the
     cotangent of `optimized_parameters` out.
 
-    `noise_adjoint` is the last result of `_forward`.
+    `noise_adjoint` and `ticket` are the last two results of `_forward`.
     """
     a = _numpy(a)
     carrier, signal, weights, noise = (np.asarray(array) for array in (carrier, signal, weights, noise))
-    s = _assemble(np.asarray(optimized_parameters), a, static, differentiate=True, carrier=carrier)
+    optimized_parameters = np.asarray(optimized_parameters)
+    s = _kept(ticket, optimized_parameters)
+    if s is None:
+        s = _assemble(optimized_parameters, a, static, differentiate=True, carrier=carrier)
     # noise = sqrt(2 K q): cotangent of q, shape (SV, D). A noise of zero has no derivative.
     with np.errstate(divide="ignore", invalid="ignore"):
         noise_factor = (np.asarray(noise_cotangent).reshape(noise.shape) * NOISE_SCALE / noise).T
@@ -885,15 +922,15 @@ def _primal(holder, optimized_parameters, a, adjoint):
         jax.ShapeDtypeStruct((detectors, value_count), jnp.float64),
     ]
     if adjoint:
-        results.append(complex_array(value_count, signal_size, detectors))
-    carrier, signal, weights, noise, *noise_adjoint = jax.pure_callback(
+        results += [complex_array(value_count, signal_size, detectors), jax.ShapeDtypeStruct((), jnp.int64)]
+    carrier, signal, weights, noise, *for_reverse = jax.pure_callback(
         lambda parameters, arrays: _forward(parameters, arrays, holder.static, adjoint),
         tuple(results),
         optimized_parameters,
         a,
         vmap_method="sequential",
     )
-    return (carrier.T, signal.T, noise.squeeze()), (carrier, signal, weights, noise, *noise_adjoint)
+    return (carrier.T, signal.T, noise.squeeze()), (carrier, signal, weights, noise, *for_reverse)
 
 
 def _simulate_primal(holder, optimized_parameters, a):
@@ -910,7 +947,7 @@ def _simulate_forward(holder, optimized_parameters, a):
 
 
 def _simulate_backward(holder, residuals, cotangents):
-    optimized_parameters, a, carrier, signal, weights, noise, noise_adjoint = residuals
+    optimized_parameters, a, carrier, signal, weights, noise, noise_adjoint, ticket = residuals
     carrier_cotangent, signal_cotangent, noise_cotangent = cotangents
     cotangent = jax.pure_callback(
         lambda *arguments: _backward(*arguments, holder.static),
@@ -922,6 +959,7 @@ def _simulate_backward(holder, residuals, cotangents):
         weights,
         noise,
         noise_adjoint,
+        ticket,
         carrier_cotangent.T,
         signal_cotangent.T,
         noise_cotangent,

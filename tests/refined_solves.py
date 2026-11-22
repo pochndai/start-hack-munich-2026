@@ -88,7 +88,7 @@ class RefinedFactors:
     def __init__(self, layout, entries, size):
         self.rows, self.columns, self.order, self.entries = layout["rows"], layout["columns"], layout["transposed_order"], entries
 
-    def solve(self, right_hand_side, transpose="N"):
+    def solve(self, right_hand_side, transpose="N", refinement_steps=None):
         if transpose == "N":
             return refined(self.rows, self.columns, self.entries, right_hand_side)
         entries = self.entries[:, self.order] if transpose == "T" else np.conj(self.entries[:, self.order])

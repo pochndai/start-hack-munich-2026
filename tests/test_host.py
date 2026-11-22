@@ -211,6 +211,14 @@ def main():
     single = [host_f(p) for p in batch]
     worst = max(relative(mapped[i][k], single[k][i]) for i in range(3) for k in range(2))
     print(f"   vmap over two parameter sets against one at a time: {check('vmap', worst, 1e-12)}")
+    # A pullback that is used after later forward passes have replaced what its own forward pass kept.
+    outputs, first_pull = jax.vjp(host_f, start)
+    cotangent = tuple(jnp.ones_like(o) for o in outputs)
+    fresh = first_pull(cotangent)[0]
+    for factor in (1.0001, 1.0002, 1.0003):
+        jax.vjp(host_f, start * factor)
+    late = first_pull(cotangent)[0]
+    print(f"   a pullback used after three later forward passes gives the same gradient: {check('late pullback', relative(late, fresh), 1e-12)}")
     simulate_module.LINKING_FUNCTIONS.append(lambda x: 2 * x)
     used_host = host.supported(simulate_module.LINKING_FUNCTIONS)
     simulate_module.LINKING_FUNCTIONS.pop()
