@@ -192,6 +192,26 @@ The sessions up to 22:53 were made by a teammate's session; the ones of 22 Novem
 
 Not run on this instance: the original on the aLIGO setup, and the original under the disturbances of the stress test (so how much the original slows down on a busy machine is not known).
 
+### On the first Nebius VM again, after a restart (Intel Xeon Platinum 8468, 197 GB, Linux, one pinned core)
+
+22 November, times in UTC. The instance of 21 November was started again; its disk, with the checkouts and the Python environment (pinned packages, jax 0.9.0), was as it had been left. Files under `bench/results/intel-xeon-platinum-8468-197g-linux/`. These runs are behind change 22 (`v13`) in `CHANGES.md`. Harness runs are pinned to logical CPU 15 with the official `--cpus 1`, inside a 32 GiB memory cap with swap off; runs by hand are pinned to one CPU with `taskset`. The noise floor the harness prints for this machine id (±2.4%) was measured on the second VM, not on this instance.
+
+| Time | What | Result | Raw data |
+| --- | --- | --- | --- |
+| 10:53 to 11:00 | A scratch version of `tests/one_cpu_calls.py` on `main` at `a6c3197`, without and with the one-CPU setting (not yet committed): five calling orders, each in a process pinned to logical CPU 8 | Without: the gradient started during the readout froze in 6 of 6 runs, the optimizer loop in 3 of 4; the other three orders returned. With: all five returned, the two that froze in 11 of 11 runs each. On all 16 CPUs nothing froze | not stored |
+| 10:58 | `tests/test_host.py` on the same code with the setting, pinned to one CPU | `ALL CHECKS PASSED` (125 s) | not stored |
+| 11:02 | `run.py quick --rounds 5`: `v12` and the working tree with the setting; `validate.py WORKTREE` | Medians 0.66 and 0.66 s, 1.00x (0.99 to 1.02), not distinguishable; `PASS` | `sessions/2026-11-22T11-02-46Z_quick.json`, `validation/WORKTREE@99a3a11fc429.json` |
+| 11:05 | `tests/stress.py quick` on the same code, pinned to one CPU | `STRESS TEST PASSED` (58 s) | not stored |
+| 11:10 | `tests/one_cpu_calls.py` and `tests/one_cpu_calls.py --async-dispatch` on the commit `d234ee0` (`v13`), twice each | As the package sets JAX up: `ALL CASES FINISHED` both times. With asynchronous dispatch left on: the gradient started during the readout froze both times, the optimizer loop returned both times (it is a race) | `one-cpu-calls/` (the second run of each) |
+| 11:12 | `validate.py v13-one-cpu-dispatch` | `PASS`, first run 0.684 s; signal 1.2e-07, sensitivity 6.0e-08 in log, 0 of 193 gradient entries outside | `validation/v13-one-cpu-dispatch@d234ee0a9a8c.json` |
+| 11:12 | `run.py run`: `v12` and `v13`, 10 shuffled rounds | Medians 0.664 and 0.665 s (0.658 to 0.671 and 0.654 to 0.681); `v13` against `v12` 1.00x (0.98 to 1.02), faster in 4 of 10 rounds | `sessions/2026-11-22T11-12-55Z_run.json`, `SUMMARY.md` |
+| 11:16 | `run.py official --versions v13-one-cpu-dispatch` | First run 0.665 s, repeat median 0.111 s, `PASS` | `official/v13-one-cpu-dispatch.json` and `.png` |
+| 11:17 | The submission as a zip (`git archive` of `d234ee0`), unpacked, with a new environment built from its `requirements.txt` and `pip install -e .` (21 s): `benchmark.py --cpus 1` and `benchmark_aligo.py --cpus 1`, one run each, by hand | First runs 0.678 and 0.507 s, both `PASS` | `zip-check/grid-fresh-environment.json`, `zip-check/aligo-fresh-environment.json` |
+| 11:17 | The same environment after `pip uninstall klujax`: both benchmarks, `start_here.py`, `tests/one_cpu_calls.py`, `tests/stress.py quick` | Benchmarks 0.654 and 0.504 s, both `PASS`; `start_here.py` runs (0.69 s in all); `ALL CASES FINISHED`; the stress test stops at its first comparison with the JAX path, with the message that this path needs klujax | `zip-check/grid-without-klujax.json`, `zip-check/aligo-without-klujax.json` |
+| 11:18 | `tests/variations.py` on `v13`, all 19 scenarios | 18 `PASS`, 1 `DEVIATION` (`band-20-5000`, known), 0 `FAIL`; NumPy path 0.59 to 0.87 s, JAX fallback 2.65 s. The file says "plus uncommitted changes": that was the version registry, not the simulator | `variations/2026-11-22T11-18-29Z.json`, `VARIATIONS.md`, `variations-v13.log` |
+
+Not run on this instance: the original (its stored run of 21 November on this VM is the 43.14 s), a noise-floor session, and `tests/test_host.py` and the full `tests/stress.py` on the committed `v13` (both ran on the same code before the commit).
+
 ## 4. Other setups
 
 `python tests/variations.py` runs 16 varied setups on the original code and on ours, compares them and times them. Its sessions are in `bench/results/<machine>/variations/`, the table of the latest one in `bench/results/<machine>/VARIATIONS.md`, and the original's results in `bench/reference/variation-<case>.npz`. See "Other setups" in `README.md`.

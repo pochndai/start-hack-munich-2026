@@ -1,0 +1,14 @@
+$ python tests/one_cpu_calls.py    (2026-11-22T11:18Z, commit d234ee0, Intel Xeon Platinum 8468, jax 0.9.0)
+One CPU (logical CPU 15), asynchronous dispatch as the package sets it.
+  waited       FINISHED in 0.6 s, loss 9.720663e-08, gradient norm 7.051710e+04
+               calls into NumPy: 8 (_backward on the main thread; _forward on the XLA thread tf_XLAEigen)
+  not-awaited  FINISHED in 0.6 s, loss 9.720663e-08, gradient norm 7.051710e+04
+               calls into NumPy: 8 (_backward on the main thread; _forward on the XLA thread tf_XLAEigen)
+  one-program  FINISHED in 0.4 s, loss 9.720663e-08, gradient norm 7.051710e+04
+               calls into NumPy: 6 (_backward on the main thread; _forward on the main thread)
+  loop         FINISHED in 0.8 s, loss 9.720663e-08, gradient norm 7.051710e+04
+               calls into NumPy: 12 (_backward on the main thread; _forward on the main thread)
+  eager        FINISHED in 1.0 s, loss 9.723166e-08, gradient norm 7.051710e+04
+               calls into NumPy: 3 (_backward on the main thread; _forward on the main thread)
+ALL CASES FINISHED
+exit code 0

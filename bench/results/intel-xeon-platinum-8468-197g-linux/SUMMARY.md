@@ -3,17 +3,16 @@
 - Machine: Intel(R) Xeon(R) Platinum 8468, 197 GiB RAM, Linux-6.11.0-1016-nvidia-x86_64-with-glibc2.39
 - CPU limit: pinned to logical CPU 15 with the official `--cpus 1`
 - Noise floor: +/- 2.4 % (A/A session `2026-11-22T09-54-18Z_aa`). Smaller differences are not speed-ups.
-- Sessions on record: 6
+- Sessions on record: 8
 
-## Latest session: `2026-11-22T10-05-52Z_run`
+## Latest session: `2026-11-22T11-12-55Z_run`
 
 10 rounds, shuffled order per round, one fresh process per sample.
 
-| Version                  | n     | median s | min s | spread | vs v00-baseline (stored) | vs parent | Setup | Compile | Forward | Sens. | Grad. | peak mem | cpu/wall | valid | flags                                   |
-| ------------------------ | ----- | -------- | ----- | ------ | ------------------------ | --------- | ----- | ------- | ------- | ----- | ----- | -------- | -------- | ----- | --------------------------------------- |
-| v11-scipy-stacked-solver | 10/10 | 0.67     | 0.65  | 4.7%   | 64.76x (63.35-66.41)     | -         | 0.38  | 0.12    | 0.11    | 0.00  | 0.06  | 0.32 GiB | 1.01     | PASS  | slow-machine 2/10, unofficial-benchmark |
-| f1bc7a7                  | 10/10 | 0.63     | 0.62  | 3.3%   | 68.40x (67.38-69.63)     | -         | 0.38  | 0.12    | 0.10    | 0.00  | 0.03  | 0.30 GiB | 1.01     | PASS  | unofficial-benchmark                    |
-| f4f5c40                  | 10/10 | 0.63     | 0.61  | 4.4%   | 68.94x (67.42-70.43)     | -         | 0.38  | 0.12    | 0.10    | 0.00  | 0.03  | 0.30 GiB | 1.01     | -     | unofficial-benchmark                    |
+| Version              | n     | median s | min s | spread | vs v00-baseline (stored) | vs parent          | Setup | Compile | Forward | Sens. | Grad. | peak mem | cpu/wall | valid | flags                |
+| -------------------- | ----- | -------- | ----- | ------ | ------------------------ | ------------------ | ----- | ------- | ------- | ----- | ----- | -------- | -------- | ----- | -------------------- |
+| v12-kept-assembly    | 10/10 | 0.66     | 0.66  | 2.0%   | 65.00x (64.30-65.59)     | -                  | 0.40  | 0.13    | 0.10    | 0.00  | 0.03  | 0.30 GiB | 1.01     | PASS  | unofficial-benchmark |
+| v13-one-cpu-dispatch | 10/10 | 0.66     | 0.65  | 4.0%   | 64.90x (63.32-65.91)     | 1.00x (0.98-1.02)~ | 0.40  | 0.13    | 0.10    | 0.00  | 0.03  | 0.30 GiB | 1.01     | PASS  | unofficial-benchmark |
 
 Stored baseline: v00-baseline took 43.14 s in its single run on 2026-11-21. It is not rerun: each factor against it is this number divided by a new sample.
 
@@ -22,23 +21,26 @@ Stored baseline: v00-baseline took 43.14 s in its single run on 2026-11-21. It i
 One column per session. A version whose factor stays put from column to column is a trustworthy result.
 Against the stored baseline every session divides into the same number, so those factors are directly comparable.
 
-| Version                     | 11-21T22-53 run | 11-22T00-08 run | 11-22T00-14 run | 11-22T09-50 run | 11-22T10-05 run |
-| --------------------------- | --------------- | --------------- | --------------- | --------------- | --------------- |
-| v01-klujax-solver           | 1.29x           |                 |                 |                 |                 |
-| v02-group-by-function       | 1.82x           |                 |                 |                 |                 |
-| v03-sparse-assembly         | 2.75x           |                 |                 |                 |                 |
-| v04-fast-compile-flags      | 8.35x           |                 |                 |                 |                 |
-| v05-two-solves-whole-arrays | 9.36x           |                 |                 |                 |                 |
-| v06-real-parameters         | 15.55x          |                 |                 |                 |                 |
-| v07-numpy-host              | 48.10x          | 50.47x          | 49.21x          | 51.71x          |                 |
-| v08-no-large-pages          | 47.30x          |                 |                 |                 |                 |
-| no-klujax-scipy             |                 | 64.05x          | 61.17x          |                 |                 |
-| v10-host-swept-values       |                 |                 | 51.32x          | 53.13x          |                 |
-| v11-scipy-stacked-solver    |                 |                 |                 | 64.25x          | 64.76x          |
-| f1bc7a7                     |                 |                 |                 | 67.54x          | 68.40x          |
-| f4f5c40                     |                 |                 |                 |                 | 68.94x          |
+| Version                     | 11-21T22-53 run | 11-22T00-08 run | 11-22T00-14 run | 11-22T09-50 run | 11-22T10-05 run | 11-22T11-02 quick | 11-22T11-12 run |
+| --------------------------- | --------------- | --------------- | --------------- | --------------- | --------------- | ----------------- | --------------- |
+| v01-klujax-solver           | 1.29x           |                 |                 |                 |                 |                   |                 |
+| v02-group-by-function       | 1.82x           |                 |                 |                 |                 |                   |                 |
+| v03-sparse-assembly         | 2.75x           |                 |                 |                 |                 |                   |                 |
+| v04-fast-compile-flags      | 8.35x           |                 |                 |                 |                 |                   |                 |
+| v05-two-solves-whole-arrays | 9.36x           |                 |                 |                 |                 |                   |                 |
+| v06-real-parameters         | 15.55x          |                 |                 |                 |                 |                   |                 |
+| v07-numpy-host              | 48.10x          | 50.47x          | 49.21x          | 51.71x          |                 |                   |                 |
+| v08-no-large-pages          | 47.30x          |                 |                 |                 |                 |                   |                 |
+| no-klujax-scipy             |                 | 64.05x          | 61.17x          |                 |                 |                   |                 |
+| v10-host-swept-values       |                 |                 | 51.32x          | 53.13x          |                 |                   |                 |
+| v11-scipy-stacked-solver    |                 |                 |                 | 64.25x          | 64.76x          |                   |                 |
+| f1bc7a7                     |                 |                 |                 | 67.54x          | 68.40x          |                   |                 |
+| f4f5c40                     |                 |                 |                 |                 | 68.94x          |                   |                 |
+| v12-kept-assembly           |                 |                 |                 |                 |                 | 65.37x            | 65.00x          |
+| WORKTREE                    |                 |                 |                 |                 |                 | 65.74x            |                 |
+| v13-one-cpu-dispatch        |                 |                 |                 |                 |                 |                   | 64.90x          |
 
-![First-run total per version, session 2026-11-22T10-05-52Z_run](summary.png)
+![First-run total per version, session 2026-11-22T11-12-55Z_run](summary.png)
 
 ## Reading the tables
 

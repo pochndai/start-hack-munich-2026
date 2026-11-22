@@ -419,3 +419,51 @@ Intel Xeon Platinum 8468 (second Nebius VM, pinned to logical CPU 15 with the of
 **Dead ends and notes**
 
 Tried on the way and not adopted, all on the Apple M5: dropping refinement for every solve (all tests pass, but the homodyne setup's noise goes from 1e-12 to 1e-08 and its gradients from 6e-08 to 2e-06, for 4 ms more); a hand-written gradient rule for `signal_detector` (about 2 ms of the benchmark's readout compilation, inside the noise, and it would lose forward-mode differentiation); five more XLA flags (no effect, and `xla_disable_all_hlo_passes` does not compile). The memory setting is process-wide: freed memory stays with the process.
+
+## v13-one-cpu-dispatch
+
+- **Date:** 2026-11-22
+- **Commit:** `d234ee0a9a8c` (tag `v13-one-cpu-dispatch`)
+- **Builds on:** v12-kept-assembly
+- **Summary:** With one CPU, switch off JAX's asynchronous dispatch, so that a call into NumPy cannot freeze behind an unfinished result
+
+**What changed**
+
+When the process has exactly one CPU, the package switches off JAX's asynchronous dispatch at import (`_finish_each_call_with_one_cpu` in `differometor/__init__.py`, the setting `jax_cpu_enable_async_dispatch`). A setting the user made through the environment is left alone, and nothing changes with more than one CPU. Change 22 in `CHANGES.md`. Two things came with it: `tests/one_cpu_calls.py`, which shows the freeze and its absence, and a clear error from the JAX fallback when klujax is not installed.
+
+**Why it is faster**
+
+It is not faster and is not meant to be: it removes a freeze. By default a JAX call can return before its result exists. A program started with such an unfinished result as input is run later, on one of XLA's worker threads. With one CPU, our call into NumPy never came back from there. `benchmark.py` waits after every phase and was never affected, but an optimizer loop that does not wait between steps was.
+
+**Why it is still correct**
+
+No calculation is touched; the loss and the gradient norm that `tests/one_cpu_calls.py` prints are the same with the setting and without it. All on the first Nebius VM (Intel Xeon Platinum 8468, pinned jax 0.9.0), for commit `d234ee0`:
+
+- `python bench/validate.py v13-one-cpu-dispatch` (`results/intel-xeon-platinum-8468-197g-linux/validation/v13-one-cpu-dispatch@d234ee0a9a8c.json`): `PASS`, with the same differences from the original as v12 (signal 1.2e-07, noise 3.9e-08, sensitivity 6.0e-08 in log, gradient 7.6e-08 of its largest entry, 0 of 193 entries outside the tolerance).
+- `tests/test_host.py`, pinned to one CPU: `ALL CHECKS PASSED`. `tests/stress.py quick`, pinned to one CPU: `STRESS TEST PASSED`. Both were run on the same code before it was committed.
+- `tests/variations.py`, 19 scenarios (`results/intel-xeon-platinum-8468-197g-linux/variations/2026-11-22T11-18-29Z.json`): 18 `PASS`, the known `DEVIATION` (`band-20-5000`), 0 `FAIL`.
+
+**Result**
+
+`tests/one_cpu_calls.py`, five calling orders, each in a process pinned to one CPU (logs in `results/intel-xeon-platinum-8468-197g-linux/one-cpu-calls/`):
+
+| Calling order | Asynchronous dispatch left on (as before) | As the package now sets it |
+| --- | --- | --- |
+| `benchmark.py`'s order, waiting for each result | returns | returns |
+| Gradient started while the readout is still running | froze in 8 of 8 runs | returned in 13 of 13 |
+| Loss and gradient as one compiled program | returns | returns |
+| Optimizer loop, no waiting between steps | froze in 3 of 6 runs | returned in 13 of 13 |
+| Without `jax.jit` | returns | returns |
+
+The counts add up the runs of the committed test and of the scratch version of the same test that was used while finding the cause. The optimizer loop is a race: it does not freeze every time.
+
+Timing, session `results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T11-12-55Z_run.json` (pinned to logical CPU 15 with the official `--cpus 1`, 32 GiB memory cap, swap off, 10 shuffled rounds, a fresh process per run): v13 0.665 s (0.654 to 0.681), v12 0.664 s (0.658 to 0.671). Against v12 within each round: 1.00x (0.98 to 1.02), faster in 4 of 10 rounds. Not distinguishable from noise, which is the intended result. Official report: `results/intel-xeon-platinum-8468-197g-linux/official/v13-one-cpu-dispatch.json` (first run 0.665 s, repeat median 0.111 s, `PASS`).
+
+**Dead ends and notes**
+
+- The cause was found by tracing which thread each call into NumPy runs on. The frozen call runs on a worker thread of XLA that the harmless calls never use, and it stops while converting its first large argument (1.3 MB). What exactly that thread waits for inside JAX was not established; the test shows the freeze and its absence, not the mechanism.
+- The forward call still runs on one of XLA's threads (`tf_XLAEigen`) in the three-program order, with the setting and without it, and returns in both.
+- The current source of XLA treats programs that call back into Python in the same way: it waits for their inputs and runs them at once. With the pinned jaxlib 0.9.0 the freeze occurs all the same; why was not looked into.
+- Not covered: a process that starts JAX's backend before it imports this package, since the setting is read when the backend starts. `benchmark.py` imports the package first.
+- Other ways considered and not taken: an operation of our own that receives NumPy arrays directly (it needs JAX internals), keeping all data of the reverse pass in host memory (a partial remedy), and a time limit that turns the freeze into an error (a safety net, not a remedy).
+- The NumPy path needs no klujax: in an environment built from the submission's zip, with klujax uninstalled afterwards, `benchmark.py` and `benchmark_aligo.py` print `PASS` (0.654 s and 0.504 s; `results/intel-xeon-platinum-8468-197g-linux/zip-check/`). Only the JAX fallback needs it, and it now says so.

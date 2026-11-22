@@ -4,7 +4,9 @@ Everything we changed in Differometor for the Feyer "Faster Physics" challenge, 
 
 ## Result so far
 
-**The current version is `v12` (changes 1–21): 0.626 s on the processor type the organizers use.** Intel Xeon Platinum 8468 (second Nebius VM, pinned to one logical CPU with the official `benchmark.py --cpus 1`, 32 GiB memory cap, swap off), median of 10 fresh runs, 0.612 to 0.640 s. In the same session `v11` took 0.666 s; `v12` was faster in all ten rounds, by 1.07 times (1.03 to 1.11), and `bench/validate.py` gives `PASS` for it there. The original was not run on that VM; on the first VM it took 43.14 s and `v11` 0.71 s (next table). Details: "Changes 19 to 21 measured".
+**The submitted code is `v13` (changes 1–22).** It is `v12` plus change 22, which removes a freeze on one CPU and leaves the benchmark's time where it was: 0.665 s against 0.664 s for `v12` in ten shuffled rounds on one pinned core of the Intel Xeon Platinum 8468 (first Nebius VM), 1.00 times (0.98 to 1.02), with `PASS` from `bench/validate.py` and an official report of its own (`bench/results/intel-xeon-platinum-8468-197g-linux/official/v13-one-cpu-dispatch.json`, first run 0.665 s). The timings below were made with `v12` and hold for `v13`.
+
+**The timed version is `v12` (changes 1–21): 0.626 s on the processor type the organizers use.** Intel Xeon Platinum 8468 (second Nebius VM, pinned to one logical CPU with the official `benchmark.py --cpus 1`, 32 GiB memory cap, swap off), median of 10 fresh runs, 0.612 to 0.640 s. In the same session `v11` took 0.666 s; `v12` was faster in all ten rounds, by 1.07 times (1.03 to 1.11), and `bench/validate.py` gives `PASS` for it there. The original was not run on that VM; on the first VM it took 43.14 s and `v11` 0.71 s (next table). Details: "Changes 19 to 21 measured".
 
 **The version before it (changes 1–18, `v11`) with the original on the same VM.** Intel Xeon Platinum 8468 (a teammate's Nebius machine, 197 GB RAM, Python 3.12.3), the official `benchmark.py --cpus 1`, pinned to one logical CPU, inside a 32 GiB memory cap with swap off. The original ran once there. Our versions ran five times each in shuffled order, a fresh process per run, and the table gives medians (`bench/results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T00-14-25Z_run.json`). This is the comparison to quote:
 
@@ -507,6 +509,28 @@ One pinned core of an AMD EPYC 7763 (GitHub Codespace, official `--cpus 1`, 8 sh
 - Peak memory is level over 300 gradient evaluations in one process.
 - On the Linux machine, `tests/variations.py` on `v12`: 18 `PASS` and the known `DEVIATION`, among them the scenario that takes the JAX fallback (`bench/results/amd-epyc-7763-64-core-processor-16g-linux/VARIATIONS.md`).
 
+### 22. With one CPU, finish each call before it returns
+
+- **What:** when the process has exactly one CPU, the package switches off JAX's asynchronous dispatch at import (the setting `jax_cpu_enable_async_dispatch`, in `differometor/__init__.py`). A setting the user made through the environment is left alone, and a process with more than one CPU is not touched. This is version `v13`.
+- **Why:** this change removes a freeze; it is not a speed-up. By default a JAX call can return before its result exists. A program that is started with such an unfinished result as input is run later, on one of XLA's worker threads. On one CPU, a call into our NumPy code (change 12) never came back from there. `benchmark.py` waits after every phase, so the scored run was never affected. But two ordinary ways of calling the simulator were: starting the gradient while the readout is still running, and an optimizer loop that does not wait between steps. On one CPU, which is how the challenge is scored, that would have frozen a design optimisation.
+- **How it was found:** `tests/one_cpu_calls.py` runs five calling orders, each in a process of its own pinned to one CPU, with a time limit after which Python prints where every thread is. The frozen call runs on a worker thread of XLA that the harmless calls never use, and stops while converting its first large argument.
+- **Effect** (first Nebius VM, Intel Xeon Platinum 8468, pinned jax 0.9.0; logs in `bench/results/intel-xeon-platinum-8468-197g-linux/one-cpu-calls/`):
+
+  | Calling order | Asynchronous dispatch left on (as before) | As the package now sets it |
+  | --- | --- | --- |
+  | `benchmark.py`'s order, waiting for each result | returns | returns |
+  | Gradient started while the readout is still running | froze in 8 of 8 runs | returned in 13 of 13 |
+  | Loss and gradient as one compiled program | returns | returns |
+  | Optimizer loop, no waiting between steps | froze in 3 of 6 runs | returned in 13 of 13 |
+  | Without `jax.jit` | returns | returns |
+
+  The optimizer loop is a race, so it does not freeze every time. The counts include the runs of a scratch version of the same test that was used while finding the cause. With all 16 CPUs of that machine nothing freezes and the setting stays as JAX has it.
+- **No number changes, and the scored time does not move:** loss and gradient are the same with the setting and without it. `v13` against `v12`, 10 shuffled rounds on one pinned core of the Intel Xeon (`bench/results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T11-12-55Z_run.json`): 0.665 s against 0.664 s (medians), 1.00 times (0.98 to 1.02), not distinguishable from noise. With one CPU nothing is given up by finishing each call first, because there is no second core to compute on in the meantime.
+- **Checks on `v13`, same machine:** `bench/validate.py` gives `PASS` with the same differences from the original as `v12`; `tests/test_host.py` and `tests/stress.py quick`, each pinned to one CPU, pass; `tests/variations.py` gives 18 `PASS`, the known `DEVIATION` and 0 `FAIL` on 19 setups (`variations/2026-11-22T11-18-29Z.json`). The official report is `official/v13-one-cpu-dispatch.json` (first run 0.665 s, `PASS`).
+- **A process-wide setting, like change 21, and why it is in:** it changes how JAX behaves for the whole process, not only for our code. It is limited to the one case where it costs nothing and prevents a freeze. The current source of XLA treats programs that call back into Python in the same way (it waits for their inputs and runs them at once); with the pinned jaxlib 0.9.0 the freeze occurs all the same, and why was not looked into.
+- **What is not established:** what exactly the frozen thread waits for inside JAX. The test shows the freeze and its absence, not the mechanism.
+- **With it, a clearer error:** the JAX fallback now says that it needs klujax when klujax is not installed. The NumPy path does not need it (see "The submission as the judges receive it" under "Correctness checks").
+
 ### Tried and not adopted
 
 - **Other settings of the factorisation** (panel size, relaxation, pivot threshold; ten combinations on the supplied and the homodyne setup, Apple M5): the current ones are the fastest, 10 to 11 ms, and larger panels or relaxation cost up to 30% more.
@@ -588,7 +612,26 @@ Change 4 was measured on Linux only (table above).
 
 ## Correctness checks
 
-- **The current version (`v11`, changes 1–18), on the Intel Xeon machine, 22 November 2026.** Change 16 replaced the solver, so every check was repeated for it. Logs: `bench/results/intel-xeon-platinum-8468-197g-linux/no-klujax-scipy-logs/`.
+- **The submitted version (`v13`, changes 1–22), first Nebius VM (Intel Xeon Platinum 8468), 22 November 2026.**
+
+  | Check | Result |
+  | --- | --- |
+  | `bench/validate.py`: every output and all 193 gradient entries against the original's arrays | `PASS`: signal 1.2e-07, noise 3.9e-08, sensitivity 6.0e-08 in log, gradient 7.6e-08 of its largest entry, 0 entries outside the tolerance (`validation/v13-one-cpu-dispatch@d234ee0a9a8c.json`) |
+  | `tests/variations.py`: 19 other setups against the original | 18 `PASS`, the known `DEVIATION` (`band-20-5000`), 0 `FAIL` (`variations/2026-11-22T11-18-29Z.json`) |
+  | `tests/one_cpu_calls.py`: five ways of calling the simulator on one CPU | all return (`one-cpu-calls/`) |
+  | `tests/test_host.py` and `tests/stress.py quick`, each pinned to one CPU | pass (run on the same code before it was committed) |
+  | Official `benchmark.py --cpus 1` through the harness | `PASS`, first run 0.665 s (`official/v13-one-cpu-dispatch.json`) |
+
+  The files are under `bench/results/intel-xeon-platinum-8468-197g-linux/`.
+- **The submission as the judges receive it** (same VM, 22 November). The repository was packed into a zip with `git archive`, unpacked in an empty folder, and given a new Python environment from its own `requirements.txt`, followed by `pip install -e .`. One run each, by hand, with the official `--cpus 1`:
+
+  | | `benchmark.py` | `benchmark_aligo.py` |
+  | --- | --- | --- |
+  | New environment from the zip | `PASS`, first run 0.678 s | `PASS`, first run 0.507 s |
+  | The same after `pip uninstall klujax` | `PASS`, first run 0.654 s | `PASS`, first run 0.504 s |
+
+  So the scored path does not depend on klujax, the one package we added to the organizers' requirements. Without it, `start_here.py` and `tests/one_cpu_calls.py` run as well; only the JAX fallback (setups with linking functions) stops, with a message that names the package. Reports: `bench/results/intel-xeon-platinum-8468-197g-linux/zip-check/`.
+- **Version `v11` (changes 1–18), on the Intel Xeon machine, 22 November 2026.** Change 16 replaced the solver, so every check was repeated for it. Logs: `bench/results/intel-xeon-platinum-8468-197g-linux/no-klujax-scipy-logs/`.
 
   | Check | Result |
   | --- | --- |
@@ -665,7 +708,7 @@ Change 4 was measured on Linux only (table above).
 ## Where the measurements are
 
 - `bench/RUNS.md` lists every run made so far, on every machine, with its result and its raw data.
-- `bench/VERSIONS.md` describes the registered versions (`v01` to `v12`; `v08` is withdrawn) and the baseline; `bench/results/` holds what the harness stored.
+- `bench/VERSIONS.md` describes the registered versions (`v01` to `v13`; `v08` is withdrawn) and the baseline; `bench/results/` holds what the harness stored.
 - `docs/no-klujax-scipy.md` is the full record of changes 16 to 18, and `docs/no-klujax-scipy-results.pdf` its summary with charts.
 - The branch `legacy-klujax` holds `main` as it was before change 16 (version `v10` plus records), in case the klujax solver is needed again.
 - `benchmarks/runs/` holds the report files of the runs made by hand before the harness was used.
@@ -694,8 +737,8 @@ python tests/test_host.py             # NumPy version against the JAX version
 - On the contest's processor type (Intel Xeon Platinum 8468) the original ran once, the noise floor of that machine has not been measured (a session for it was started and stopped; `sessions/2026-11-22T00-10-37Z_aa.json` is incomplete), and `v07` was not timed on the two extra setups. The official report file and chart of a `v11` run there are not saved yet. Both gaps are closed on a second VM of the same type, where the noise floor is ±2.4% and the official `v11` report is saved next to a run of the original on the same instance (`bench/RUNS.md`, "On a second Nebius VM of the same type"); `v07` is still not timed on the two extra setups.
 - Change 16 calls a private part of SciPy: the internal function `gstrf`, in a compiled module that is loaded from its file. Both exist in the pinned `scipy==1.18.1`. If either is missing, the code falls back to the normal import and then to the public `splu`, which is slower and gives the same results.
 - Change 16 is new code for the solves, like change 12 was for the reverse pass. It refines every solve exactly once; a setup whose matrices are worse than any we tested could need more (`REFINEMENT_STEPS` in `differometor/host.py`). `HOST_SIMULATION = False` switches back to the JAX path with klujax.
-- klujax is still a requirement, because the JAX fallback uses it.
-- On one pinned CPU, starting the gradient before the previous JAX call has finished hangs inside the call into NumPy. `benchmark.py` waits after every phase and is not affected. This is not new: `v07` hangs in the same test. A caller who runs on one CPU has to wait for each result (`jax.block_until_ready`) before starting the next call.
+- klujax is needed only by the JAX fallback (setups with linking functions), and stays in `requirements.txt` for it. Without klujax the NumPy path runs and both benchmarks print `PASS` (tested, see "The submission as the judges receive it"); the fallback then stops with a message that names the package.
+- Up to `v12`, a call into NumPy could freeze on one CPU when its program was started with an unfinished result as input. Change 22 removes that for a process that imports this package before JAX starts its backend, which is what `benchmark.py` does. It does not reach a process that started JAX's backend first, or one in which the user has switched asynchronous dispatch on through the environment; there the old rule holds: wait for each result (`jax.block_until_ready`) before starting the next call. What the frozen thread waits for inside JAX is not established.
 - The harness marks `v10` and `v11` as `unofficial-benchmark`, because their `benchmark.py` is the organizers' newer file (with aLIGO), which differs from the one at the baseline commit. Nobody on the team edited it.
 - The original could not complete the official benchmark on the 16 GB Codespace, so the official-style "before" on that machine is missing.
 - On the AMD EPYC 9334 both versions have saved reports, but their output arrays were not brought back, so there is no array-by-array comparison from that machine. The comparisons on the Mac and the Codespace cover it.

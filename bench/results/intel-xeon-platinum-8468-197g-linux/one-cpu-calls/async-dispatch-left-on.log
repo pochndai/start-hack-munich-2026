@@ -1,0 +1,13 @@
+$ python tests/one_cpu_calls.py --async-dispatch    (2026-11-22T11:18Z, commit d234ee0, Intel Xeon Platinum 8468, jax 0.9.0)
+One CPU (logical CPU 15), asynchronous dispatch left on.
+  waited       FINISHED in 0.6 s, loss 9.720663e-08, gradient norm 7.051710e+04
+               calls into NumPy: 8 (_backward on the main thread; _forward on the XLA thread tf_XLAEigen)
+  not-awaited  FROZE: nothing returned within 45 s. Last step: _backward entered on the XLA thread python
+  one-program  FINISHED in 0.4 s, loss 9.720663e-08, gradient norm 7.051710e+04
+               calls into NumPy: 6 (_backward on the main thread; _forward on the main thread)
+  loop         FINISHED in 0.8 s, loss 9.720663e-08, gradient norm 7.051710e+04
+               calls into NumPy: 12 (_backward on the main thread; _forward on the main thread)
+  eager        FINISHED in 1.0 s, loss 9.723166e-08, gradient norm 7.051710e+04
+               calls into NumPy: 3 (_backward on the main thread; _forward on the main thread)
+FROZE: not-awaited; errors: none
+exit code 1

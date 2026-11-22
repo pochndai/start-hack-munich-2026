@@ -8,7 +8,7 @@ This repository includes the public simulator source, example data, [challenge P
 
 ## Our submission
 
-This repository is our entry. The simulator in `differometor/` has been changed for speed; everything below this section is the organizers' original description of the challenge. The submitted code is the tag `v12-kept-assembly` (`v12`), which is the simulator on `main`.
+This repository is our entry. The simulator in `differometor/` has been changed for speed; everything below this section is the organizers' original description of the challenge. The submitted code is the tag `v13-one-cpu-dispatch` (`v13`), which is the simulator on `main`. It is `v12`, the version the timings below were made with, plus one setting that removes a freeze on one CPU and does not change the time (0.665 s against 0.664 s for `v12` in ten rounds on the Intel Xeon; CHANGES.md, change 22).
 
 ### Result
 
@@ -30,6 +30,7 @@ That is about 66 times faster. On another VM of the same type the original took 
 | After: `v12`, official report, one pinned core of an AMD EPYC 7763 (0.734 s) | [json](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly.json) | [png](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly.png) |
 | After: `v12`, official aLIGO report, same machine (0.595 s) | [json](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly-aligo.json) | [png](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly-aligo.png) |
 | After: `v12`, official single-run report on the Intel Xeon Platinum 8468, same VM as the original (0.657 s, `PASS`) | [json](bench/results/intel-xeon-platinum-8468-197g-linux/official/v12-kept-assembly.json), [check against the original](bench/results/intel-xeon-platinum-8468-197g-linux/validation/v12-kept-assembly@f4f5c40d53d8.json) | [png](bench/results/intel-xeon-platinum-8468-197g-linux/official/v12-kept-assembly.png) |
+| After: `v13` (the submitted code), official single-run report on the Intel Xeon Platinum 8468 (0.665 s, `PASS`) | [json](bench/results/intel-xeon-platinum-8468-197g-linux/official/v13-one-cpu-dispatch.json), [check against the original](bench/results/intel-xeon-platinum-8468-197g-linux/validation/v13-one-cpu-dispatch@d234ee0a9a8c.json) | [png](bench/results/intel-xeon-platinum-8468-197g-linux/official/v13-one-cpu-dispatch.png) |
 | After: `v11`, official report on the Intel Xeon Platinum 8468 (0.667 s) | [json](bench/results/intel-xeon-platinum-8468-197g-linux/official/v11-scipy-stacked-solver.json) | [png](bench/results/intel-xeon-platinum-8468-197g-linux/official/v11-scipy-stacked-solver.png) |
 | Before and after on one more machine (AMD EPYC 9334, `v07`: 35.62 s and 0.715 s) | [original](benchmarks/amd-epyc-9334-original.json), [ours](benchmarks/amd-epyc-9334-candidate.json) | [original](benchmarks/amd-epyc-9334-original.png), [ours](benchmarks/amd-epyc-9334-candidate.png) |
 
@@ -51,6 +52,8 @@ What we learned: after the solver, the time is in compilation and imports, not i
 - `bench/validate.py` compares every output and all 193 gradient entries with the arrays the original produced: `PASS` on the Intel Xeon, an AMD EPYC and an Apple M5 (sensitivity within 6e-08 in log).
 - `tests/variations.py` compares 19 other setups with the original (other values, frequencies, layouts, readouts, grid sizes, modulation modes): 18 `PASS` and one explained `DEVIATION`, where the original's own rounding is the larger error ([tests/variations/README.md](tests/variations/README.md), CHANGES.md "Correctness checks").
 - `tests/test_host.py` compares our NumPy path with our JAX path on 13 cases and checks the gradient against finite differences; `tests/stress.py` adds 24 random layouts from 1 Hz to 10 kHz, gradients requested out of order and from several threads, and memory over 300 evaluations.
+- `tests/one_cpu_calls.py` calls the simulator in five different orders on one pinned CPU, including an optimizer loop that never waits for a result; all return. Before change 22 two of them froze.
+- The submission was packed as a zip, unpacked on the Intel Xeon and given a new environment from its `requirements.txt`: both benchmarks print `PASS` (0.678 s and 0.507 s), and still do after `pip uninstall klujax` (0.654 s and 0.504 s).
 - All frequencies and all design variables are computed, in double precision. Nothing is cached between runs and no work is moved out of the timed region.
 
 ### Reproduce and check
@@ -64,17 +67,18 @@ python bench/validate.py WORKTREE     # every output and all 193 gradient entrie
 python tests/variations.py            # 19 other setups against the original
 python tests/test_host.py             # our NumPy path against our JAX path
 python tests/stress.py                # random layouts, threads, memory
+python tests/one_cpu_calls.py         # five ways of calling the simulator on one CPU (Linux)
 ```
 
 These commands were run from a fresh clone and a fresh environment on 22 November 2026; all pass. The very first run after installing is slower for any version, because the packages are read from disk for the first time (on a Mac we saw 10.7 s once, then 0.3 s); time the second run.
 
 ### More
 
-- **What we changed and why:** [CHANGES.md](CHANGES.md), twenty changes, each with its measurement and its correctness evidence. Version by version: [bench/VERSIONS.md](bench/VERSIONS.md).
+- **What we changed and why:** [CHANGES.md](CHANGES.md), twenty-one changes, each with its measurement and its correctness evidence. Version by version: [bench/VERSIONS.md](bench/VERSIONS.md).
 - **Every run we made:** [bench/RUNS.md](bench/RUNS.md).
-- **Dependencies:** nothing beyond the organizers' `requirements.txt` is needed on the main path, which solves with SciPy. `klujax==0.5.3` (a JAX wrapper around the sparse solver KLU, pinned in `requirements.txt` and `pyproject.toml`) is used only by the fallback for setups with linking functions.
+- **Dependencies:** nothing beyond the organizers' `requirements.txt` is needed on the main path, which solves with SciPy. `klujax==0.5.3` (a JAX wrapper around the sparse solver KLU, pinned in `requirements.txt` and `pyproject.toml`) is used only by the fallback for setups with linking functions; with klujax uninstalled both benchmarks still print `PASS`.
 - **The code before the SciPy solver** is kept on the branch `legacy-klujax`.
-- **On Linux the package changes one process-wide setting:** the C library keeps freed memory for reuse (change 21). It is skipped if `MALLOC_*` variables or `GLIBC_TUNABLES` are set.
+- **On Linux the package changes two process-wide settings:** the C library keeps freed memory for reuse (change 21; skipped if `MALLOC_*` variables or `GLIBC_TUNABLES` are set), and with exactly one CPU JAX finishes each call before it returns (change 22; skipped if `JAX_CPU_ENABLE_ASYNC_DISPATCH` is set).
 - **A caveat on timing:** on a busy shared Linux host an earlier version took between 0.74 and 2.8 s in one session. What we found out about it, and a setting that may help on such a host (`NUMPY_MADVISE_HUGEPAGE=0`), is in CHANGES.md ("The same on one pinned Linux core" and "Withdrawn").
 
 ## Start here

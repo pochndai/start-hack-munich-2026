@@ -93,6 +93,13 @@
       "parent": "v11-scipy-stacked-solver",
       "summary": "Refine only the noise weights' solve, keep the forward pass's assembled systems for the reverse pass, and reuse freed memory on Linux",
       "enabled": true
+    },
+    {
+      "name": "v13-one-cpu-dispatch",
+      "ref": "v13-one-cpu-dispatch",
+      "parent": "v12-kept-assembly",
+      "summary": "With one CPU, switch off JAX's asynchronous dispatch, so that a call into NumPy cannot freeze behind an unfinished result",
+      "enabled": true
     }
   ]
 }
