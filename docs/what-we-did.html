@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Faster Physics: what we did and why</title>
+<style>
+  @page { size: A4; margin: 18mm 17mm 18mm 17mm; }
+  :root { --ink: #16181d; --soft: #4a4f5a; --line: #d9dce3; --tint: #f3f5f9; --accent: #1f4fd6; }
+  * { box-sizing: border-box; }
+  body { font-family: -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif; color: var(--ink); font-size: 10.2pt; line-height: 1.45; margin: 0; }
+  h1 { font-size: 23pt; line-height: 1.15; margin: 0 0 4pt; letter-spacing: -0.3pt; }
+  h2 { font-size: 14pt; margin: 20pt 0 6pt; padding-top: 8pt; border-top: 1.5pt solid var(--ink); break-after: avoid; }
+  h3 { font-size: 11pt; margin: 13pt 0 4pt; break-after: avoid; }
+  p { margin: 0 0 6pt; }
+  .lead { font-size: 11.5pt; color: var(--soft); margin-bottom: 10pt; }
+  .meta { color: var(--soft); font-size: 9pt; margin-bottom: 14pt; }
+  table { border-collapse: collapse; width: 100%; margin: 6pt 0 10pt; font-size: 9.2pt; }
+  th { text-align: left; font-weight: 600; border-bottom: 1.2pt solid var(--ink); padding: 4pt 6pt 4pt 0; vertical-align: bottom; }
+  td { border-bottom: 0.6pt solid var(--line); padding: 4pt 6pt 4pt 0; vertical-align: top; }
+  tr { break-inside: avoid; }
+  td.n, th.n { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+  td.k { font-weight: 600; }
+  thead { display: table-header-group; }
+  .big { display: flex; gap: 10pt; margin: 10pt 0 6pt; }
+  .big div { flex: 1; background: var(--tint); border-radius: 5pt; padding: 9pt 10pt; }
+  .big b { display: block; font-size: 15.5pt; letter-spacing: -0.3pt; color: var(--accent); white-space: nowrap; margin-bottom: 2pt; }
+  .big span { font-size: 8.8pt; color: var(--soft); }
+  .note { background: var(--tint); border-left: 2.5pt solid var(--accent); padding: 7pt 10pt; margin: 8pt 0 10pt; font-size: 9.6pt; break-inside: avoid; }
+  code { font-family: "SF Mono", Menlo, Consolas, monospace; font-size: 8.8pt; background: var(--tint); padding: 0 2pt; border-radius: 2pt; }
+  ul { margin: 0 0 8pt; padding-left: 14pt; }
+  li { margin-bottom: 3pt; }
+  .small { font-size: 8.8pt; color: var(--soft); }
+</style>
+</head>
+<body>
+
+<h1>Faster Physics: what we did and why</h1>
+<p class="lead">Our entry for the Feyer challenge at START Hack Munich, 21 to 22 November 2026. This is the team's own record: every improvement, every choice, and what we decided against.</p>
+<p class="meta">Submitted code: tag <code>v12-kept-assembly</code> on <code>main</code>. Every number here comes from <code>CHANGES.md</code>, <code>bench/VERSIONS.md</code> and <code>bench/RUNS.md</code> in the repository, where the raw data is named.</p>
+
+<div class="big">
+  <div><b>41.31 s → 0.626 s</b><span>Complete first run, original against ours, on the judges' processor type (Intel Xeon Platinum 8468, one core, same VM)</span></div>
+  <div><b>about 66 times</b><span>faster, with every output and all 193 gradient entries checked against the original</span></div>
+  <div><b>21 changes</b><span>made one at a time, each measured and checked; one of them withdrawn again</span></div>
+</div>
+
+<h2>1. The task in plain words</h2>
+<p>Differometor is a program that simulates a gravitational-wave detector: mirrors, lasers and light paths. For a given design it works out how sensitive the detector is at 101 frequencies, and how that sensitivity changes when each of 193 design values changes (the gradient). It is written in JAX, a Python library that turns calculations into compiled programs and can compute gradients automatically.</p>
+<p>The challenge: make it faster without changing its results. What is scored is one complete first run on one processor core, including loading the libraries and compiling. The final test uses a slightly different detector than the example, so nothing may be tailored to the example. Only correct entries are ranked: the sensitivity must match the reference to 0.001%.</p>
+
+<h2>2. The five ideas behind the speed-up</h2>
+<table>
+  <thead><tr><th style="width:24%">Idea</th><th>What it means</th><th style="width:17%">Changes</th></tr></thead>
+  <tr><td class="k">Skip the zeros</td><td>The equations to solve form a table that is 99.5% zeros. A sparse solver only touches the cells that are not zero, and we only build those cells.</td><td>1, 3, 16</td></tr>
+  <tr><td class="k">Compile less</td><td>In the original, most of a first run was JAX compiling, not calculating. We first made the compiled program smaller, then moved the calculation into NumPy, which needs no compiling. JAX remains the outer shell, so the function still works with JAX's tools.</td><td>2, 4, 6 to 12, 15, 17</td></tr>
+  <tr><td class="k">Do the algebra first</td><td>Some work cancels out or can be shared: one of three solves per frequency was not needed, and the gradient can reuse what the forward calculation already has.</td><td>5, 16, 20</td></tr>
+  <tr><td class="k">Derivatives only where needed</td><td>The physics formulas were differentiated with respect to all seven of their inputs. Only inputs that depend on a design value matter.</td><td>14</td></tr>
+  <tr><td class="k">Mind the machine</td><td>Loading libraries, memory handed back and forth with the operating system, and settings of the solver all cost time on one core.</td><td>18, 19, 21</td></tr>
+</table>
+
+<h2>3. How the time came down</h2>
+<p>Complete first run on the judges' processor type, one pinned core. The three blocks are three measuring sessions; seconds from different sessions should not be compared closely, because the machines differ a little.</p>
+<table>
+  <thead><tr><th style="width:11%">Version</th><th style="width:11%">Changes</th><th>What was new</th><th class="n" style="width:13%">First run</th><th class="n" style="width:16%">Against the one before</th></tr></thead>
+  <tr><td class="k">Original</td><td></td><td>The code as given</td><td class="n">43.14 s</td><td class="n"></td></tr>
+  <tr><td class="k">v01</td><td>1</td><td>Sparse solver (KLU, through the package klujax)</td><td class="n">33.39 s</td><td class="n">1.29 times</td></tr>
+  <tr><td class="k">v02</td><td>2</td><td>Each physics formula compiled once</td><td class="n">23.66 s</td><td class="n">1.41 times</td></tr>
+  <tr><td class="k">v03</td><td>3</td><td>Only the non-zero cells are built</td><td class="n">15.66 s</td><td class="n">1.51 times</td></tr>
+  <tr><td class="k">v04</td><td>4</td><td>Compiler told to compile quickly</td><td class="n">5.17 s</td><td class="n">3.03 times</td></tr>
+  <tr><td class="k">v05</td><td>5 to 7</td><td>Third solve dropped, formulas on whole arrays, constants built with NumPy</td><td class="n">4.61 s</td><td class="n">1.12 times</td></tr>
+  <tr><td class="k">v06</td><td>8 to 11</td><td>Real numbers for parameters, no filler zeros, leaner mirror formula, conversions on the host</td><td class="n">2.77 s</td><td class="n">1.67 times</td></tr>
+  <tr><td class="k">v07</td><td>12</td><td>The calculation moved into NumPy; gradient written by hand</td><td class="n">0.90 s</td><td class="n">3.10 times</td></tr>
+  <tr><td colspan="5" class="small">Second session, same VM</td></tr>
+  <tr><td class="k">v07</td><td></td><td>(measured again)</td><td class="n">0.88 s</td><td class="n"></td></tr>
+  <tr><td class="k">v10</td><td>14, 15</td><td>No derivatives that are always zero; two fewer small compilations</td><td class="n">0.84 s</td><td class="n">1.04 times</td></tr>
+  <tr><td class="k">v11</td><td>16 to 18</td><td>SciPy's solver inside NumPy, all frequencies in one go; lighter imports</td><td class="n">0.71 s</td><td class="n">1.20 times</td></tr>
+  <tr><td colspan="5" class="small">Third session, second VM of the same type (the original took 41.31 s there)</td></tr>
+  <tr><td class="k">v11</td><td></td><td>(measured again)</td><td class="n">0.666 s</td><td class="n"></td></tr>
+  <tr><td class="k">v12</td><td>19 to 21</td><td>Less polishing in the solver, equations built once, memory reused on Linux</td><td class="n">0.626 s</td><td class="n">1.07 times</td></tr>
+</table>
+<p class="small">v08 (change 13) was withdrawn and v09 is change 14 alone; neither is a row of its own here.</p>
+
+<h2>4. Every change, one by one</h2>
+
+<h3>Stage A: a smaller compiled program (changes 1 to 11)</h3>
+<table>
+  <thead><tr><th style="width:4%">No.</th><th style="width:25%">Change</th><th>What and why</th><th style="width:22%">Effect</th></tr></thead>
+  <tr><td class="k">1</td><td>Sparse solver</td><td>The signal equations are solved with KLU, a solver for sparse tables, in place of a dense solver that works through every cell.</td><td>Forward run 13.8 s to 4.5 s</td></tr>
+  <tr><td class="k">2</td><td>Group cells by formula</td><td>JAX is told up front which physics formula fills which cell, so each formula is compiled once and only where it is used.</td><td>Compile 23.5 s to 14.2 s</td></tr>
+  <tr><td class="k">3</td><td>Sparse assembly</td><td>Only the non-zero cells of each table are built and stored.</td><td>Forward run 4.3 s to 0.16 s; memory 8.7 GB to 1.0 GB</td></tr>
+  <tr><td class="k">4</td><td>Quick-compile settings</td><td>The compiled program runs for a fraction of a second, so the compiler is asked to produce plain code quickly and skip the slow polishing.</td><td>Compile 14.0 s to 3.7 s</td></tr>
+  <tr><td class="k">5</td><td>Drop the third solve</td><td>Algebra shows that one of the three solves per frequency cancels out. The derivation is in <code>docs/third-solve-algebra.pdf</code>.</td><td rowspan="3">Together 5.17 s to 4.61 s</td></tr>
+  <tr><td class="k">6</td><td>Whole arrays</td><td>Each physics formula is called once on all its cells together, not cell by cell.</td></tr>
+  <tr><td class="k">7</td><td>Constants with NumPy</td><td>Simple sums in the build step are done in NumPy, which does not compile anything.</td></tr>
+  <tr><td class="k">8</td><td>Real parameters</td><td>Masses, lengths and angles are stored as plain numbers, not complex ones. Square roots stay complex, because a reflectivity slightly above 1 otherwise gives "not a number" (found by a test that shifts every value by 0.1%).</td><td rowspan="4">Together 4.61 s to 2.77 s</td></tr>
+  <tr><td class="k">9</td><td>No filler zeros</td><td>The formulas no longer build results that nobody reads.</td></tr>
+  <tr><td class="k">10</td><td>Leaner mirror formula</td><td>The largest formula computes its shared angles and square roots once. Same results.</td></tr>
+  <tr><td class="k">11</td><td>Conversions on the host</td><td>Turning lists into JAX arrays compiled 36 tiny programs. Going through NumPy first avoids that.</td></tr>
+</table>
+
+<h3>Stage B: the calculation leaves JAX (changes 12 to 15)</h3>
+<table>
+  <thead><tr><th style="width:4%">No.</th><th style="width:25%">Change</th><th>What and why</th><th style="width:22%">Effect</th></tr></thead>
+  <tr><td class="k">12</td><td>NumPy inside, JAX outside</td><td>The physics formulas, the building of the equations and the gradient run in NumPy. JAX only sees a couple of calls. NumPy cannot compute gradients by itself, so the formulas run on a small number type that carries its own derivatives, and the rest of the gradient is written out by hand (and checked against JAX on 13 setups). The old JAX version is kept as a fallback for setups this path does not cover.</td><td>2.77 s to 0.90 s</td></tr>
+  <tr><td class="k">13</td><td>No large memory pages (withdrawn)</td><td>On a busy shared Linux machine one session showed runs of 0.74 s jumping to 2.8 s. Switching off NumPy's request for large memory pages looked like the cure.</td><td>Cost 4% on a calm machine; benefit seen in one of two tests. Taken out.</td></tr>
+  <tr><td class="k">14</td><td>Derivatives only where needed</td><td>A formula is differentiated only with respect to inputs that depend on a design value. Results identical bit for bit.</td><td>Gradient step 131 ms to 110 ms (Linux)</td></tr>
+  <tr><td class="k">15</td><td>Frequencies reshaped in NumPy</td><td>Reshaping and copying the list of frequencies as a JAX array compiled two tiny programs.</td><td>Build step 118 ms to 99 ms (Linux)</td></tr>
+</table>
+
+<h3>Stage C: a solver that lives in NumPy (changes 16 to 18)</h3>
+<table>
+  <thead><tr><th style="width:4%">No.</th><th style="width:25%">Change</th><th>What and why</th><th style="width:22%">Effect</th></tr></thead>
+  <tr><td class="k">16</td><td>SciPy's sparse solver, all frequencies at once</td><td>The equations of all 101 frequencies are stacked into one large table and factorised in one call. One factorisation serves the forward calculation and the gradient, where there were four per frequency. One polishing step (refinement) after each solve keeps the small numbers accurate. With the solver inside NumPy, JAX has even less to compile.</td><td rowspan="3">Together 0.84 s to 0.71 s</td></tr>
+  <tr><td class="k">17</td><td>Dense tables stay out</td><td>The full tables, megabytes each, are no longer passed into the NumPy calls and kept for the gradient; only the few thousand entries that are needed travel.</td></tr>
+  <tr><td class="k">18</td><td>Lighter imports</td><td>Only the solver's own module is loaded, not the whole of SciPy's sparse package; the plotting library is loaded only when a plot is asked for.</td></tr>
+</table>
+
+<h3>Stage D: the last two hours (changes 19 to 21)</h3>
+<table>
+  <thead><tr><th style="width:4%">No.</th><th style="width:25%">Change</th><th>What and why</th><th style="width:22%">Effect</th></tr></thead>
+  <tr><td class="k">19</td><td>Polish only where it matters</td><td>The polishing step is kept for the solve that gives the noise, which depends on very small numbers. It is dropped for the solve that gives the signal. Two trial factorisations that picked the order of the equations are gone, because the solver's documentation says which order is right.</td><td rowspan="2">Together: forward step 108 ms to 95 ms, gradient step 55 ms to 34 ms</td></tr>
+  <tr><td class="k">20</td><td>Build the equations once</td><td>The gradient needs the same equations as the forward calculation, plus derivatives. They were built twice. Now the forward calculation builds them with derivatives and keeps them; the gradient picks them up with a ticket, and rebuilds them if the ticket is gone. Results identical bit for bit.</td></tr>
+  <tr><td class="k">21</td><td>Reuse memory on Linux</td><td>Linux handed every large block of memory back to the operating system when it was freed and fetched a fresh one next time. The package now asks it to keep freed memory.</td><td>Gradient step 34 ms to 27 ms</td></tr>
+</table>
+
+<h2>5. The choices we made, and what we decided against</h2>
+<table>
+  <thead><tr><th style="width:21%">Question</th><th style="width:23%">What we chose</th><th>Why, and what we turned down</th></tr></thead>
+  <tr><td class="k">Stay in JAX or leave it?</td><td>NumPy for the work, JAX as the interface</td><td>After changes 1 to 11 the first run was still mostly compiling. NumPy removes that. We kept the JAX function signature and the old JAX path as a fallback, so nothing a user relies on disappears.</td></tr>
+  <tr><td class="k">Which sparse solver?</td><td>First klujax, then SciPy's SuperLU</td><td>klujax was fast but lived in the JAX program and factorised four times per frequency. A first attempt with SciPy passed the official check but was 0.7% off on a setup with a homodyne readout (limit 0.001%), so it was not used. The second attempt added a better order of the equations and the polishing step, and passed everything.</td></tr>
+  <tr><td class="k">How strict is "same result"?</td><td>Every output and all 193 gradient entries against the original, plus 19 other setups</td><td>The official check looks at one gradient entry of 193, at about 2%. That is not enough to trust a rewrite of the gradient.</td></tr>
+  <tr><td class="k">One gradient value disagreed</td><td>Investigate, then set the limit at 0.1% per entry</td><td>A calculation without rounding showed that our value is right and the original's is 0.03% off, because of rounding in its dense solver. We changed the limit only after that was shown, and added a second limit for the gradient as a whole.</td></tr>
+  <tr><td class="k">Keep the large-page switch?</td><td>No (change 13 withdrawn)</td><td>Its cost was certain (4%), its benefit was not. The way back is written down in case the scoring machine is a busy shared one.</td></tr>
+  <tr><td class="k">Drop the polishing step entirely?</td><td>No, only for the signal</td><td>Without any polishing all tests still pass, but the noise on the homodyne setup goes from 1e-12 to 1e-08 of the reference and the gradients from 6e-08 to 2e-06. That margin was worth more than 4 ms.</td></tr>
+  <tr><td class="k">Change a process-wide memory setting?</td><td>Yes (change 21)</td><td>Unlike change 13 it is faster on a calm machine too, changes no number, and steps aside if the user has made their own setting. Its price: freed memory stays with the program.</td></tr>
+  <tr><td class="k">Tricks around the timer?</td><td>None</td><td>Loading JAX before the benchmark's timer starts, or keeping compiled programs on disk between runs, would look faster. Both move work out of the timed part and were ruled out.</td></tr>
+  <tr><td class="k">Replace a package's import to save 10 ms?</td><td>No</td><td>klujax loads the package jaxtyping for one annotation. A stand-in would have saved about 3%, but it means interfering with another package's imports.</td></tr>
+  <tr><td class="k">How to measure?</td><td>A fresh process per sample, versions in shuffled rounds, same machine only</td><td>The scored number includes imports and compiling, so a warm loop measures the wrong thing. On the Mac the noise was 16%, so small changes were confirmed on one pinned Linux core, where each change showed up in its own phase.</td></tr>
+</table>
+
+<h3>Tried and not adopted</h3>
+<ul>
+  <li><b>Sharing one factorisation inside klujax:</b> about 3% of a first run, and it needs memory released by hand, where a mistake means a crash.</li>
+  <li><b>A polishing step for every klujax solve:</b> more accurate than needed, 8% slower.</li>
+  <li><b>A hand-written gradient rule for the signal detector:</b> about 2 ms, inside the noise, and it would lose one of JAX's modes.</li>
+  <li><b>More compiler settings, other solver settings:</b> no gain; the ones in use are already the fastest we found.</li>
+  <li><b>Precomputing the index bookkeeping, slimming the build step further:</b> 1 to 2 ms each.</li>
+</ul>
+
+<h2>6. Where the time goes now</h2>
+<p>Version 12 on the judges' processor type, medians of ten runs, in milliseconds.</p>
+<table>
+  <thead><tr><th>Step</th><th class="n" style="width:12%">Time</th><th style="width:52%">Whose time is it?</th></tr></thead>
+  <tr><td>Loading the libraries</td><td class="n">292</td><td>Almost all of it is <code>import jax</code>, done by the benchmark before our package loads</td></tr>
+  <tr><td>Building the setup</td><td class="n">82</td><td>About half ours, half the benchmark's own small compilations</td></tr>
+  <tr><td>Forward: trace and compile</td><td class="n">17</td><td>Ours, close to the least a JAX function costs</td></tr>
+  <tr><td>Forward: run</td><td class="n">98</td><td>Ours; a third of it is the one factorisation</td></tr>
+  <tr><td>Readout: trace and compile</td><td class="n">61</td><td>The benchmark's own function</td></tr>
+  <tr><td>Gradient: trace and compile</td><td class="n">43</td><td>About half is the benchmark's readout</td></tr>
+  <tr><td>Gradient: run</td><td class="n">27</td><td>Ours</td></tr>
+  <tr><td><b>Complete first run</b></td><td class="n"><b>626</b></td><td></td></tr>
+</table>
+<div class="note">About 0.42 s of this is outside our code. That is our estimate of the floor on that processor: even a simulator that took no time at all would not get below it, because the benchmark itself loads JAX and compiles its readout. A reported 0.4 s first run on that processor would be at or below the floor, so it is worth asking how it was measured (which machine, first run or repeat, pinned to one core or not).</div>
+
+<h2>7. How we know it is still right</h2>
+<ul>
+  <li><b>The official check:</b> both benchmarks print PASS. The distance from the public reference is 5.374e-06 in log sensitivity (limit 1e-5), the same as the original's own.</li>
+  <li><b>Against the original, number by number:</b> every output and all 193 gradient entries (<code>bench/validate.py</code>), on the Intel Xeon, an AMD EPYC and the Mac. Sensitivity agrees to 6e-08 in log.</li>
+  <li><b>19 other setups:</b> other values, frequencies, layouts, readouts, grid sizes and modulation modes (<code>tests/variations.py</code>). 18 pass. One shows a deviation in two gradient values, and there the original is the one further from the exact answer.</li>
+  <li><b>NumPy path against JAX path:</b> 13 cases plus finite differences for one design value of every kind (<code>tests/test_host.py</code>), and the 19 derivative rules derived by hand (<code>docs/component-gradient-rules.pdf</code>).</li>
+  <li><b>Stress test of v12:</b> 24 random layouts from 1 Hz to 10 kHz, gradients asked for out of order and from six threads at once, memory over 300 evaluations (<code>tests/stress.py</code>). Passed on the Mac and on Linux.</li>
+  <li><b>From scratch:</b> a fresh clone from GitHub with a fresh environment from <code>requirements.txt</code> runs both benchmarks and the checks to PASS.</li>
+</ul>
+
+<h2>8. What we learned</h2>
+<ul>
+  <li><b>Find where the time goes before changing anything.</b> The first surprise was that compiling, not arithmetic, was most of a run. The last was that half of what is left is one import.</li>
+  <li><b>One change at a time.</b> Each could be measured, checked and, like change 13, taken out again.</li>
+  <li><b>A fast wrong answer is worth nothing.</b> The first SciPy attempt passed the official check and was still wrong on another setup. Only the wider tests caught it.</li>
+  <li><b>The reference can be the inaccurate one.</b> When ours and the original disagreed on one gradient value, a calculation without rounding settled it.</li>
+  <li><b>Noise decides what you may claim.</b> Several changes were real in their own phase and invisible in the total on a laptop. We claimed them only after a pinned Linux core showed them.</li>
+  <li><b>A merge can undo a decision.</b> The inaccurate SciPy experiment once reached <code>main</code> by mistake; the tests showed it within minutes.</li>
+</ul>
+
+<h2>9. Known limits and open points</h2>
+<ul>
+  <li>The NumPy path computes gradients in reverse mode only, and only with respect to the design values. Setups with custom linking functions take the slower JAX path (about 2.5 s on the judges' processor type).</li>
+  <li>A negative reflectivity gives "not a number" in ours and a number in the original. The optimisation examples bound reflectivities to 0 to 1.</li>
+  <li>On a busy shared machine an earlier version showed first runs between 0.74 and 2.8 s. If the scoring machine is such a machine, <code>NUMPY_MADVISE_HUGEPAGE=0</code> is the setting to try.</li>
+  <li>The single-run official report of v12 on the Intel Xeon is not in the repository (the ten-run session and the check against the original are). <code>python bench/run.py official --versions v12-kept-assembly</code> on that machine produces it.</li>
+  <li>The repository is private: the judges need access, or it has to be made public.</li>
+</ul>
+
+</body>
+</html>
