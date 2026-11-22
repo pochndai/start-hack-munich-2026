@@ -61,6 +61,35 @@ def _reuse_freed_memory():
 
 _reuse_freed_memory()
 
+
+def _finish_each_call_with_one_cpu():
+    """
+    When the process has one CPU, switch off JAX's asynchronous dispatch.
+
+    By default a JAX call can return before its result exists. A program that is started with
+    such an unfinished result as input is run later, on one of XLA's worker threads. With one
+    CPU, a program that calls into NumPy (`differometor.host`) does not come back from there:
+    its call into NumPy waits for its arguments and never gets them. An optimizer loop that
+    does not wait between steps is enough to cause it (`tests/one_cpu_calls.py` shows the
+    freeze and its absence). With the switch off every call finishes before it returns, so no
+    program starts with an unfinished input. With one CPU nothing is given up, since there is
+    no second core to compute on in the meantime, and no number changes. The switch is read
+    when JAX starts its backend, so it is set here, at import; a setting the user made through
+    the environment is left alone, and so is every process with more than one CPU.
+    """
+    if "JAX_CPU_ENABLE_ASYNC_DISPATCH" in os.environ or not hasattr(os, "sched_getaffinity"):
+        return
+    try:
+        if len(os.sched_getaffinity(0)) == 1:
+            import jax
+
+            jax.config.update("jax_cpu_enable_async_dispatch", False)
+    except Exception:
+        pass
+
+
+_finish_each_call_with_one_cpu()
+
 from differometor.setups import Setup
 from differometor.simulate import run, run_build_step, run_simulation_step, simulate
 from differometor.components import power_detector, signal_detector

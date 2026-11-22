@@ -342,7 +342,13 @@ def simulate_jax(
     - Conjugation and block manipulation follow the conventions used for upper and lower
       sidebands in frequency-domain interferometer models.
     """
-    import klujax  # only this fallback needs it; `differometor.host` solves with SciPy
+    try:
+        import klujax  # only this fallback needs it; `differometor.host` solves with SciPy
+    except ImportError as error:
+        raise ImportError(
+            "This call takes Differometor's JAX path (the setup has linking functions, or HOST_SIMULATION is off), "
+            "which solves with klujax. Install it with: python -m pip install klujax==0.5.3"
+        ) from error
 
     # Insert optimized parameter values into the base parameter row.
     parameters = parameters.at[[0], optimized_parameter_indices].set(
