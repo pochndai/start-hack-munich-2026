@@ -38,6 +38,7 @@ or block-shift errors are difficult to debug in linearized optical simulations.
 """
 
 import numpy as np
+import jax
 import jax.numpy as jnp
 from differometor.setups import Setup
 from collections import defaultdict
@@ -1751,12 +1752,17 @@ def prepare_arrays(
 
     # Normalize changing_values to shape (V, R) if provided.
     if changing_values is not None:
-        # In NumPy: on a JAX array the reshape and the copy would each be compiled as a small program.
-        changing_values = np.asarray(changing_values)
+        # A concrete JAX array is reshaped and copied on the host: on the device each of the
+        # two compiles a small program at first use. JAX arrays cannot be modified, so the
+        # two results can then be one array.
+        on_device = isinstance(changing_values, jax.Array) and not isinstance(changing_values, jax.core.Tracer)
+        if on_device:
+            changing_values = np.asarray(changing_values)
         if len(changing_values.shape) == 1:
             changing_values = changing_values.reshape(1, -1)
-        changing_values = device_array(changing_values)
-        signal_changing_values = changing_values
+        signal_changing_values = changing_values.copy()
+        if on_device:
+            changing_values = signal_changing_values = jnp.asarray(signal_changing_values)
 
     if len(carrier_changing_parameter_indices) != 0 and len(signal_changing_parameter_indices) != 0:
         raise ValueError("This combination of changing component-parameter pairs is not supported yet.")

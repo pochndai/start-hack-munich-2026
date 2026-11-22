@@ -33,7 +33,7 @@ python tests/test_host.py             # our NumPy path against our JAX path
 ```
 
 - **The second benchmark (aLIGO):** `python benchmark_aligo.py` prints `PASS` with our code; on the same laptop the complete first run takes 0.38 s against 4.10 s for the original ([reports](benchmarks/mac-aligo-candidate.json), details in CHANGES.md).
-- **What we changed and why:** [CHANGES.md](CHANGES.md), twelve changes, each with its measurement and its correctness evidence.
+- **What we changed and why:** [CHANGES.md](CHANGES.md), fourteen changes, each with its measurement and its correctness evidence.
 - **Other setups:** the final evaluation uses a variation of the example, so [tests/variations/README.md](tests/variations/README.md) lists 19 varied setups (other values, frequencies, layouts, readouts, grid sizes, modulation modes) that are compared with the original code.
 - **Every run we made:** [bench/RUNS.md](bench/RUNS.md).
 - **One added dependency:** `klujax==0.5.3`, a JAX wrapper around the sparse solver KLU, pinned in `requirements.txt` and `pyproject.toml`.

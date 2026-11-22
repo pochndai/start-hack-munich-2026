@@ -216,20 +216,19 @@ _UNARY = {
 
 class DualInputs:
     """
-    The seven inputs of a component function, those in `active` seeded with their own unit derivative.
+    The seven inputs of a component function as `Dual` values.
 
-    The other inputs are handed over as plain numbers, so nothing is differentiated with
-    respect to them.
+    Only the inputs listed in `seeded` get a derivative of their own; the tangent axis has
+    one entry per seeded input, and every other input carries zeros there.
     """
 
-    def __init__(self, inputs, active):
-        self.inputs, self.active = inputs, list(active)
+    def __init__(self, inputs, seeded):
+        self.inputs = inputs
+        self.seeded = seeded
 
     def __getitem__(self, index):
-        if index not in self.active:
-            return self.inputs[index]
-        tangent = np.zeros((len(self.active),) + (1,) * (self.inputs.ndim - 1))
-        tangent[self.active.index(index)] = 1.0
+        tangent = np.zeros((len(self.seeded),) + (1,) * (self.inputs.ndim - 1))
+        tangent[self.seeded == index] = 1.0
         return Dual(self.inputs[index], tangent)
 
 
@@ -242,15 +241,17 @@ def _last_writes(*indices) -> np.ndarray:
     return keep
 
 
-def _evaluate(parameters, function_input_indices, output_indices, function_indices, differentiable):
+def _evaluate(parameters, function_input_indices, output_indices, function_indices, active):
     """
     NumPy counterpart of `differometor.simulate.evaluate`.
 
-    Returns the selected outputs, shape (V, M), and, if `differentiable` is given, a
-    function that maps cotangents of those outputs to cotangents of `parameters`, shape
-    (V, P). `differentiable` marks the parameters whose cotangent is wanted, shape (P,);
-    the derivatives with respect to all others are not computed and their cotangents
-    stay zero.
+    Returns the selected outputs, shape (V, M), and, unless `active` is None, a function
+    that maps cotangents of those outputs to cotangents of `parameters`, shape (V, P).
+
+    `active` marks the parameters that depend on the optimized values, shape (P,).
+    Derivatives are taken only with respect to function inputs that read such a parameter
+    somewhere; the cotangent of every other parameter is discarded by the caller, so it is
+    left at zero here.
     """
     output_rows, output_coefficients = output_indices
     value_count = parameters.shape[0]
@@ -259,9 +260,9 @@ def _evaluate(parameters, function_input_indices, output_indices, function_indic
     for function_index in np.unique(function_indices):
         inputs = np.nonzero(function_indices == function_index)[0]
         function_inputs = np.moveaxis(parameters[:, function_input_indices[inputs]], -1, 0)
-        active = () if differentiable is None else np.nonzero(differentiable[function_input_indices[inputs]].any(axis=0))[0]
+        seeded = () if active is None else np.nonzero(active[function_input_indices[inputs]].any(axis=0))[0]
         coefficients = NUMPY_FUNCTIONS[function_index](
-            DualInputs(function_inputs, active) if len(active) else function_inputs
+            DualInputs(function_inputs, seeded) if len(seeded) else function_inputs
         )
         from_this_function = np.isin(output_rows, inputs)
         for coefficient in np.unique(output_coefficients[from_this_function]):
@@ -271,19 +272,19 @@ def _evaluate(parameters, function_input_indices, output_indices, function_indic
             block = np.broadcast_to(_value(entry), (value_count, len(inputs)))
             outputs[:, selected] = block[:, positions]
             if isinstance(entry, Dual):
-                tangent = np.broadcast_to(entry.tangent, (len(active), value_count, len(inputs)))
-                blocks.append((inputs, selected, positions, tangent, active))
-    if differentiable is None:
+                tangent = np.broadcast_to(entry.tangent, (len(seeded), value_count, len(inputs)))
+                blocks.append((inputs, selected, positions, tangent, seeded))
+    if active is None:
         return outputs, None
 
     def pull_back(output_cotangents):
         parameter_cotangents = np.zeros(parameters.shape)
         everything = slice(None)
-        for inputs, selected, positions, tangent, active in blocks:
+        for inputs, selected, positions, tangent, seeded in blocks:
             per_input = np.zeros((value_count, len(inputs)), dtype=np.complex128)
             np.add.at(per_input, (everything, positions), output_cotangents[:, selected])
             contributions = np.real(per_input * tangent)
-            for contribution, argument in zip(contributions, active):
+            for contribution, argument in zip(contributions, seeded):
                 np.add.at(
                     parameter_cotangents,
                     (everything, function_input_indices[inputs, argument]),
@@ -319,12 +320,13 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
     parameters[0, a["optimized_parameter_indices"]] = optimized_parameters[a["optimized_value_indices"]]
     # Parameter linking. Only identity links reach this function (see `supported`).
     parameters[0, a["indices_to_link"]] = parameters[0, a["linked_indices"]]
-    differentiable = None
+    # Which parameters depend on the optimized values: the two assignments above, on flags.
+    # The swept parameters stay flagged; `_backward` drops their cotangents, as before.
+    active = None
     if differentiate:
-        # Cotangents are only wanted for the optimized parameters and for the parameters linked to them.
-        differentiable = np.zeros(parameters.shape[1], dtype=bool)
-        differentiable[a["optimized_parameter_indices"]] = True
-        np.logical_or.at(differentiable, a["indices_to_link"], differentiable[a["linked_indices"]])
+        active = np.zeros(parameters.shape[1], dtype=bool)
+        active[a["optimized_parameter_indices"]] = True
+        active[a["indices_to_link"]] = active[a["linked_indices"]]
 
     # Quadrature-homodyne-detector phases, multiplied into the selection vectors.
     s["phases"] = np.exp(1j * np.radians(parameters[0, a["qhd_parameter_indices"]]))
@@ -340,7 +342,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
         a["carrier_function_input_indices"],
         static["carrier_output_indices"],
         static["carrier_function_indices"],
-        differentiable,
+        active,
     )
     carrier_count = parameters.shape[0]
     carrier_matrix = np.broadcast_to(
@@ -365,7 +367,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
         a["signal_function_input_indices"],
         static["signal_output_indices"],
         static["signal_function_indices"],
-        differentiable,
+        active,
     )
     values[:, layout["update_slots"]] = signal_outputs
     placing_slots = layout["placing_slots"]
@@ -395,7 +397,7 @@ def _assemble(optimized_parameters, a, static, differentiate, carrier=None):
         a["noise_function_input_indices"],
         static["noise_output_indices"],
         static["noise_function_indices"],
-        differentiable,
+        active,
     )
     noise_values[:, noise_layout["update_slots"]] = noise_outputs
 
