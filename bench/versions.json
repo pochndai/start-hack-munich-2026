@@ -86,6 +86,13 @@
       "parent": "v10-host-swept-values",
       "summary": "Solve with SciPy's sparse LU inside the host callbacks: all frequencies in one factorisation, one factorisation per evaluation",
       "enabled": true
+    },
+    {
+      "name": "v12-kept-assembly",
+      "ref": "v12-kept-assembly",
+      "parent": "v11-scipy-stacked-solver",
+      "summary": "Refine only the noise weights' solve, keep the forward pass's assembled systems for the reverse pass, and reuse freed memory on Linux",
+      "enabled": true
     }
   ]
 }

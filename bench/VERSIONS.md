@@ -376,3 +376,45 @@ Two other setups on the same VM, by hand (`CHANGES.md`, "Changes 16 to 18 measur
 - Tried and not adopted, with the measurements in `docs/no-klujax-scipy.md`: Krylov methods (no convergence in 2,000 iterations), a banded LAPACK solver (three times slower), scaling rows and columns without refinement, plain SuperLU without refinement (up to 5e-04 off on Voyager), loading SciPy's sparse-product module directly (49 ms to load).
 - Known and unchanged from v07: on one pinned CPU, starting the gradient before the previous JAX call has finished hangs inside the host callback. `benchmark.py` waits after every phase and is not affected.
 - The harness marks this version and v10 `unofficial-benchmark` because their `benchmark.py` is the organizers' newer file (with aLIGO), which differs from the one at the baseline commit. Nobody on the team edited it.
+
+## v12-kept-assembly
+
+- **Date:** 2026-11-22
+- **Commit:** `f4f5c40d53d8` (tag `v12-kept-assembly`)
+- **Builds on:** v11-scipy-stacked-solver
+- **Summary:** Refine only the noise weights' solve, keep the forward pass's assembled systems for the reverse pass, and reuse freed memory on Linux
+
+**What changed**
+
+Three changes on top of v11, changes 19 to 21 in `CHANGES.md`:
+
+- **Refinement only where it is needed** (`0960d15`, `differometor/host.py`). v11 refined every sparse solve once. The solve for the noise weights keeps that step (`REFINEMENT_STEPS`); the solve that gives the signal and the noise's adjoint is now a plain solve (`SIGNAL_REFINEMENT_STEPS = 0`). The column order of the factorisation is taken from SuperLU's permutation by its documented convention, so the two trial factorisations that chose between the two readings are gone.
+- **The forward pass keeps its assembled systems for the reverse pass** (`f1bc7a7`). The reverse pass used to assemble the carrier, signal and noise systems a second time to get the derivatives of the component functions. A forward pass with a pullback now assembles them with those derivatives and keeps them on the host (`_keep`, at most two); JAX carries a ticket. A reverse pass whose ticket is gone assembles again. The signal entries are conjugated in place and no longer copied.
+- **On Linux, freed memory is kept for reuse** (`f4f5c40`, `differometor/__init__.py`): three `mallopt` settings of the C library at import, unless the user has set the corresponding `MALLOC_*` variables or `GLIBC_TUNABLES`.
+
+**Why it is faster**
+
+The first forward call does one triangular solve and one matrix product less per right-hand side and two small factorisations less. The gradient call no longer evaluates the component functions and rebuilds three systems. On Linux, glibc returned every freed array of a megabyte or more to the operating system and fetched the next one fresh, so each was paid for again in page faults; the gradient call, which runs after the forward call has freed its arrays, gains most from keeping them.
+
+**Why it is still correct**
+
+- The second change is bit-for-bit: all outputs and gradients of five setups (supplied, second UIFO, aLIGO, Voyager, a random 3x3 layout) are byte-identical before and after it (20 arrays). The third changes only where memory comes from.
+- The first change alters rounding. Against v11 the gradients for random weights move by at most 1.5e-09 of their largest entry on those five setups. In `tests/test_host.py` (NumPy path against the JAX path) the noise is unchanged from v11 (5e-10 on the supplied setup, 1e-12 and 2e-13 on the two homodyne setups), the gradients are at the same level (6e-08 on the second UIFO), and the signal of the random layouts is within 1.4e-10 where v11 had 2e-15; the judges' limit is 1e-5 in log sensitivity.
+- Apple M5, on the state with the first two changes: `bench/validate.py WORKTREE` `PASS` (sensitivity 6.1e-08 in log from the original, entry 158 at 0.29 of the allowed difference, 5.374e-06 from the public reference); `tests/test_host.py` `ALL CHECKS PASSED`, including a new case in which a pullback is used after three later forward passes; `tests/refined_solves.py supplied`: 0 gradient entries off by over 0.1%; `tests/variations.py`: 18 `PASS` and the one known `DEVIATION` (20 to 5000 Hz); `benchmark_aligo.py` `PASS`.
+- Intel Xeon Platinum 8468 (second Nebius VM), on the tagged commit: `bench/validate.py --force` `PASS` (`results/intel-xeon-platinum-8468-197g-linux/validation/f4f5c40@f4f5c40d53d8.json`).
+
+**Result**
+
+Intel Xeon Platinum 8468 (second Nebius VM, pinned to logical CPU 15 with the official `--cpus 1`, 32 GiB memory cap, swap off), 10 shuffled rounds, a fresh process per run, `results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T10-05-52Z_run.json`; the session lists this version under its commit, `f4f5c40`:
+
+| Version | Complete first run (median) | Fastest | Slowest | Forward run | Gradient run |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `v11` | 0.666 s | 0.650 s | 0.681 s | 107.8 ms | 55.1 ms |
+| first two changes (`f1bc7a7`) | 0.631 s | 0.620 s | 0.640 s | 95.3 ms | 33.7 ms |
+| `v12` (`f4f5c40`) | 0.626 s | 0.612 s | 0.640 s | 98.1 ms | 27.1 ms |
+
+`v12` against `v11` within each round: 1.07x (1.03 to 1.11), faster in 10 of 10 rounds; the noise floor of that machine is +/-2.4% (`sessions/2026-11-22T09-54-18Z_aa.json`). The memory setting on its own (`f4f5c40` against `f1bc7a7`) is 1.01x (0.98 to 1.03), inside that noise for the total; its effect shows in the gradient run, 27 ms against 34 ms. One pinned core of an AMD EPYC 7763 (GitHub Codespace), 8 rounds, run from a copy of the repository, session not stored here: 0.791 s for v11, 0.748 s with the first two changes, 0.739 s with all three; gradient run 54.9, 35.1 and 26.2 ms. Apple M5, by hand, alternating fresh runs: forward run 36.5 to 28.8 ms with the first change (8 runs each), gradient run 14.6 to 9.8 ms with the second (10 runs each).
+
+**Dead ends and notes**
+
+Tried on the way and not adopted, all on the Apple M5: dropping refinement for every solve (all tests pass, but the homodyne setup's noise goes from 1e-12 to 1e-08 and its gradients from 6e-08 to 2e-06, for 4 ms more); a hand-written gradient rule for `signal_detector` (about 2 ms of the benchmark's readout compilation, inside the noise, and it would lose forward-mode differentiation); five more XLA flags (no effect, and `xla_disable_all_hlo_passes` does not compile). The memory setting is process-wide: freed memory stays with the process.

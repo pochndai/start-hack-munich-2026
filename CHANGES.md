@@ -4,7 +4,9 @@ Everything we changed in Differometor for the Feyer "Faster Physics" challenge, 
 
 ## Result so far
 
-**The current version (changes 1–18, `v11`) on the processor type the organizers use.** Intel Xeon Platinum 8468 (a teammate's Nebius machine, 197 GB RAM, Python 3.12.3), the official `benchmark.py --cpus 1`, pinned to one logical CPU, inside a 32 GiB memory cap with swap off. The original ran once there. Our versions ran five times each in shuffled order, a fresh process per run, and the table gives medians (`bench/results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T00-14-25Z_run.json`). This is the comparison to quote:
+**The current version is `v12` (changes 1–21): 0.626 s on the processor type the organizers use.** Intel Xeon Platinum 8468 (second Nebius VM, pinned to one logical CPU with the official `benchmark.py --cpus 1`, 32 GiB memory cap, swap off), median of 10 fresh runs, 0.612 to 0.640 s. In the same session `v11` took 0.666 s; `v12` was faster in all ten rounds, by 1.07 times (1.03 to 1.11), and `bench/validate.py` gives `PASS` for it there. The original was not run on that VM; on the first VM it took 43.14 s and `v11` 0.71 s (next table). Details: "Changes 19 to 21 measured".
+
+**The version before it (changes 1–18, `v11`) with the original on the same VM.** Intel Xeon Platinum 8468 (a teammate's Nebius machine, 197 GB RAM, Python 3.12.3), the official `benchmark.py --cpus 1`, pinned to one logical CPU, inside a 32 GiB memory cap with swap off. The original ran once there. Our versions ran five times each in shuffled order, a fresh process per run, and the table gives medians (`bench/results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T00-14-25Z_run.json`). This is the comparison to quote:
 
 | Step | Original (one run) | Changes 1–12 (`v07`) | Changes 1–15 (`v10`) | Changes 1–18 (`v11`) |
 | --- | ---: | ---: | ---: | ---: |
@@ -449,7 +451,53 @@ The same pair on the Mac, by a teammate (Apple M5 MacBook Air, 16 GB, thread lim
 
 The longer record of this work, with every experiment, is [`docs/no-klujax-scipy.md`](docs/no-klujax-scipy.md); a summary with charts is [`docs/no-klujax-scipy-results.pdf`](docs/no-klujax-scipy-results.pdf).
 
+### 19. Refine only the solve that needs it
+
+- **What:** change 16 refined every sparse solve once (solve, compute the residual, solve again for the correction). The solve for the noise weights keeps that step. The solve that gives the signal and the adjoint of the noise is now a plain solve. The column order of the factorisation is taken from SuperLU's permutation by its documented convention, without the two trial factorisations that chose between the two readings.
+- **Why:** refinement is there for the small entries of a solution, which the noise depends on. The signal is read out where it is large, and the adjoint only enters the gradient.
+- **Effect:** the first forward call went from 36.5 to 28.8 ms on the Apple M5 (8 alternating fresh runs each).
+- **Accuracy:** this changes rounding. NumPy path against JAX path (`tests/test_host.py`): noise unchanged (5e-10 on the supplied setup, 1e-12 and 2e-13 on the two homodyne setups), gradients at the same level (6e-08 on the second UIFO), signal of the random layouts within 1.4e-10 where it was 2e-15. Against the original, `bench/validate.py` gives sensitivity 6.1e-08 in log (limit 1e-5) and `PASS`.
+
+### 20. Keep the assembled systems of the forward pass for the reverse pass
+
+- **What:** a forward pass that will be followed by a gradient builds the carrier, signal and noise systems together with the derivatives of the component functions and keeps them on the host. JAX carries a ticket for them. The reverse pass used to build all of it a second time.
+- **Why:** building the systems was a third of the gradient call.
+- **Safe by construction:** the ticket is a random number, at most two sets are kept, and a reverse pass whose ticket is gone, or whose parameters do not match, builds the systems again as before. `tests/test_host.py` has that case.
+- **Effect:** the gradient call went from 14.6 to 9.8 ms on the Apple M5 (10 alternating fresh runs each), for 1.4 ms more in the forward call. Outputs and gradients are bit-for-bit the same (20 arrays of five setups compared byte by byte).
+
+### 21. On Linux, keep freed memory for reuse
+
+- **What:** at import the package sets three options of the C library's memory manager (`mallopt`): large blocks come from the heap, and the heap is not handed back when they are freed. Skipped if the user has set the corresponding `MALLOC_*` variables or `GLIBC_TUNABLES`.
+- **Why:** the simulation creates and frees many arrays of a megabyte or more. By default glibc returns each to the operating system and fetches the next one fresh, and every fresh page costs a page fault.
+- **Effect:** the gradient call went from 34 to 27 ms on the Intel Xeon Platinum 8468 and from 35 to 26 ms on an AMD EPYC 7763. No number changes. On macOS it does nothing.
+- **Cost:** freed memory stays with the process.
+- **How this differs from the withdrawn change 13:** that one switched off something NumPy does and cost 4% on a quiet machine; this one is faster on a quiet machine.
+
+### Changes 19 to 21 measured
+
+Intel Xeon Platinum 8468 (second Nebius VM, pinned to logical CPU 15 with the official `--cpus 1`, 32 GiB memory cap, swap off), 10 shuffled rounds, a fresh process per run (`bench/results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T10-05-52Z_run.json`), medians in milliseconds. The session lists `v12` under its commit, `f4f5c40`:
+
+| Step | `v11` (changes 1–18) | + changes 19 and 20 (`f1bc7a7`) | `v12` (changes 1–21) | `v12` minus `v11` |
+| --- | ---: | ---: | ---: | ---: |
+| Imports | 294 | 292 | 292 | −2 |
+| Build the setup | 80 | 80 | 82 | +2 |
+| Forward: trace and compile | 17 | 18 | 17 | 0 |
+| Forward: run | 108 | 95 | 98 | −10 |
+| Readout: trace and compile (the benchmark's own function) | 61 | 61 | 61 | 0 |
+| Gradient: trace and compile | 43 | 42 | 43 | 0 |
+| Gradient: run | 55 | 34 | 27 | −28 |
+| **Complete first run** | **666** | **631** | **626** | **−40** |
+| Fastest and slowest of the ten runs | 650 and 681 | 620 and 640 | 612 and 640 | |
+
+`v12` against `v11`, as the ratio within each round: 1.07 times faster (1.03 to 1.11), in all ten rounds; the noise floor of that machine is ±2.4%. Change 21 on its own is 1.01 times (0.98 to 1.03) for the total, inside the noise; its effect is the gradient run. `bench/validate.py` on that machine gives `PASS` for `v12`. `v11` took 0.71 s in the session of the night before on the first VM and 0.67 s here: a different VM, so compare within a session only.
+
+One pinned core of an AMD EPYC 7763 (GitHub Codespace, 8 shuffled rounds, run from a copy of the repository, session not stored here): 0.791 s for `v11`, 0.748 s with changes 19 and 20, 0.739 s with change 21 as well.
+
 ### Tried and not adopted
+
+- **No refinement in any solve:** all tests pass, but on the second UIFO setup (homodyne) the noise moves from 1e-12 to 1e-08 of the JAX result and the gradients from 6e-08 to 2e-06. Change 19 keeps the refinement where those numbers come from.
+- **A hand-written gradient rule for `signal_detector`**, to shorten the benchmark's readout compilation: about 2 ms on the Apple M5, inside the noise, and forward-mode differentiation of that function would be lost.
+- **More compiler flags** (`xla_cpu_enable_fast_math`, `xla_cpu_copy_insertion_use_region_analysis`, `xla_dump_disable_metadata`, `xla_disable_all_hlo_passes`): no effect on the Apple M5; the last one does not compile the programs at all.
 
 From the work on changes 16 to 18 (measurements and machines in [`docs/no-klujax-scipy.md`](docs/no-klujax-scipy.md); "development laptop" means short runs under Windows that guided a decision and are not recorded results):
 
@@ -602,7 +650,7 @@ Change 4 was measured on Linux only (table above).
 ## Where the measurements are
 
 - `bench/RUNS.md` lists every run made so far, on every machine, with its result and its raw data.
-- `bench/VERSIONS.md` describes the registered versions (`v01` to `v11`; `v08` is withdrawn) and the baseline; `bench/results/` holds what the harness stored.
+- `bench/VERSIONS.md` describes the registered versions (`v01` to `v12`; `v08` is withdrawn) and the baseline; `bench/results/` holds what the harness stored.
 - `docs/no-klujax-scipy.md` is the full record of changes 16 to 18, and `docs/no-klujax-scipy-results.pdf` its summary with charts.
 - The branch `legacy-klujax` holds `main` as it was before change 16 (version `v10` plus records), in case the klujax solver is needed again.
 - `benchmarks/runs/` holds the report files of the runs made by hand before the harness was used.
