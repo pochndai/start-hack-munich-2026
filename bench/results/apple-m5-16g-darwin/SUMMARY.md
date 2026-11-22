@@ -3,7 +3,7 @@
 - Machine: Apple M5, 16 GiB RAM, macOS-26.6-arm64-arm-64bit
 - CPU limit: thread limits `MKL_NUM_THREADS=1`, `NPROC=1`, `NUMEXPR_NUM_THREADS=1`, `OMP_NUM_THREADS=1`, `OPENBLAS_NUM_THREADS=1`, `VECLIB_MAXIMUM_THREADS=1`
 - Noise floor: +/- 16.2 % (A/A session `2026-11-21T20-38-57Z_aa`). Smaller differences are not speed-ups.
-- Sessions on record: 5
+- Sessions on record: 6
 
 ## Latest full session: `2026-11-21T22-11-06Z_full`
 
@@ -21,15 +21,14 @@
 
 Stored baseline: v00-baseline took 16.41 s in its single run on 2026-11-21, under memory pressure. It is not rerun: each factor against it is this number divided by a new sample.
 
-## Latest session: `2026-11-21T23-38-07Z_run`
+## Latest session: `2026-11-22T00-31-37Z_run`
 
 10 rounds, shuffled order per round, one fresh process per sample.
 
-| Version                | n     | median s | min s | spread | vs v00-baseline (stored) | vs parent          | Setup | Compile | Forward | Sens. | Grad. | peak mem | cpu/wall | valid | flags                             |
-| ---------------------- | ----- | -------- | ----- | ------ | ------------------------ | ------------------ | ----- | ------- | ------- | ----- | ----- | -------- | -------- | ----- | --------------------------------- |
-| v07-numpy-host         | 10/10 | 0.44     | 0.42  | 70.0%  | 36.92x (22.56-39.43)*    | -                  | 0.31  | 0.07    | 0.03    | 0.00  | 0.04  | 0.22 GiB | 0.90     | PASS  | memory 3/10                       |
-| v09-active-derivatives | 10/10 | 0.43     | 0.34  | 88.5%  | 38.20x (22.66-47.74)*    | 1.01x (0.94-1.37)~ | 0.30  | 0.07    | 0.03    | 0.00  | 0.03  | 0.21 GiB | 0.90     | PASS  | memory 2/10, unofficial-benchmark |
-| v10-host-swept-values  | 10/10 | 0.43     | 0.33  | 87.2%  | 37.74x (23.03-49.25)*    | 1.00x (0.77-1.75)~ | 0.30  | 0.07    | 0.03    | 0.00  | 0.03  | 0.21 GiB | 0.91     | PASS  | memory 2/10, unofficial-benchmark |
+| Version                | n     | median s | min s | spread | vs v00-baseline (stored) | vs parent | Setup | Compile | Forward | Sens. | Grad. | peak mem | cpu/wall | valid | flags                             |
+| ---------------------- | ----- | -------- | ----- | ------ | ------------------------ | --------- | ----- | ------- | ------- | ----- | ----- | -------- | -------- | ----- | --------------------------------- |
+| v10-host-swept-values  | 10/10 | 0.41     | 0.33  | 26.4%  | 39.98x (37.62-50.04)*    | -         | 0.28  | 0.07    | 0.03    | 0.00  | 0.03  | 0.21 GiB | 0.92     | PASS  | memory 1/10, unofficial-benchmark |
+| origin/no-klujax-scipy | 10/10 | 0.35     | 0.27  | 25.4%  | 46.41x (44.99-59.71)*    | -         | 0.26  | 0.04    | 0.04    | 0.00  | 0.01  | 0.20 GiB | 0.88     | -     | unofficial-benchmark              |
 
 Stored baseline: v00-baseline took 16.41 s in its single run on 2026-11-21, under memory pressure. It is not rerun: each factor against it is this number divided by a new sample.
 
@@ -38,18 +37,19 @@ Stored baseline: v00-baseline took 16.41 s in its single run on 2026-11-21, unde
 One column per session. A version whose factor stays put from column to column is a trustworthy result.
 Against the stored baseline every session divides into the same number, so those factors are directly comparable.
 
-| Version                     | 11-21T20-21 full | 11-21T22-11 full | 11-21T23-31 quick | 11-21T23-38 run |
-| --------------------------- | ---------------- | ---------------- | ----------------- | --------------- |
-| v01-klujax-solver           | 1.90x*           | 2.01x*           |                   |                 |
-| v02-group-by-function       | 2.39x*           | 2.43x*           |                   |                 |
-| v03-sparse-assembly         | 6.12x*           | 7.34x*           |                   |                 |
-| v04-fast-compile-flags      | 9.74x*           | 8.20x*           |                   |                 |
-| v05-two-solves-whole-arrays | 9.15x*           | 9.17x*           |                   |                 |
-| v06-real-parameters         | 12.93x*          | 14.65x*          |                   |                 |
-| v07-numpy-host              | 33.11x*          | 23.49x*          | 46.94x*           | 36.92x*         |
-| WORKTREE                    |                  |                  | 46.98x*           |                 |
-| v09-active-derivatives      |                  |                  |                   | 38.20x*         |
-| v10-host-swept-values       |                  |                  |                   | 37.74x*         |
+| Version                     | 11-21T20-21 full | 11-21T22-11 full | 11-21T23-31 quick | 11-21T23-38 run | 11-22T00-31 run |
+| --------------------------- | ---------------- | ---------------- | ----------------- | --------------- | --------------- |
+| v01-klujax-solver           | 1.90x*           | 2.01x*           |                   |                 |                 |
+| v02-group-by-function       | 2.39x*           | 2.43x*           |                   |                 |                 |
+| v03-sparse-assembly         | 6.12x*           | 7.34x*           |                   |                 |                 |
+| v04-fast-compile-flags      | 9.74x*           | 8.20x*           |                   |                 |                 |
+| v05-two-solves-whole-arrays | 9.15x*           | 9.17x*           |                   |                 |                 |
+| v06-real-parameters         | 12.93x*          | 14.65x*          |                   |                 |                 |
+| v07-numpy-host              | 33.11x*          | 23.49x*          | 46.94x*           | 36.92x*         |                 |
+| WORKTREE                    |                  |                  | 46.98x*           |                 |                 |
+| v09-active-derivatives      |                  |                  |                   | 38.20x*         |                 |
+| v10-host-swept-values       |                  |                  |                   | 37.74x*         | 39.98x*         |
+| origin/no-klujax-scipy      |                  |                  |                   |                 | 46.41x*         |
 
 ![First-run total per version, session 2026-11-21T22-11-06Z_full](summary.png)
 

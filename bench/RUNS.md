@@ -27,6 +27,7 @@ Raw data: `bench/results/apple-m5-16g-darwin/`. A Mac cannot pin a process to on
 | 23:31 | `run.py quick --rounds 8`: `v07` and the working tree with change 14 | Medians 0.35 and 0.35 s; not distinguishable (1.03x, 0.34 to 1.19) | `sessions/2026-11-21T23-31-32Z_quick.json` |
 | 23:37 | `tests/variations.py` on the working tree with changes 14 and 15 | 18 `PASS`, 1 `DEVIATION` (20 to 5000 Hz, known) | `variations/2026-11-21T23-37-37Z.json`, `VARIATIONS.md` |
 | 23:38 | `run.py run`: `v07`, `v09`, `v10`, 10 shuffled rounds, machine busy with a demo page | Medians 0.44, 0.43 and 0.43 s; gradient phase 38.3, 30.6, 30.7 ms; build phase 43.1, 41.8, 37.7 ms | `sessions/2026-11-21T23-38-07Z_run.json`, `SUMMARY.md` |
+| 00:31 (22 Nov) | `run.py run`: `v10` and the branch `no-klujax-scipy` at `f3f1454` (SciPy SuperLU inside the host callbacks), 10 shuffled rounds, machine busy with a demo page | Medians 0.41 and 0.35 s, fastest 0.33 and 0.28 s; branch 1.20x (0.93 to 1.54), faster in 9 of 10 rounds. Compile 70 against 42 ms, forward 26 against 39 ms, gradient 30 against 15 ms. On the branch: `validate.py` `PASS`, `tests/test_host.py` all passed, `tests/variations.py` 18 `PASS` and the known `DEVIATION` (run from a separate checkout, files not stored here) | `sessions/2026-11-22T00-31-37Z_run.json` |
 
 Validation was switched off for the timing session because the harness leaves out versions with a `FAIL` verdict; the verdicts themselves were not changed. `SUMMARY.md` is regenerated from the sessions.
 
@@ -54,6 +55,16 @@ Follow-up on a third instance of the same kind (21:55 UTC; a container with 16 C
 | --- | --- | --- | --- |
 | 21:58 | 96 runs of `benchmark.py --cpus 1` on the current code (`e44b489`): four settings, 8 rounds each, on a quiet machine, next to four memory-churning processes, and right after a 14 GB memory user | Quiet and after the memory user: 0.69 to 0.75 s in all 64 runs. Next to the churning processes: 0.93 to 1.51 s; lumps in the NumPy steps in 8 of 24 runs with NumPy's large-page request on, in 0 of 8 with it off | `diagnosis/runs.jsonl`, `diagnosis/diagnose.log`, `diagnosis/machine.txt` |
 | 22:35 | 72 runs of `benchmark.py --cpus 1` on `8ff051a` (change 13): NumPy's large-page request off (as committed) and on, 12 rounds each, quiet, next to four memory-churning processes, quiet again | Quiet: 0.74 s off, 0.71 s on. Next to the churning processes: 1.16 s off, 1.11 s on (medians). No step took more than twice its normal time with either setting | `diagnosis-change-13/runs.jsonl`, `diagnosis-change-13/diagnose.log` |
+
+### Through the harness on the GitHub Codespace (AMD EPYC 7763, 4 logical CPUs, 16 GB, Linux, one pinned core)
+
+22 November, times in UTC. The repository was copied there as a git bundle of `main` at `bf8d047`. Files under `bench/results/amd-epyc-7763-64-core-processor-16g-linux/`. The original has no stored run on this machine (it does not fit in 16 GB), so factors are against `v07`.
+
+| Time | What | Result | Raw data |
+| --- | --- | --- | --- |
+| 00:13 | `run.py calibrate` | The one-CPU limit holds: at most 1.00 CPU-seconds per wall-second | `machine.json` |
+| 00:14 | `run.py run`: `v07`, `v09`, `v10`, 10 shuffled rounds | Medians 1.026, 0.999 and 0.976 s; `v10` against `v07` 1.04x (1.03 to 1.08) | `sessions/2026-11-22T00-14-30Z_run.json`, `SUMMARY.md` |
+| 00:27 | `validate.py` on `v10` and `v07` | `PASS` for both; first runs 0.997 and 1.031 s | `validation/` |
 
 ## 2. By hand, with a saved report
 

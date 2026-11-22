@@ -3,17 +3,25 @@
 <title>Hearing the universe, faster</title>
 <style>
   html, body { margin: 0; height: 100%; background: #000; overflow: hidden; }
-  canvas { position: fixed; inset: 0; margin: auto; max-width: 100vw; max-height: 100vh; aspect-ratio: 16 / 9; width: 100vw; height: auto; display: block; background: #04060b; cursor: pointer; }
+  canvas { position: fixed; inset: 0; margin: auto; max-width: 100vw; max-height: 100vh; aspect-ratio: 16 / 9; width: 100vw; height: auto; display: block; background: #020308; cursor: pointer; }
   @media (min-aspect-ratio: 16/9) { canvas { width: auto; height: 100vh; } }
 </style></head><body>
 <canvas id="stage" width="1920" height="1080" role="img" aria-label="A demo in eight steps, advanced with the space bar: two stars crash and send ripples through space, a machine on Earth feels them with laser light, a bigger machine with 193 settings, and the live search for good settings by our code and by the original code."></canvas>
 <script>
 "use strict";
-// One 1920x1080 canvas, text included, so a recording of the canvas is the whole demo.
+// How a frame is made:
+//   1. the graphics chip paints the sky (stars, dust, or the ground under the machine) into a high-range image;
+//   2. tens of thousands of points of light are added on top (the fabric of space, the two stars, the flash);
+//   3. the diagrams (machine, grid, circles) are drawn on a hidden 2D canvas and laid over it, their bright parts made brighter than white;
+//   4. everything bright spills light around it (bloom), then the image is mapped to the screen like film, with a little grain;
+//   5. the words are drawn last, sharp, on the visible canvas. A recording of that canvas is the whole demo.
 // The presenter drives it: every press of the space bar goes one step further, and each step keeps moving until the next press.
-const stage = document.getElementById("stage"), g = stage.getContext("2d"), W = 1920, H = 1080;
-const INK = "#f3efe6", SOFT = "rgba(243,239,230,0.62)", LASER = [255, 86, 48], CORE = [255, 205, 170], RIPPLE = [130, 180, 255], OURS = [96, 226, 160], THEIRS = [236, 122, 104];
-const SANS = '"Avenir Next", "Helvetica Neue", "Segoe UI", sans-serif', MONO = '"SF Mono", Menlo, Consolas, monospace';
+const stage = document.getElementById("stage"), ui = stage.getContext("2d"), W = 1920, H = 1080;
+const content = document.createElement("canvas"); content.width = W; content.height = H;
+const g = content.getContext("2d");
+const INK = "#f5f2ea", SOFT = "rgba(245,242,234,0.6)", FAINT = "rgba(245,242,234,0.38)";
+const LASER = [255, 70, 30], CORE = [255, 196, 150], RIPPLE = [120, 175, 255], OURS = [88, 232, 160], THEIRS = [255, 112, 92], GOLD = [255, 226, 170];
+const SANS = 'system-ui, -apple-system, "SF Pro Display", "Inter", "Helvetica Neue", sans-serif', MONO = 'ui-monospace, "SF Mono", Menlo, Consolas, monospace';
 const clamp = (v, a = 0, b = 1) => Math.max(a, Math.min(b, v)), lerp = (a, b, k) => a + (b - a) * k;
 const smooth = k => { k = clamp(k); return k * k * (3 - 2 * k); };
 const span = (t, a, b) => smooth((t - a) / (b - a));                              // 0 before a, 1 after b
@@ -23,7 +31,8 @@ function random(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; 
 // ---------------------------------------------------------------- the steps
 const STEPS = ["title", "crash", "machine", "ripple", "design", "search", "compare", "end"];
 const PART = { title: "sky", crash: "crash", machine: "machine", ripple: "machine", design: "design", search: "design", compare: "design", end: "design" };
-const AUTO = [2, 14, 8, 10, 9, 11, 10, 7];                                       // seconds per step when recording
+const LABEL = ["", "01   The crash", "02   The machine", "03   The signal", "04   A bigger machine", "05   The search", "06   The difference", ""];
+const AUTO = [2.5, 14, 8, 10, 9, 11, 10, 7];                                     // seconds per step when recording
 let SCENE = null, time = 0, lastFrame = 0, step = 0, previous = 0, changed = -10;
 const entered = STEPS.map(() => -100), at_ = name => STEPS.indexOf(name), since = name => time - entered[at_(name)];
 const live = { stream: null, steps: 0, seconds: 0, best: [], shown: null, target: null, started: false, radius: 0, theirs: 0 };
@@ -37,71 +46,206 @@ function shows(part) {                                                          
   return now === before ? +(now === part) : now === part ? k : before === part ? 1 - k : 0;
 }
 
-// ---------------------------------------------------------------- the sky
-const sky = document.createElement("canvas"); sky.width = W * 2; sky.height = H;
-const bright = [];
-(function paintSky() {
-  const s = sky.getContext("2d"), r = random(7);
-  s.fillStyle = "#04060b"; s.fillRect(0, 0, sky.width, H);
-  for (let i = 0; i < 260; i++) {                      // a faint band of dust and far stars across the sky
-    const x = r() * sky.width, y = H * 0.55 + (x / sky.width - 0.5) * -420 + (r() - 0.5) * 300 * (0.4 + r()), size = 90 + r() * 260;
-    const glow_ = s.createRadialGradient(x, y, 0, x, y, size), tint = r() < 0.5 ? [70, 96, 170] : [120, 84, 150];
-    glow_.addColorStop(0, rgba(tint, 0.05 * r())); glow_.addColorStop(1, rgba(tint, 0));
-    s.fillStyle = glow_; s.fillRect(x - size, y - size, size * 2, size * 2);
-  }
-  for (let i = 0; i < 5200; i++) {
-    const x = r() * sky.width, y = r() * H, m = Math.pow(r(), 5.5), size = 0.35 + m * 1.9, warm = r();
-    const tint = warm < 0.2 ? [255, 214, 180] : warm < 0.5 ? [200, 220, 255] : [240, 242, 255];
-    s.fillStyle = rgba(tint, 0.25 + 0.75 * Math.pow(r(), 2)); s.beginPath(); s.arc(x, y, size, 0, 6.2832); s.fill();
-    if (m > 0.7 && bright.length < 20) bright.push({ x, y, size: size + 0.6, tint, phase: r() * 6.28, rate: 0.7 + r() * 1.6 });
-  }
-})();
-function drawSky(drift) {
-  const x = ((drift % sky.width) + sky.width) % sky.width;
-  g.drawImage(sky, -x, 0); g.drawImage(sky, sky.width - x, 0);
-  g.globalCompositeOperation = "lighter";
-  for (const star of bright) {                         // the brightest stars twinkle and carry a faint cross
-    const sx = ((star.x - x) % sky.width + sky.width) % sky.width; if (sx > W + 40) continue;
-    const k = 0.55 + 0.45 * Math.sin(time * star.rate + star.phase), reach = star.size * (4.5 + 3 * k);
-    const halo = g.createRadialGradient(sx, star.y, 0, sx, star.y, reach); halo.addColorStop(0, rgba(star.tint, 0.42 * k)); halo.addColorStop(1, rgba(star.tint, 0));
-    g.fillStyle = halo; g.fillRect(sx - reach, star.y - reach, reach * 2, reach * 2);
-    g.strokeStyle = rgba(star.tint, 0.3 * k); g.lineWidth = 1; g.beginPath(); g.moveTo(sx - reach * 2.4, star.y); g.lineTo(sx + reach * 2.4, star.y); g.moveTo(sx, star.y - reach * 2.4); g.lineTo(sx, star.y + reach * 2.4); g.stroke();
-  }
-  g.globalCompositeOperation = "source-over";
+// ---------------------------------------------------------------- words (drawn last, on the visible canvas, so they stay sharp)
+const later = []; let voice = 1;                          // how loudly the words of the scene being drawn are shown
+function words(text, x, y, size, width, alpha, weight = 500, color = INK, lineGap = 1.25, align = "left", spacing = 0, accent = null) {
+  alpha *= voice; if (alpha <= 0.01 || !text) return;
+  later.push(() => {
+    ui.font = `${weight} ${size}px ${SANS}`; ui.textBaseline = "alphabetic"; ui.letterSpacing = spacing + "px";
+    const lines = [[]]; let wide = 0; const gap = ui.measureText(" ").width;
+    for (const raw of text.split(" ")) {                 // a word between stars, *like this*, is drawn in the accent colour
+      const marked = raw.startsWith("*"), word = raw.replace(/\*/g, ""), w = ui.measureText(word).width;
+      if (wide + w > width && lines[lines.length - 1].length) { lines.push([]); wide = 0; }
+      lines[lines.length - 1].push([word, w, marked]); wide += w + gap;
+    }
+    ui.save(); ui.globalAlpha = alpha; ui.shadowColor = "rgba(0,0,0,0.75)"; ui.shadowBlur = size * 0.5; ui.textAlign = "left";
+    lines.forEach((line, i) => {
+      const total = line.reduce((sum, part) => sum + part[1], 0) + gap * (line.length - 1);
+      let cx = align === "center" ? x - total / 2 : align === "right" ? x - total : x;
+      for (const [word, w, marked] of line) { ui.fillStyle = marked && accent ? accent : color; ui.fillText(word, cx, y + i * size * lineGap); cx += w + gap; }
+    });
+    ui.restore(); ui.letterSpacing = "0px";
+  });
 }
-
-// ---------------------------------------------------------------- words
-function words(text, x, y, size, width, alpha, weight = 500, color = INK, lineGap = 1.28, align = "left") {
-  if (alpha <= 0.01) return 0;
-  g.font = `${weight} ${size}px ${SANS}`; g.textAlign = align; g.textBaseline = "alphabetic";
-  const lines = []; let line = "";
-  for (const word of text.split(" ")) { const next = line ? line + " " + word : word; if (g.measureText(next).width > width && line) { lines.push(line); line = word; } else line = next; }
-  lines.push(line);
-  g.save(); g.globalAlpha = alpha; g.shadowColor = "rgba(0,0,0,0.9)"; g.shadowBlur = 18; g.fillStyle = color;
-  lines.forEach((part, i) => g.fillText(part, x, y + i * size * lineGap)); g.restore();
-  return lines.length;
+function number(text, x, y, size, color, alpha, align = "left") {
+  alpha *= voice; if (alpha <= 0.01) return;
+  later.push(() => { ui.save(); ui.globalAlpha = alpha; ui.font = `600 ${size}px ${MONO}`; ui.textAlign = align; ui.fillStyle = color; ui.shadowColor = color; ui.shadowBlur = size * 0.35; ui.fillText(text, x, y); ui.restore(); });
 }
 const rate = () => live.seconds > 0.4 ? Math.round(live.steps / live.seconds) : 19;
 const CAPTION = {                                       // one or two short sentences per step, in everyday words
   title: () => "",
-  crash: () => since("crash") < MERGE + 0.4 ? "Far out in space, two burnt-out stars circle each other. Closer and closer." : "They crash. The crash sends ripples through space, like a stone dropped in a pond.",
-  machine: () => "On Earth, this machine listens for those ripples. A laser shoots light down two tunnels. Mirrors send it back.",
-  ripple: () => "When a ripple passes, one tunnel gets a tiny bit longer and the other a tiny bit shorter. The light flickers. That flicker is what we measure.",
-  design: () => `To hear fainter crashes, scientists plan bigger machines. This one has ${SCENE ? SCENE.variables : 193} settings to get right.`,
-  search: () => "The computer finds good settings by trying. Change a little, test, keep what helps. Every test works out all the light in the machine.",
-  compare: () => SCENE && SCENE.original ? `Our code runs ${rate()} tests every second. The original code needs ${SCENE.original.toFixed(0)} seconds for one test.` : `Our code runs ${rate()} tests every second.`,
+  crash: () => since("crash") < MERGE + 0.4 ? "Far out in space, two burnt-out stars circle each other. *Closer* *and* *closer.*" : "They crash. The crash sends *ripples* *through* *space,* like a stone dropped in a pond.",
+  machine: () => "On Earth, this machine listens for those ripples. A *laser* shoots light down two tunnels. Mirrors send it back.",
+  ripple: () => "When a ripple passes, one tunnel gets a tiny bit longer and the other a tiny bit shorter. The light *flickers.* That flicker is what we measure.",
+  design: () => `To hear fainter crashes, scientists plan bigger machines. This one has *${SCENE ? SCENE.variables : 193}* *settings* to get right.`,
+  search: () => "The computer finds good settings by trying. Change a little, test, keep what helps. Every test works out *all* *the* *light* in the machine.",
+  compare: () => SCENE && SCENE.original ? `Our code runs *${rate()}* *tests* *every* *second.* The original code needs ${SCENE.original.toFixed(0)} seconds for one test.` : `Our code runs *${rate()}* *tests* *every* *second.*`,
   end: () => "",
 };
-const caption = { now: "", before: "", when: 0 };
+const ACCENT = { crash: rgba([150, 195, 255], 1), machine: rgba([255, 150, 110], 1), ripple: rgba(GOLD, 1), design: rgba(OURS, 1), search: rgba(GOLD, 1), compare: rgba(OURS, 1) };
+const caption = { now: "", before: "", when: 0, accent: null, accentBefore: null };
 function captions() {
   const text = CAPTION[STEPS[step]]();
-  if (text !== caption.now && !(caption.now && text.replace(/\d+/g, "") === caption.now.replace(/\d+/g, ""))) { caption.before = caption.now; caption.when = time; }
-  caption.now = text;                                    // a number that changes inside a sentence does not make it fade
-  words(caption.before, 96, 952, 45, 1720, 1 - span(time - caption.when, 0, 0.35), 500);
-  words(caption.now, 96, 952, 45, 1720, span(time - caption.when, 0.25, 0.85), 500);
+  if (text !== caption.now && !(caption.now && text.replace(/\d+/g, "") === caption.now.replace(/\d+/g, ""))) { caption.before = caption.now; caption.accentBefore = caption.accent; caption.when = time; }
+  caption.now = text; caption.accent = ACCENT[STEPS[step]];   // a number that changes inside a sentence does not make it fade
+  const out = 1 - span(time - caption.when, 0, 0.35), into = span(time - caption.when, 0.25, 0.9), rise = (1 - into) * 14;
+  words(caption.before, 96, 962, 46, 1700, out, 500, INK, 1.26, "left", -0.4, caption.accentBefore);
+  words(caption.now, 96, 962 + rise, 46, 1700, into, 500, INK, 1.26, "left", -0.4, caption.accent);
+  if (LABEL[step]) words(LABEL[step].toUpperCase(), 98, 902, 19, 900, 0.9 * span(time - changed, 0.2, 0.9), 600, FAINT, 1.2, "left", 3.2);
 }
 
-// ---------------------------------------------------------------- step "crash": the two stars and the ripples
+// ---------------------------------------------------------------- the graphics chip: sky, points of light, bloom, film
+const glCanvas = document.createElement("canvas"); glCanvas.width = W; glCanvas.height = H;
+const gl = glCanvas.getContext("webgl2", { antialias: false, alpha: false, powerPreference: "high-performance" });
+const FLOAT = gl && gl.getExtension("EXT_color_buffer_float");
+const QUAD = `#version 300 es
+in vec2 p; out vec2 uv; void main() { uv = p * 0.5 + 0.5; gl_Position = vec4(p, 0.0, 1.0); }`;
+const HEAD = `#version 300 es
+precision highp float; in vec2 uv; out vec4 o;
+float hash(vec2 p) { p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+float noise(vec2 p) { vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), f.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), f.x), f.y); }
+float fbm(vec2 p) { float v = 0.0, a = 0.5; for (int i = 0; i < 6; i++) { v += a * noise(p); p = p * 2.03 + 17.1; a *= 0.5; } return v; }
+`;
+const SKY = HEAD + `
+uniform float uTime, uDim, uGround, uWave, uWaveTime; uniform vec2 uSource;
+vec3 stars(vec2 p, float scale, float seed) {            // one layer of stars: each cell of a grid may hold one, with its own size, colour and twinkle
+  p *= scale; vec2 cell = floor(p), f = fract(p) - 0.5; vec3 sum = vec3(0.0);
+  for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+    vec2 c = cell + vec2(x, y); float h = hash(c + seed);
+    if (h < 0.72) continue;
+    vec2 at = vec2(hash(c + seed + 7.1), hash(c + seed + 3.7)) - 0.5;
+    float big = pow(hash(c + seed + 11.0), 9.0), d = length(f - vec2(x, y) - at * 0.8);
+    float twinkle = 0.75 + 0.25 * sin(uTime * (1.0 + 4.0 * hash(c + 1.3)) + 40.0 * h);
+    vec3 tint = mix(vec3(0.72, 0.82, 1.0), vec3(1.0, 0.82, 0.62), pow(hash(c + 5.5), 2.5));
+    sum += tint * (0.24 + 10.0 * big) * twinkle * exp(-d * d * (6200.0 - 3800.0 * big));
+  }
+  return sum;
+}
+void main() {
+  vec2 p = (uv - 0.5) * vec2(16.0 / 9.0, 1.0);
+  vec2 from = p - (uSource - 0.5) * vec2(16.0 / 9.0, 1.0); float far = length(from);
+  // a passing ripple really bends the picture of the stars behind it
+  float bend = uWave * sin(far * 24.0 - uWaveTime * 5.0) * exp(-far * 1.4) * smoothstep(0.02, 0.2, far);
+  p += normalize(from + 1e-5) * bend * 0.012;
+  vec2 q = p + vec2(uTime * 0.004, 0.0);
+  float dust = fbm(q * 1.7 + fbm(q * 3.1) * 0.9), band = exp(-pow((q.y + q.x * 0.28 + 0.06) * 2.2, 2.0));
+  vec3 sky = vec3(0.004, 0.006, 0.014);
+  sky += vec3(0.022, 0.034, 0.1) * pow(dust, 2.8) * (0.35 + 2.0 * band);
+  sky += vec3(0.085, 0.028, 0.07) * pow(fbm(q * 2.6 + 9.0), 4.0) * band * 1.6;
+  sky += vec3(0.008, 0.045, 0.05) * pow(fbm(q * 1.2 - 4.0), 5.0) * 2.0;
+  sky += (stars(q, 26.0, 1.0) + stars(q * 1.3 + 3.0, 52.0, 9.0) * 0.6 + stars(q + 8.0, 110.0, 21.0) * 0.35) * (0.55 + 0.9 * band);
+  sky *= uDim;
+  // behind the diagrams: a calm drawing board. A dark gradient, a fine regular grid of dots, and a soft pool of light where the machine stands
+  vec3 ground = mix(vec3(0.0075, 0.0105, 0.0175), vec3(0.002, 0.003, 0.006), smoothstep(0.0, 1.15, length(p * vec2(0.8, 1.0))));
+  vec2 pool = p - vec2(-0.22, 0.03); ground += vec3(0.006, 0.011, 0.02) * exp(-dot(pool, pool) * 2.4);
+  vec2 cell = fract(p * 20.0) - 0.5; float dots = smoothstep(0.075, 0.035, length(cell));
+  ground += vec3(0.03, 0.043, 0.065) * dots * (0.18 + 0.82 * exp(-dot(pool, pool) * 1.3));
+  o = vec4(mix(sky, ground, uGround), 1.0);
+}`;
+const POINTS_VS = `#version 300 es
+in vec2 corner; in vec3 where; in vec3 tint; uniform vec2 uSize; out vec2 c; out vec3 col;
+void main() { c = corner; col = tint; vec2 px = where.xy + corner * where.z; gl_Position = vec4(px / uSize * 2.0 - 1.0, 0.0, 1.0); gl_Position.y = -gl_Position.y; }`;
+const POINTS_FS = `#version 300 es
+precision highp float; in vec2 c; in vec3 col; out vec4 o;
+void main() { float d = dot(c, c); if (d > 1.0) discard; float soft = exp(-d * 4.5) - 0.011; o = vec4(col * max(soft, 0.0), 1.0); }`;
+const OVER = HEAD + `
+uniform sampler2D uContent; uniform float uGlow;
+void main() {                                            // lay the diagrams over the sky; what is bright in them becomes brighter than white
+  vec4 c = texture(uContent, uv); vec3 lin = pow(c.rgb, vec3(2.2)); float peak = max(lin.r, max(lin.g, lin.b));
+  o = vec4(lin * (1.0 + uGlow * smoothstep(0.22, 0.95, peak)), c.a);
+}`;
+const BRIGHT = HEAD + `
+uniform sampler2D uImage;
+void main() { vec3 c = texture(uImage, uv).rgb; float peak = max(c.r, max(c.g, c.b)), knee = 0.5, soft = clamp(peak - 1.0 + knee, 0.0, 2.0 * knee);
+  soft = soft * soft / (4.0 * knee + 1e-4); o = vec4(c * max(soft, peak - 1.0) / max(peak, 1e-4), 1.0); }`;
+const DOWN = HEAD + `
+uniform sampler2D uImage; uniform vec2 uTexel;
+void main() { vec3 c = texture(uImage, uv).rgb * 4.0;
+  c += texture(uImage, uv + uTexel * vec2(-1, -1)).rgb + texture(uImage, uv + uTexel * vec2(1, -1)).rgb + texture(uImage, uv + uTexel * vec2(-1, 1)).rgb + texture(uImage, uv + uTexel * vec2(1, 1)).rgb;
+  o = vec4(c / 8.0, 1.0); }`;
+const UP = HEAD + `
+uniform sampler2D uImage; uniform vec2 uTexel;
+void main() { vec3 c = texture(uImage, uv + uTexel * vec2(-2, 0)).rgb + texture(uImage, uv + uTexel * vec2(2, 0)).rgb + texture(uImage, uv + uTexel * vec2(0, -2)).rgb + texture(uImage, uv + uTexel * vec2(0, 2)).rgb;
+  c += 2.0 * (texture(uImage, uv + uTexel * vec2(-1, 1)).rgb + texture(uImage, uv + uTexel * vec2(1, 1)).rgb + texture(uImage, uv + uTexel * vec2(-1, -1)).rgb + texture(uImage, uv + uTexel * vec2(1, -1)).rgb);
+  o = vec4(c / 12.0, 1.0); }`;
+const FILM = HEAD + `
+uniform sampler2D uImage, uBloom; uniform float uTime, uStrength;
+vec3 aces(vec3 x) { return clamp(x * (2.51 * x + 0.03) / (x * (2.43 * x + 0.59) + 0.14), 0.0, 1.0); }
+void main() {
+  vec2 d = uv - 0.5; float edge = dot(d, d);
+  vec3 c;                                                // the colours part a hair towards the corners, as in a real lens
+  c.r = texture(uImage, 0.5 + d * (1.0 + 0.0022 * edge * 4.0)).r; c.g = texture(uImage, uv).g; c.b = texture(uImage, 0.5 + d * (1.0 - 0.0022 * edge * 4.0)).b;
+  c += texture(uBloom, uv).rgb * uStrength;
+  c *= 1.0 - 1.15 * pow(edge, 1.25);
+  c = pow(aces(c * 1.05), vec3(1.0 / 2.2));
+  c += (hash(uv * vec2(1920.0, 1080.0) + fract(uTime) * 91.7) - 0.5) * 0.034;
+  o = vec4(c, 1.0);
+}`;
+function program(vs, fs) {
+  const make = (type, source) => { const s = gl.createShader(type); gl.shaderSource(s, source); gl.compileShader(s); if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  const p = gl.createProgram(); gl.attachShader(p, make(gl.VERTEX_SHADER, vs)); gl.attachShader(p, make(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  const where = {}; for (let i = 0; i < gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); i++) { const name = gl.getActiveUniform(p, i).name; where[name] = gl.getUniformLocation(p, name); }
+  return { p, where };
+}
+function target(w, h) {
+  const texture = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA16F, w, h, 0, gl.RGBA, gl.HALF_FLOAT, null);
+  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+  const frame = gl.createFramebuffer(); gl.bindFramebuffer(gl.FRAMEBUFFER, frame); gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+  return { texture, frame, w, h };
+}
+const POINT_LIMIT = 70000, points = new Float32Array(POINT_LIMIT * 6); let pointCount = 0;
+function point(x, y, size, r, gr, b) { if (pointCount >= POINT_LIMIT) return; const i = pointCount++ * 6; points[i] = x; points[i + 1] = y; points[i + 2] = size; points[i + 3] = r; points[i + 4] = gr; points[i + 5] = b; }
+let R = null;                                             // everything the graphics chip needs, made once
+function setUp() {
+  if (!gl || !FLOAT) return;                              // without it the diagrams are simply shown on a dark background
+  R = { sky: program(QUAD, SKY), points: program(POINTS_VS, POINTS_FS), over: program(QUAD, OVER), bright: program(QUAD, BRIGHT), down: program(QUAD, DOWN), up: program(QUAD, UP), film: program(QUAD, FILM) };
+  R.scene = target(W, H); R.levels = []; for (let i = 1; i <= 6; i++) R.levels.push(target(W >> i, H >> i));
+  R.quad = gl.createVertexArray(); gl.bindVertexArray(R.quad);
+  const corners = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, corners); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+  for (const p of [R.sky, R.over, R.bright, R.down, R.up, R.film]) gl.bindAttribLocation(p.p, 0, "p");
+  gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  R.cloud = gl.createVertexArray(); gl.bindVertexArray(R.cloud);
+  const a = name => gl.getAttribLocation(R.points.p, name);
+  gl.bindBuffer(gl.ARRAY_BUFFER, corners); gl.enableVertexAttribArray(a("corner")); gl.vertexAttribPointer(a("corner"), 2, gl.FLOAT, false, 0, 0);
+  R.cloudData = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, R.cloudData); gl.bufferData(gl.ARRAY_BUFFER, points.byteLength, gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(a("where")); gl.vertexAttribPointer(a("where"), 3, gl.FLOAT, false, 24, 0); gl.vertexAttribDivisor(a("where"), 1);
+  gl.enableVertexAttribArray(a("tint")); gl.vertexAttribPointer(a("tint"), 3, gl.FLOAT, false, 24, 12); gl.vertexAttribDivisor(a("tint"), 1);
+  R.content = gl.createTexture(); gl.bindTexture(gl.TEXTURE_2D, R.content);
+  for (const [k, v] of [[gl.TEXTURE_MIN_FILTER, gl.LINEAR], [gl.TEXTURE_MAG_FILTER, gl.LINEAR], [gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE], [gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE]]) gl.texParameteri(gl.TEXTURE_2D, k, v);
+  gl.bindVertexArray(null);
+}
+function pass(prog, into, set) {                          // draw one full-screen step into an image (or onto the hidden canvas)
+  gl.bindFramebuffer(gl.FRAMEBUFFER, into ? into.frame : null); gl.viewport(0, 0, into ? into.w : W, into ? into.h : H);
+  gl.useProgram(prog.p); set(prog.where); gl.bindVertexArray(R.quad); gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+}
+const use = (unit, texture, where) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, texture); gl.uniform1i(where, unit); };
+function render(look) {
+  gl.disable(gl.BLEND);
+  pass(R.sky, R.scene, u => { gl.uniform1f(u.uTime, time); gl.uniform1f(u.uDim, look.dim); gl.uniform1f(u.uGround, look.ground); gl.uniform1f(u.uWave, look.wave); gl.uniform1f(u.uWaveTime, look.waveTime); gl.uniform2f(u.uSource, look.source[0] / W, 1 - look.source[1] / H); });
+  gl.enable(gl.BLEND);
+  if (pointCount) {                                       // points of light add up
+    gl.blendFunc(gl.ONE, gl.ONE); gl.useProgram(R.points.p); gl.uniform2f(R.points.where.uSize, W, H);
+    gl.bindVertexArray(R.cloud); gl.bindBuffer(gl.ARRAY_BUFFER, R.cloudData); gl.bufferSubData(gl.ARRAY_BUFFER, 0, points.subarray(0, pointCount * 6));
+    gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, pointCount);
+  }
+  gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, R.content);
+  gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true); gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, content);
+  gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);           // the diagrams cover what is behind them
+  pass(R.over, R.scene, u => { use(0, R.content, u.uContent); gl.uniform1f(u.uGlow, look.glow); });
+  gl.disable(gl.BLEND);
+  pass(R.bright, R.levels[0], u => use(0, R.scene.texture, u.uImage));
+  for (let i = 1; i < R.levels.length; i++) pass(R.down, R.levels[i], u => { use(0, R.levels[i - 1].texture, u.uImage); gl.uniform2f(u.uTexel, 1 / R.levels[i - 1].w, 1 / R.levels[i - 1].h); });
+  gl.enable(gl.BLEND); gl.blendFunc(gl.ONE, gl.ONE);       // each smaller, blurrier image is added back into the one above it
+  for (let i = R.levels.length - 2; i >= 0; i--) pass(R.up, R.levels[i], u => { use(0, R.levels[i + 1].texture, u.uImage); gl.uniform2f(u.uTexel, 0.5 / R.levels[i + 1].w, 0.5 / R.levels[i + 1].h); });
+  gl.disable(gl.BLEND);
+  pass(R.film, null, u => { use(0, R.scene.texture, u.uImage); use(1, R.levels[0].texture, u.uBloom); gl.uniform1f(u.uTime, time); gl.uniform1f(u.uStrength, look.bloom); });
+}
+
+// ---------------------------------------------------------------- step "crash": the two stars and the fabric of space, as points of light
 const MERGE = 8.3, RATE = 120, orbit = { angle: [], gap: [], height: [] };
 (function integrate() {
   let angle = 0;
@@ -114,69 +258,63 @@ const MERGE = 8.3, RATE = 120, orbit = { angle: [], gap: [], height: [] };
 const pick = (list, t) => list[clamp(Math.round(t * RATE), 0, list.length - 1)];
 const angleAt = t => t <= MERGE ? pick(orbit.angle, t) : orbit.angle[orbit.angle.length - 1] + 3.1 * (t - MERGE);   // after the crash the ripples keep spreading, more gently
 const heightAt = t => t <= MERGE ? pick(orbit.height, t) : 0.3 + 0.75 * Math.exp(-(t - MERGE) / 1.1);
-const CAMERA = { back: 12, height: 3.3, focal: 900, horizon: 318 };
+const CAMERA = { back: 12, height: 3.5, focal: 930, horizon: 300 };
 function ripple(u, v, t) {                               // height of the fabric of space at (u, v): a two-armed spiral moving outwards
   const r = Math.hypot(u, v), then = t - r / 3.4;
   if (then <= 0) return 0;
   return heightAt(then) * Math.cos(2 * (Math.atan2(v, u) - angleAt(then))) / (1 + r * 0.16) * smooth(r / 2.6) * smooth(then / 0.6);
 }
-function project(u, v, z) { const d = v + CAMERA.back; return [W / 2 + u / d * CAMERA.focal, CAMERA.horizon + (CAMERA.height - z) / d * CAMERA.focal, d]; }
-function drawFabric(t, alpha) {
-  const floor = g.createLinearGradient(0, CAMERA.horizon - 30, 0, H); floor.addColorStop(0, "rgba(4,6,11,0)"); floor.addColorStop(0.22, `rgba(4,6,12,${0.86 * alpha})`); floor.addColorStop(1, `rgba(5,8,16,${0.94 * alpha})`);
-  g.fillStyle = floor; g.fillRect(0, CAMERA.horizon - 30, W, H);
-  g.lineWidth = 1.3; g.lineCap = "round"; g.lineJoin = "round";
-  for (let v = -8.4; v <= 21; v += 0.7) {                // lines across: one depth each, so one opacity each
-    const fade = Math.pow(clamp(1 - (v + 8.4) / 30), 1.5) * alpha;
-    g.strokeStyle = rgba(RIPPLE, 0.07 * alpha + 0.62 * fade); g.beginPath();
-    for (let i = 0; i <= 304; i++) { const u = -19 + i * 0.125, p = project(u, v, ripple(u, v, t)); i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); }
-    g.stroke();
-  }
-  for (let u = -18.9; u <= 19; u += 0.7) {               // lines into the distance fade with a gradient
-    const near = project(u, -8.4, 0), far = project(u, 21, 0), paint = g.createLinearGradient(0, near[1], 0, far[1]);
-    paint.addColorStop(0, rgba(RIPPLE, 0.6 * alpha)); paint.addColorStop(1, rgba(RIPPLE, 0.04 * alpha));
-    g.strokeStyle = paint; g.beginPath();
-    for (let i = 0; i <= 294; i++) { const v = -8.4 + i * 0.1, p = project(u, v, ripple(u, v, t)); i ? g.lineTo(p[0], p[1]) : g.moveTo(p[0], p[1]); }
-    g.stroke();
-  }
+let turn = 0;
+function project(u, v, z) {                               // the camera drifts slowly around the scene
+  const c = Math.cos(turn), s = Math.sin(turn), x = u * c - v * s, y = u * s + v * c, d = y + CAMERA.back;
+  return [W / 2 + x / d * CAMERA.focal, CAMERA.horizon + (CAMERA.height - z) / d * CAMERA.focal, d];
 }
+const fabric = []; { const r = random(5); for (let v = -9.5; v <= 24; v += 0.17) for (let u = -22; u <= 22; u += 0.17) fabric.push([u + (r() - 0.5) * 0.07, v + (r() - 0.5) * 0.07, 0.7 + 0.6 * r()]); }
+function drawCrash(t, alpha) {
+  turn = 0.11 * Math.sin(time * 0.12); CAMERA.back = 12 - 0.9 * smooth(t / 14);
+  for (const [u, v, spark] of fabric) {                   // about forty thousand points: dim in the hollows, bright on the crests
+    const z = ripple(u, v, t), p = project(u, v, z); if (p[2] < 2.2 || p[0] < -20 || p[0] > W + 20 || p[1] > H + 20) continue;
+    const near = Math.pow(clamp(1 - (p[2] - 3) / 31), 1.6), crest = Math.max(z, 0), k = alpha * near * spark;
+    point(p[0], p[1], clamp(25 / p[2], 1.2, 4.6), k * (0.03 + 0.9 * crest), k * (0.085 + 1.7 * crest), k * (0.27 + 3.0 * crest));
+  }
+  const lift = 1.25, a = alpha * span(t, 0.2, 1.6);
+  if (t < MERGE) for (const side of [0, Math.PI]) {
+    for (let k = 70; k >= 1; k--) {                       // a tail of light behind each star
+      const then = t - k * 0.011; if (then < 0) continue;
+      const ang = angleAt(then) + side, gap = pick(orbit.gap, then), p = project(gap * Math.cos(ang), gap * Math.sin(ang), lift), f = (1 - k / 70) * a;
+      point(p[0], p[1], 105 / p[2], 0.22 * f, 0.42 * f, 1.05 * f);
+    }
+    const ang = angleAt(t) + side, gap = pick(orbit.gap, t), p = project(gap * Math.cos(ang), gap * Math.sin(ang), lift), size = 12 / p[2];
+    point(p[0], p[1], 130 * size, 0.3 * a, 0.55 * a, 1.3 * a); point(p[0], p[1], 26 * size, 6.5 * a, 8.5 * a, 12.5 * a);
+  }
+  const centre = project(0, 0, lift), after = t - MERGE;
+  if (after > 0) {                                        // the crash: a flash, a line of light, a ring racing outwards, then an ember that stays
+    const flash = Math.exp(-after / 0.38), ember = 0.3 + 0.7 * Math.exp(-after / 2.8);
+    point(centre[0], centre[1], 220 + 620 * (1 - flash), 5 * flash * alpha, 4.2 * flash * alpha, 3.3 * flash * alpha);
+    for (let i = -40; i <= 40; i++) point(centre[0] + i * 24 * Math.min(1, after * 5 + 0.15), centre[1], 16 + 12 * flash, 3.2 * flash * alpha * Math.exp(-i * i / 500), 2.7 * flash * alpha * Math.exp(-i * i / 500), 2.1 * flash * alpha * Math.exp(-i * i / 500));
+    const ring = after * 7.5, fade = Math.exp(-after / 1.6) * alpha;
+    for (let i = 0; i < 360; i++) { const p = project(ring * Math.cos(i * 0.01745), ring * Math.sin(i * 0.01745), 0.4); if (p[2] > 2.5) point(p[0], p[1], 46 / p[2], 2.0 * fade, 1.6 * fade, 1.25 * fade); }
+    point(centre[0], centre[1], 150, 1.5 * ember * alpha, 0.85 * ember * alpha, 0.4 * ember * alpha); point(centre[0], centre[1], 30, 9 * ember * alpha, 7.4 * ember * alpha, 5.6 * ember * alpha);
+  }
+  return centre;
+}
+
+// ---------------------------------------------------------------- steps "machine" and "ripple": the detector
 function glow(x, y, radius, color, alpha) {
   const paint = g.createRadialGradient(x, y, 0, x, y, radius);
   paint.addColorStop(0, rgba(color, alpha)); paint.addColorStop(0.25, rgba(color, alpha * 0.45)); paint.addColorStop(1, rgba(color, 0));
   g.fillStyle = paint; g.fillRect(x - radius, y - radius, radius * 2, radius * 2);
 }
-function drawStars(t, alpha) {
-  g.globalCompositeOperation = "lighter";
-  const lift = 1.25;
-  if (t < MERGE) {
-    for (const side of [0, Math.PI]) {
-      for (let k = 46; k >= 0; k--) {                    // a fading trail behind each star
-        const then = t - k * 0.012; if (then < 0) continue;
-        const a = angleAt(then) + side, gap = pick(orbit.gap, then), p = project(gap * Math.cos(a), gap * Math.sin(a), lift);
-        glow(p[0], p[1], 15 * 12 / p[2], [150, 190, 255], 0.05 * (1 - k / 46) * alpha);
-      }
-      const a = angleAt(t) + side, gap = pick(orbit.gap, t), p = project(gap * Math.cos(a), gap * Math.sin(a), lift), scale = 12 / p[2];
-      glow(p[0], p[1], 120 * scale, [120, 170, 255], 0.5 * alpha); glow(p[0], p[1], 34 * scale, [235, 244, 255], alpha);
-      g.fillStyle = rgba([255, 255, 255], alpha); g.beginPath(); g.arc(p[0], p[1], 7 * scale, 0, 6.2832); g.fill();
-    }
-  }
-  const p = project(0, 0, lift), after = t - MERGE;
-  if (after > 0) {                                       // the crash: a flash, a streak of light, then a glowing ember that stays
-    const flash = Math.exp(-after / 0.42), ember = 0.3 + 0.7 * Math.exp(-after / 2.6);
-    glow(p[0], p[1], 150 + 1250 * (1 - flash), [255, 244, 225], 0.85 * flash * alpha);
-    glow(p[0], p[1], 240, [255, 190, 120], 0.8 * ember * alpha); glow(p[0], p[1], 46, [255, 255, 255], ember * alpha);
-    g.fillStyle = rgba([255, 240, 215], 0.75 * flash * alpha);
-    g.beginPath(); g.ellipse(p[0], p[1], 880 * Math.min(1, after * 4 + 0.1), 5 + 11 * flash, 0, 0, 6.2832); g.fill();
-  }
-  g.globalCompositeOperation = "source-over";
-}
-
-// ---------------------------------------------------------------- steps "machine" and "ripple": the detector
-function beam(x1, y1, x2, y2, strength, scale = 1, alpha = 1) {   // a beam of laser light: wide soft halo, glow, hot core
+function beam(x1, y1, x2, y2, strength, scale = 1, alpha = 1) {   // a beam of laser light: a soft halo and a hot core; the bloom does the rest
   if (strength <= 0.004 || alpha <= 0.01) return;
   g.lineCap = "round";
-  for (const [width, color, a] of [[(9 + 22 * strength) * scale, LASER, 0.07 + 0.16 * strength], [(3 + 6 * strength) * scale, LASER, 0.18 + 0.5 * strength], [(1 + 2.2 * strength) * scale, CORE, 0.25 + 0.75 * strength]]) {
+  for (const [width, color, a] of [[(7 + 12 * strength) * scale, LASER, 0.1 + 0.2 * strength], [(2.4 + 3.4 * strength) * scale, LASER, 0.35 + 0.6 * strength], [(1 + 1.5 * strength) * scale, CORE, 0.35 + 0.65 * strength]]) {
     g.strokeStyle = rgba(color, a * alpha); g.lineWidth = width; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke();
   }
+}
+function glass(x, y, w, h, radius = 12, strength = 1) {   // a pane of dark glass with a hairline edge
+  g.fillStyle = `rgba(10,16,22,${0.72 * strength})`; g.strokeStyle = `rgba(210,228,240,${0.3 * strength})`; g.lineWidth = 1.5;
+  g.beginPath(); g.roundRect(x, y, w, h, radius); g.fill(); g.stroke();
 }
 const CYCLE = 8;                                         // a ripple passes every eight seconds for as long as the step is shown
 const chirp = x => {                                     // the stretch of the tunnels x seconds into a pass: slow, then faster and stronger, then gone
@@ -187,50 +325,46 @@ const chirp = x => {                                     // the stretch of the t
 function drawMachine(alpha) {
   if (alpha <= 0.01) return;
   const rippling = step >= at_("ripple") && PART[STEPS[step]] === "machine", x = rippling ? since("ripple") % CYCLE : -1;
-  const on = span(since("machine"), 0.2, 1.6);
+  const on = span(since("machine"), 0.3, 1.8);
   g.save(); g.globalAlpha = alpha;
-  const ground = g.createRadialGradient(820, 520, 80, 820, 520, 1250); ground.addColorStop(0, "rgba(22,40,46,0.96)"); ground.addColorStop(1, "rgba(5,9,14,0.98)");
-  g.fillStyle = ground; g.fillRect(0, 0, W, H);
-  g.strokeStyle = "rgba(160,200,200,0.05)"; g.lineWidth = 1;                // faint survey lines on the ground
-  for (let i = -6; i < 30; i++) { g.beginPath(); g.moveTo(i * 110, 0); g.lineTo(i * 110 + 600, H); g.stroke(); }
-  const stretch = rippling ? chirp(x) : 0, cx = 560, cy = 610, across = 900 * (1 + stretch), up = 470 * (1 - stretch * 1.7);
+  const stretch = rippling ? chirp(x) : 0, cx = 560, cy = 600, across = 900 * (1 + stretch), up = 460 * (1 - stretch * 1.7);
   const strength = clamp(Math.abs(stretch) / 0.05), bands = rippling ? clamp(span(x, 0.6, 1.8) - span(x, 5.3, 6.4)) : 0;
-  g.save(); g.translate(cx + 300, cy - 200); g.rotate(-0.62);               // the ripple itself, passing over the site
+  g.save(); g.translate(cx + 300, cy - 200); g.rotate(-0.62); g.globalCompositeOperation = "lighter";   // the ripple itself, passing over the site
   for (let k = -9; k <= 9; k++) {
-    const bx = k * 250 + ((time * 330) % 250), band = g.createLinearGradient(bx - 90, 0, bx + 90, 0);
-    band.addColorStop(0, rgba(RIPPLE, 0)); band.addColorStop(0.5, rgba(RIPPLE, 0.12 * bands)); band.addColorStop(1, rgba(RIPPLE, 0));
-    g.fillStyle = band; g.fillRect(bx - 90, -1500, 180, 3000);
+    const bx = k * 250 + ((time * 330) % 250), band = g.createLinearGradient(bx - 80, 0, bx + 80, 0);
+    band.addColorStop(0, rgba(RIPPLE, 0)); band.addColorStop(0.5, rgba(RIPPLE, 0.1 * bands)); band.addColorStop(1, rgba(RIPPLE, 0));
+    g.fillStyle = band; g.fillRect(bx - 80, -1500, 160, 3000);
   }
   g.restore();
-  g.strokeStyle = "rgba(205,220,235,0.34)"; g.lineWidth = 2;                // the tunnels and the buildings
-  for (const d of [-11, 11]) { g.beginPath(); g.moveTo(cx, cy + d); g.lineTo(cx + across, cy + d); g.moveTo(cx + d, cy); g.lineTo(cx + d, cy - up); g.stroke(); }
-  g.fillStyle = "rgba(14,22,28,0.95)"; g.strokeStyle = "rgba(205,220,235,0.5)";
-  for (const [bx, by, w, h] of [[cx - 58, cy - 58, 116, 116], [cx + across - 26, cy - 34, 74, 68], [cx - 34, cy - up - 48, 68, 74], [cx - 330, cy - 30, 96, 60], [cx - 36, cy + 150, 72, 62]]) { g.beginPath(); g.roundRect(bx, by, w, h, 8); g.fill(); g.stroke(); }
+  g.strokeStyle = "rgba(200,222,236,0.32)"; g.lineWidth = 1.5;                // the tunnels
+  for (const d of [-10, 10]) { g.beginPath(); g.moveTo(cx, cy + d); g.lineTo(cx + across, cy + d); g.moveTo(cx + d, cy); g.lineTo(cx + d, cy - up); g.stroke(); }
+  for (const [bx, by, w, h] of [[cx - 56, cy - 56, 112, 112], [cx + across - 24, cy - 34, 72, 68], [cx - 34, cy - up - 46, 68, 72], [cx - 326, cy - 30, 96, 60], [cx - 36, cy + 148, 72, 62]]) glass(bx, by, w, h, 10);
   g.globalCompositeOperation = "lighter";
-  beam(cx - 234, cy, cx, cy, 0.95 * on); beam(cx, cy, cx + across + 8, cy, 0.9 * on); beam(cx, cy, cx, cy - up - 8, 0.9 * on);
-  beam(cx, cy, cx, cy + 172, (0.05 + 0.95 * strength) * on);
+  beam(cx - 232, cy, cx, cy, 0.95 * on); beam(cx, cy, cx + across + 8, cy, 0.9 * on); beam(cx, cy, cx, cy - up - 8, 0.9 * on);
+  beam(cx, cy, cx, cy + 170, (0.04 + 0.96 * strength) * on);
   for (let k = 0; k < 4; k++) {                          // flashes of light running down each tunnel and back
     const there = ((time * 0.55 + k / 4) % 1), back = there < 0.5 ? there * 2 : 2 - there * 2;
-    glow(cx + back * across, cy, 26, [255, 235, 215], 0.9 * on); glow(cx, cy - back * up, 26, [255, 235, 215], 0.9 * on);
+    glow(cx + back * across, cy, 20, [255, 240, 225], on); glow(cx, cy - back * up, 20, [255, 240, 225], on);
   }
-  glow(cx - 262, cy, 60, LASER, 0.8 * on); glow(cx, cy, 70, CORE, 0.5 * on);
-  glow(cx, cy + 182, 30 + 90 * strength, [255, 236, 190], (0.2 + 0.8 * strength) * on);
+  glow(cx - 258, cy, 44, LASER, 0.9 * on); glow(cx, cy, 50, CORE, 0.6 * on);
+  glow(cx, cy + 180, 26 + 60 * strength, GOLD, (0.15 + 0.85 * strength) * on);
   g.globalCompositeOperation = "source-over";
-  g.strokeStyle = "rgba(236,242,250,0.95)"; g.lineWidth = 6; g.lineCap = "round";   // mirrors at the ends, the splitter in the corner
-  g.beginPath(); g.moveTo(cx + across + 12, cy - 22); g.lineTo(cx + across + 12, cy + 22); g.moveTo(cx - 22, cy - up - 12); g.lineTo(cx + 22, cy - up - 12); g.stroke();
-  g.lineWidth = 3; g.beginPath(); g.moveTo(cx - 20, cy + 20); g.lineTo(cx + 20, cy - 20); g.stroke();
-  const label = (text, lx, ly, a, align = "left") => words(text, lx, ly, 27, 700, a * alpha, 500, SOFT, 1.25, align);
-  label("laser", cx - 282, cy - 46, on, "center"); label("mirror", cx + across + 12, cy - 56, on, "center"); label("mirror", cx + 60, cy - up - 4, on);
-  label("light sensor", cx + 56, cy + 192, on);
-  label("each tunnel: 4 km long", cx + across / 2, cy + 56, span(since("machine"), 1.2, 2.2), "center");
+  g.strokeStyle = "rgba(240,246,252,1)"; g.lineWidth = 5; g.lineCap = "round";   // mirrors at the ends, the splitter in the corner
+  g.beginPath(); g.moveTo(cx + across + 12, cy - 20); g.lineTo(cx + across + 12, cy + 20); g.moveTo(cx - 20, cy - up - 12); g.lineTo(cx + 20, cy - up - 12); g.stroke();
+  g.lineWidth = 2.5; g.beginPath(); g.moveTo(cx - 18, cy + 18); g.lineTo(cx + 18, cy - 18); g.stroke();
+  const label = (text, lx, ly, a, align = "left") => words(text.toUpperCase(), lx, ly, 19, 700, a * alpha, 600, SOFT, 1.25, align, 2.6);
+  label("laser", cx - 278, cy - 46, on, "center"); label("mirror", cx + across + 12, cy - 54, on, "center"); label("mirror", cx + 56, cy - up - 6, on);
+  label("light sensor", cx + 54, cy + 186, on);
+  words("each tunnel is 4 km long", cx + across / 2, cy + 52, 25, 700, alpha * span(since("machine"), 1.4, 2.4), 500, SOFT, 1.2, "center");
   if (rippling) {                                        // what the sensor measures, drawn as it happens
-    const x0 = 1000, x1 = 1800, y0 = 290, show = span(since("ripple"), 0.3, 1.2);
-    g.globalAlpha = alpha * show; g.strokeStyle = "rgba(243,239,230,0.16)"; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y0); g.stroke();
-    g.strokeStyle = rgba([255, 236, 190], 0.95); g.lineWidth = 3; g.lineJoin = "round"; g.beginPath(); g.moveTo(x0, y0);
-    for (let s = 0; s <= Math.min(x, 7); s += 0.008) g.lineTo(x0 + s / 7 * (x1 - x0), y0 - chirp(s) * 1900);
-    g.stroke(); g.globalAlpha = alpha;
+    const x0 = 1010, x1 = 1790, y0 = 300, show = span(since("ripple"), 0.3, 1.2);
+    g.globalAlpha = alpha * show; glass(x0 - 44, y0 - 196, x1 - x0 + 88, 400, 18, 0.7);
+    g.strokeStyle = "rgba(245,242,234,0.14)"; g.lineWidth = 1; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y0); g.stroke();
+    g.globalCompositeOperation = "lighter"; g.strokeStyle = rgba(GOLD, 1); g.lineWidth = 3; g.lineJoin = "round"; g.beginPath(); g.moveTo(x0, y0);
+    for (let s = 0; s <= Math.min(x, 7); s += 0.008) g.lineTo(x0 + s / 7 * (x1 - x0), y0 - chirp(s) * 1750);
+    g.stroke(); g.globalCompositeOperation = "source-over"; g.globalAlpha = alpha;
     label("what the light sensor measures", x0, y0 - 150, show);
-    words("the stretch is drawn 50 billion billion times too big", x1, y0 + 168, 22, 900, show * alpha, 400, "rgba(243,239,230,0.5)", 1.2, "right");
+    words("the stretch is drawn 50 billion billion times too big", x1, y0 + 172, 20, 900, show * alpha, 500, FAINT, 1.2, "right");
   }
   g.restore();
 }
@@ -240,7 +374,7 @@ const strengthOf = power => clamp((power + 3) / 9.5);                        // 
 function drawDesign(alpha) {
   if (!SCENE || alpha <= 0.01) return;
   const searching = step >= at_("search"), aside = searching ? span(since("search"), 0, 1.4) : 0, born = since("design");
-  const f = { x: lerp(606, 96, aside), y: lerp(60, 104, aside), unit: lerp(177, 158, aside) }, u = f.unit / 177;
+  const f = { x: lerp(606, 96, aside), y: lerp(54, 100, aside), unit: lerp(177, 158, aside) }, u = f.unit / 177;
   const where = name => { const n = SCENE.nodes[name]; return [f.x + n.x * f.unit, f.y + n.y * f.unit]; };
   const middle = (SCENE.size + 1) / 2, arrive = name => { const n = SCENE.nodes[name], far = Math.hypot(n.x - middle, n.y - middle) * 0.75; return span(born, 0.4 + far, 1.2 + far); };
   const powers = searching && live.shown ? live.shown : SCENE.published_light;
@@ -250,21 +384,21 @@ function drawDesign(alpha) {
   for (const [name, n] of Object.entries(SCENE.nodes)) {
     const [x, y] = where(name), a = alpha * arrive(name); if (a <= 0.01) continue;
     g.save(); g.globalAlpha = a; g.translate(x, y); g.lineCap = "round";
-    if (n.kind === "mirror") { g.strokeStyle = "rgba(232,239,250,0.95)"; g.lineWidth = 5 * u; g.beginPath(); n.turn === "v" ? (g.moveTo(0, -17 * u), g.lineTo(0, 17 * u)) : (g.moveTo(-17 * u, 0), g.lineTo(17 * u, 0)); g.stroke(); }
+    if (n.kind === "mirror") { g.strokeStyle = "rgba(240,246,252,1)"; g.lineWidth = 4 * u; g.beginPath(); n.turn === "v" ? (g.moveTo(0, -16 * u), g.lineTo(0, 16 * u)) : (g.moveTo(-16 * u, 0), g.lineTo(16 * u, 0)); g.stroke(); }
     else if (n.kind === "splitter" || n.kind === "director") {
-      g.fillStyle = "rgba(10,16,24,0.9)"; g.strokeStyle = "rgba(200,214,232,0.75)"; g.lineWidth = 1.6 * u; g.beginPath(); g.roundRect(-16 * u, -16 * u, 32 * u, 32 * u, 4 * u); g.fill(); g.stroke();
-      g.strokeStyle = n.kind === "director" ? rgba([150, 226, 255], 0.95) : "rgba(232,239,250,0.95)"; g.lineWidth = 3 * u; g.beginPath(); g.moveTo(-10 * u, 10 * u); g.lineTo(10 * u, -10 * u); g.stroke();
+      g.fillStyle = "rgba(8,13,20,0.92)"; g.strokeStyle = "rgba(205,222,240,0.6)"; g.lineWidth = 1.4 * u; g.beginPath(); g.roundRect(-15 * u, -15 * u, 30 * u, 30 * u, 5 * u); g.fill(); g.stroke();
+      g.strokeStyle = n.kind === "director" ? rgba([140, 222, 255], 1) : "rgba(240,246,252,1)"; g.lineWidth = 2.6 * u; g.beginPath(); g.moveTo(-9 * u, 9 * u); g.lineTo(9 * u, -9 * u); g.stroke();
     } else if (n.kind === "laser") {
-      g.globalCompositeOperation = "lighter"; glow(0, 0, 44 * u, LASER, 0.75); g.globalCompositeOperation = "source-over";
-      g.fillStyle = "#1a0f0c"; g.strokeStyle = rgba(CORE, 0.95); g.lineWidth = 2 * u; g.beginPath(); g.roundRect(-13 * u, -13 * u, 26 * u, 26 * u, 6 * u); g.fill(); g.stroke();
-      g.fillStyle = rgba(CORE, 1); g.beginPath(); g.arc(0, 0, 4.5 * u, 0, 6.2832); g.fill();
+      g.globalCompositeOperation = "lighter"; glow(0, 0, 34 * u, LASER, 0.85); g.globalCompositeOperation = "source-over";
+      g.fillStyle = "#150a07"; g.strokeStyle = rgba(CORE, 1); g.lineWidth = 1.8 * u; g.beginPath(); g.roundRect(-12 * u, -12 * u, 24 * u, 24 * u, 6 * u); g.fill(); g.stroke();
+      g.fillStyle = "#fff"; g.beginPath(); g.arc(0, 0, 4 * u, 0, 6.2832); g.fill();
     } else if (n.kind === "squeezer") {
-      g.globalCompositeOperation = "lighter"; glow(0, 0, 34 * u, [110, 220, 205], 0.5); g.globalCompositeOperation = "source-over";
-      g.strokeStyle = rgba([150, 236, 220], 0.95); g.lineWidth = 2.4 * u; g.beginPath(); g.ellipse(0, 0, 13 * u, 7 * u, time * 0.9 + x, 0, 6.2832); g.stroke();
+      g.globalCompositeOperation = "lighter"; glow(0, 0, 28 * u, [90, 225, 205], 0.6); g.globalCompositeOperation = "source-over";
+      g.strokeStyle = rgba([150, 240, 222], 1); g.lineWidth = 2.2 * u; g.beginPath(); g.ellipse(0, 0, 12 * u, 6.5 * u, time * 0.9 + x, 0, 6.2832); g.stroke();
     } else if (n.kind === "detector") {
       const pulse = 0.75 + 0.25 * Math.sin(time * 3);
-      g.globalCompositeOperation = "lighter"; glow(0, 0, 62 * u, [255, 236, 190], 0.85 * pulse); g.globalCompositeOperation = "source-over";
-      g.fillStyle = "rgba(255,244,214,1)"; g.beginPath(); g.arc(0, 0, 10 * u, 0, 6.2832); g.fill();
+      g.globalCompositeOperation = "lighter"; glow(0, 0, 46 * u, GOLD, 0.9 * pulse); g.globalCompositeOperation = "source-over";
+      g.fillStyle = "#fff"; g.beginPath(); g.arc(0, 0, 9 * u, 0, 6.2832); g.fill();
     }
     g.restore();
   }
@@ -272,75 +406,76 @@ function drawDesign(alpha) {
     const counting = clamp((born - 3.4) / 3.6), counted = Math.floor(counting * SCENE.knobs.length);
     if (counting < 1) for (let i = Math.max(0, counted - 22); i < counted; i++) {
       const [kx, ky] = SCENE.knobs[i], age = (counted - i) / 22;
-      g.strokeStyle = rgba(OURS, (1 - age) * alpha); g.lineWidth = 2.5; g.beginPath(); g.arc(f.x + kx * f.unit, f.y + ky * f.unit, 6 + 16 * age, 0, 6.2832); g.stroke();
+      g.strokeStyle = rgba(OURS, (1 - age) * alpha); g.lineWidth = 2.2; g.beginPath(); g.arc(f.x + kx * f.unit, f.y + ky * f.unit, 6 + 16 * age, 0, 6.2832); g.stroke();
     }
     const a = alpha * span(born, 3.2, 3.9);
-    if (a > 0.01) { g.save(); g.globalAlpha = a; g.fillStyle = rgba(OURS, 1); g.font = `600 130px ${MONO}`; g.textAlign = "right"; g.fillText(String(counted), 1830, 260); g.restore(); words("settings to get right", 1830, 310, 32, 600, a, 500, SOFT, 1.2, "right"); }
+    number(String(counted), 1826, 262, 150, rgba(OURS, 1), a, "right");
+    words("SETTINGS TO GET RIGHT", 1826, 310, 21, 600, a, 600, SOFT, 1.2, "right", 3);
   }
-  const key = alpha * span(born, 2.6, 3.6), ky = f.y + (SCENE.size + 1) * f.unit + 58 * u, kx = f.x - 0.1 * f.unit;   // what the symbols mean
+  const key = alpha * span(born, 2.6, 3.6), ky = f.y + (SCENE.size + 1) * f.unit + 54 * u, kx = f.x - 0.1 * f.unit;   // what the symbols mean
   if (key > 0.01) {
     g.save(); g.globalAlpha = key; g.lineCap = "round";
-    const item = (x, draw, text) => { g.save(); g.translate(x, ky); draw(); g.restore(); words(text, x + 24, ky + 8, 25, 400, key, 500, SOFT); };
-    item(kx, () => { g.fillStyle = rgba(CORE, 1); g.strokeStyle = rgba(CORE, 0.95); g.lineWidth = 2; g.beginPath(); g.roundRect(-10, -10, 20, 20, 5); g.stroke(); g.beginPath(); g.arc(0, 0, 3.5, 0, 6.2832); g.fill(); }, "laser");
-    item(kx + 150, () => { g.strokeStyle = "rgba(232,239,250,0.95)"; g.lineWidth = 5; g.beginPath(); g.moveTo(0, -12); g.lineTo(0, 12); g.stroke(); }, "mirror");
-    item(kx + 310, () => { g.fillStyle = "rgba(255,244,214,1)"; g.beginPath(); g.arc(0, 0, 8, 0, 6.2832); g.fill(); }, "light sensor");
+    const item = (x, draw, text) => { g.save(); g.translate(x, ky); draw(); g.restore(); words(text.toUpperCase(), x + 22, ky + 7, 18, 400, key, 600, SOFT, 1.2, "left", 2.4); };
+    item(kx, () => { g.fillStyle = "#fff"; g.strokeStyle = rgba(CORE, 1); g.lineWidth = 1.8; g.beginPath(); g.roundRect(-9, -9, 18, 18, 5); g.stroke(); g.beginPath(); g.arc(0, 0, 3, 0, 6.2832); g.fill(); }, "laser");
+    item(kx + 140, () => { g.strokeStyle = "rgba(240,246,252,1)"; g.lineWidth = 4; g.beginPath(); g.moveTo(0, -11); g.lineTo(0, 11); g.stroke(); }, "mirror");
+    item(kx + 292, () => { g.fillStyle = "#fff"; g.beginPath(); g.arc(0, 0, 7, 0, 6.2832); g.fill(); }, "light sensor");
     g.restore();
   }
 }
-const sources = []; { const r = random(99); for (let i = 0; i < 230; i++) sources.push({ angle: r() * 6.2832, far: Math.sqrt(0.012 + r() * 0.988), phase: r() * 6.28, reached: 0 }); }
+const sources = []; { const r = random(99); for (let i = 0; i < 260; i++) sources.push({ angle: r() * 6.2832, far: Math.sqrt(0.012 + r() * 0.988), phase: r() * 6.28, reached: 0, size: 0.7 + r() * 0.9 }); }
 const REACH = 300, radius = loss => REACH * clamp(1 - loss / 5.9, 0.035, 1);    // a scale of tens: each ring out is ten times farther
 function drawReach(alpha) {
   if (!SCENE || alpha <= 0.01) return;
-  const cx = 1420, cy = 432, shown = live.best.length ? live.best[live.best.length - 1] : 5.9, comparing = step === at_("compare");
+  const cx = 1420, cy = 426, shown = live.best.length ? live.best[live.best.length - 1] : 5.9, comparing = step === at_("compare");
   live.radius = lerp(live.radius || 0, radius(shown), 0.12);
   g.save(); g.globalAlpha = alpha;
-  words("How far this machine can hear", cx, 62, 38, 900, alpha, 600, INK, 1.2, "center");
-  words("each ring out is 10 times farther", cx, 100, 24, 900, alpha, 500, SOFT, 1.2, "center");
-  g.lineWidth = 1.4; g.setLineDash([3, 9]);
-  for (const loss of [4, 3, 2, 1]) { g.strokeStyle = "rgba(243,239,230,0.22)"; g.beginPath(); g.arc(cx, cy, radius(loss), 0, 6.2832); g.stroke(); }
-  g.setLineDash([12, 9]); g.strokeStyle = "rgba(243,239,230,0.85)"; g.lineWidth = 2.2; g.beginPath(); g.arc(cx, cy, radius(0), 0, 6.2832); g.stroke(); g.setLineDash([]);
-  words("the best design known", cx + radius(0) * 0.8192 + 7, cy + radius(0) * 0.5736 + 22, 22, 300, alpha, 600, "rgba(243,239,230,0.92)");
+  words("How far this machine can hear", cx, 60, 38, 900, alpha, 600, INK, 1.2, "center", -0.5);
+  words("EACH RING OUT IS 10 TIMES FARTHER", cx, 96, 17, 900, alpha, 600, FAINT, 1.2, "center", 3);
+  g.lineWidth = 1; for (const loss of [4, 3, 2, 1]) { g.strokeStyle = "rgba(245,242,234,0.16)"; g.beginPath(); g.arc(cx, cy, radius(loss), 0, 6.2832); g.stroke(); }
+  g.setLineDash([2, 10]); g.lineCap = "round"; g.strokeStyle = "rgba(245,242,234,0.9)"; g.lineWidth = 2.4; g.beginPath(); g.arc(cx, cy, radius(0), 0, 6.2832); g.stroke(); g.setLineDash([]);
+  words("THE BEST DESIGN KNOWN", cx - radius(0) * 0.7314 - 12, cy - radius(0) * 0.682 - 4, 17, 420, alpha, 600, "rgba(245,242,234,0.85)", 1.2, "right", 2.6);
   g.globalCompositeOperation = "lighter";
-  const disc = g.createRadialGradient(cx, cy, 0, cx, cy, live.radius); disc.addColorStop(0, rgba(OURS, 0.05)); disc.addColorStop(0.82, rgba(OURS, 0.16)); disc.addColorStop(1, rgba(OURS, 0.34));
+  const disc = g.createRadialGradient(cx, cy, 0, cx, cy, live.radius); disc.addColorStop(0, rgba(OURS, 0.03)); disc.addColorStop(0.8, rgba(OURS, 0.1)); disc.addColorStop(1, rgba(OURS, 0.3));
   g.fillStyle = disc; g.beginPath(); g.arc(cx, cy, live.radius, 0, 6.2832); g.fill();
   for (const source of sources) {                        // crashes out there: each lights up once the machine can hear that far
     const far = source.far * REACH, x = cx + far * Math.cos(source.angle), y = cy + far * Math.sin(source.angle), inside = far < live.radius;
     if (inside && !source.reached) source.reached = time;
     if (!inside) source.reached = 0;
     const fresh = inside ? Math.exp(-(time - source.reached) / 0.7) : 0, twinkle = 0.65 + 0.35 * Math.sin(time * 2.2 + source.phase);
-    if (inside) { glow(x, y, 13 + 34 * fresh, [255, 240, 205], (0.55 + 0.45 * fresh) * twinkle); g.fillStyle = "rgba(255,250,235,1)"; g.beginPath(); g.arc(x, y, 1.9, 0, 6.2832); g.fill(); }
-    else { g.fillStyle = "rgba(170,190,225,0.26)"; g.beginPath(); g.arc(x, y, 1.4, 0, 6.2832); g.fill(); }
+    if (inside) { glow(x, y, (8 + 26 * fresh) * source.size, GOLD, (0.6 + 0.4 * fresh) * twinkle); g.fillStyle = "#fff"; g.beginPath(); g.arc(x, y, 1.7 * source.size, 0, 6.2832); g.fill(); }
+    else { g.fillStyle = "rgba(160,185,225,0.3)"; g.beginPath(); g.arc(x, y, 1.2 * source.size, 0, 6.2832); g.fill(); }
   }
+  g.strokeStyle = rgba(OURS, 1); g.lineWidth = 3; g.beginPath(); g.arc(cx, cy, live.radius, 0, 6.2832); g.stroke();
   g.globalCompositeOperation = "source-over";
-  g.strokeStyle = rgba(OURS, 1); g.lineWidth = 3.5; g.shadowColor = rgba(OURS, 0.9); g.shadowBlur = 22; g.beginPath(); g.arc(cx, cy, live.radius, 0, 6.2832); g.stroke(); g.shadowBlur = 0;
   const theirTests = SCENE.original ? Math.floor(live.seconds / SCENE.original) : 0, loud = comparing ? 0.5 + 0.5 * Math.sin(time * 4) : 0;
   if (SCENE.original && live.best.length) {                // the original code: the same search, at its own measured pace
     const theirs = radius(live.best[Math.min(theirTests, live.best.length - 1)]);
     live.theirs = lerp(live.theirs || theirs, theirs, 0.08);
-    g.strokeStyle = rgba(THEIRS, 1); g.lineWidth = 3 + 3 * loud; g.setLineDash([9, 7]); g.beginPath(); g.arc(cx, cy, live.theirs, 0, 6.2832); g.stroke(); g.setLineDash([]);
-    g.font = `600 23px ${SANS}`; const wide = g.measureText("original code").width, lx = cx - live.theirs - 16, ly = cy + 7;
-    g.fillStyle = "rgba(5,9,14,0.8)"; g.beginPath(); g.roundRect(lx - wide - 12, ly - 26, wide + 24, 37, 8); g.fill();
-    words("original code", lx, ly, 23, 400, alpha, 600, rgba(THEIRS, 1), 1.2, "right");
+    g.strokeStyle = rgba(THEIRS, 1); g.lineWidth = 2.6 + 3 * loud; g.setLineDash([8, 7]); g.beginPath(); g.arc(cx, cy, live.theirs, 0, 6.2832); g.stroke(); g.setLineDash([]);
+    ui.font = `600 17px ${SANS}`; ui.letterSpacing = "2.4px"; const wide = ui.measureText("ORIGINAL CODE").width; ui.letterSpacing = "0px";
+    const lx = cx - live.theirs - 18, ly = cy + 6; glass(lx - wide - 14, ly - 23, wide + 28, 34, 9);
+    words("ORIGINAL CODE", lx, ly, 17, 400, alpha, 600, rgba(THEIRS, 1), 1.2, "right", 2.4);
   }
-  words("our code", cx - live.radius * 0.9063 - 14, cy + live.radius * 0.4226 + 24, 23, 400, alpha * span(live.radius, 60, 110), 600, rgba(OURS, 1), 1.2, "right");
-  g.globalCompositeOperation = "lighter"; glow(cx, cy, 30, [110, 180, 255], 0.95); g.globalCompositeOperation = "source-over";
-  g.fillStyle = "#bfe0ff"; g.beginPath(); g.arc(cx, cy, 4.5, 0, 6.2832); g.fill();
-  words("Earth", cx + 12, cy - 12, 21, 200, alpha, 500, "rgba(190,224,255,0.9)");
-  const figure = (x, value, label, color, grow) => { g.fillStyle = color; g.font = `600 ${66 + 14 * grow}px ${MONO}`; g.textAlign = "left"; g.fillText(value, x, 846); words(label, x, 882, 24, 330, alpha, 500, SOFT, 1.22); };
-  figure(1040, String(live.steps), "tests by our code", rgba(OURS, 1), loud * 0.4);
-  figure(1340, String(rate()), "tests every second", INK, 0);
-  if (SCENE.original) figure(1580, String(theirTests), "tests by the original code", rgba(THEIRS, 1), loud * 0.4);
+  words("OUR CODE", cx - live.radius * 0.9063 - 14, cy + live.radius * 0.4226 + 22, 17, 400, alpha * span(live.radius, 60, 110), 600, rgba(OURS, 1), 1.2, "right", 2.4);
+  g.globalCompositeOperation = "lighter"; glow(cx, cy, 26, [110, 180, 255], 1); g.globalCompositeOperation = "source-over";
+  g.fillStyle = "#dff0ff"; g.beginPath(); g.arc(cx, cy, 4, 0, 6.2832); g.fill();
+  words("EARTH", cx + 12, cy - 12, 15, 200, alpha, 600, "rgba(190,224,255,0.9)", 1.2, "left", 2.4);
+  glass(1004, 768, 836, 142, 18);                          // the three numbers, on a pane of glass
+  g.strokeStyle = "rgba(210,228,240,0.14)"; g.lineWidth = 1; for (const x of [1296, 1556]) { g.beginPath(); g.moveTo(x, 790); g.lineTo(x, 888); g.stroke(); }
+  const figure = (x, value, label, color, grow) => { number(value, x, 852, 64 + 12 * grow, color, alpha); words(label.toUpperCase(), x, 886, 16, 330, alpha, 600, SOFT, 1.2, "left", 2.2); };
+  figure(1036, String(live.steps), "tests by our code", rgba(OURS, 1), loud * 0.4);
+  figure(1326, String(rate()), "tests every second", INK, 0);
+  if (SCENE.original) figure(1586, String(theirTests), "tests by the original", rgba(THEIRS, 1), loud * 0.4);
   g.restore();
 }
 function drawEnding() {
   const a = step === at_("end") ? span(since("end"), 0, 1.1) : previous === at_("end") ? 1 - span(time - changed, 0, 0.6) : 0; if (a <= 0.01) return;
-  g.fillStyle = `rgba(3,5,10,${0.86 * a})`; g.fillRect(0, 0, W, H);
-  words("One full test of a machine design", W / 2, 386, 42, 1500, a, 500, SOFT, 1.2, "center");
-  g.save(); g.globalAlpha = a; g.textAlign = "center"; g.font = `600 150px ${MONO}`;
-  g.fillStyle = rgba(THEIRS, 1); g.fillText("35.62 s", W / 2 - 400, 590); g.fillStyle = INK; g.fillText("→", W / 2, 584); g.fillStyle = rgba(OURS, 1); g.fillText("0.72 s", W / 2 + 390, 590);
-  g.restore();
-  words("Same answers. Fifty times faster.", W / 2, 706, 54, 1600, a * span(since("end"), 1.0, 2.0), 600, INK, 1.2, "center");
-  words("the official test, on one processor core, both on the same computer", W / 2, 772, 26, 1600, a * span(since("end"), 1.6, 2.6), 500, SOFT, 1.2, "center");
+  g.fillStyle = `rgba(2,4,9,${0.9 * a})`; g.fillRect(0, 0, W, H);
+  words("ONE FULL TEST OF A MACHINE DESIGN", W / 2, 372, 22, 1500, a, 600, SOFT, 1.2, "center", 4);
+  number("35.62 s", W / 2 - 150, 590, 156, rgba(THEIRS, 1), a, "right"); number("0.72 s", W / 2 + 150, 590, 156, rgba(OURS, 1), a, "left");
+  later.push(() => { ui.save(); ui.globalAlpha = a; ui.strokeStyle = INK; ui.lineWidth = 5; ui.lineCap = "round"; ui.lineJoin = "round"; ui.beginPath(); ui.moveTo(W / 2 - 62, 538); ui.lineTo(W / 2 + 62, 538); ui.moveTo(W / 2 + 30, 506); ui.lineTo(W / 2 + 62, 538); ui.lineTo(W / 2 + 30, 570); ui.stroke(); ui.restore(); });
+  words("Same answers. *Fifty* *times* *faster.*", W / 2, 712, 60, 1600, a * span(since("end"), 1.0, 2.0), 600, INK, 1.2, "center", -1, rgba(OURS, 1));
+  words("THE OFFICIAL TEST, ON ONE PROCESSOR CORE, BOTH ON THE SAME COMPUTER", W / 2, 776, 17, 1700, a * span(since("end"), 1.6, 2.6), 600, FAINT, 1.2, "center", 3);
 }
 
 // ---------------------------------------------------------------- the live search
@@ -359,32 +494,38 @@ function startSearch() {
 function stopSearch() { if (live.stream) live.stream.close(); live.stream = null; }
 
 // ---------------------------------------------------------------- putting it together
+let recorder = null, chunks = [];
 function draw() {
-  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = "source-over";
-  g.fillStyle = "#04060b"; g.fillRect(0, 0, W, H);
-  drawSky(time * 6);
-  const crash = shows("crash");
-  if (crash > 0.01) { const t = since("crash"); drawFabric(t, crash * span(t, 0, 1.6)); drawStars(t, crash * span(t, 0.2, 1.6)); }
-  drawMachine(shows("machine"));
-  const design = shows("design");
-  if (design > 0.01) { g.fillStyle = `rgba(4,6,11,${0.55 * design})`; g.fillRect(0, 0, W, H); drawDesign(design); }
+  later.length = 0; pointCount = 0;
+  g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = "source-over"; g.clearRect(0, 0, W, H);
+  const crash = shows("crash"), machine = shows("machine"), design = shows("design");
+  const look = { dim: 1, ground: clamp(machine + design), wave: 0, waveTime: 0, source: [W / 2, 480], glow: 4, bloom: 0.17 };
+  if (crash > 0.01) {
+    const t = since("crash"); look.source = drawCrash(t, crash * span(t, 0, 1.6));
+    look.wave = crash * (t < MERGE ? 0.35 + 0.65 * t / MERGE : 0.5 + 1.3 * Math.exp(-(t - MERGE) / 2.5)); look.waveTime = t;
+  }
+  drawMachine(machine);
+  voice = step === at_("end") ? 1 - span(since("end"), 0, 0.8) : 1;
+  if (design > 0.01) drawDesign(design);
   if (step >= at_("search")) drawReach(design * span(since("search"), 0.6, 1.8));
+  voice = 1;
   drawEnding();
   captions();
   const title = shows("sky");                            // the opening card
   if (title > 0.01) {
-    words("Hearing the universe, faster", W / 2, 470, 96, 1700, title, 600, INK, 1.2, "center");
-    words("Feyer Faster Physics challenge  ·  START Hack Munich 2026", W / 2, 548, 31, 1700, title, 500, SOFT, 1.2, "center");
-    if (!recorder) words("press the space bar to go on", W / 2, 968, 26, 900, title * (0.5 + 0.3 * Math.sin(time * 2.4)), 500, SOFT, 1.2, "center");
+    words("FEYER FASTER PHYSICS CHALLENGE   ·   START HACK MUNICH 2026", W / 2, 404, 19, 1700, title, 600, SOFT, 1.2, "center", 5);
+    words("Hearing the universe, *faster*", W / 2, 520, 116, 1800, title, 600, INK, 1.1, "center", -3.5, rgba(OURS, 1));
+    if (!recorder) words("PRESS THE SPACE BAR", W / 2, 972, 16, 900, title * (0.45 + 0.35 * Math.sin(time * 2.4)), 600, SOFT, 1.2, "center", 5);
   }
-  if (!recorder && step > 0) for (let i = 1; i < STEPS.length; i++) {      // where we are: one dot per step
-    g.fillStyle = i === step ? "rgba(243,239,230,0.9)" : i < step ? "rgba(243,239,230,0.4)" : "rgba(243,239,230,0.16)";
-    g.beginPath(); g.arc(W - 96 - (STEPS.length - 1 - i) * 22, 1040, i === step ? 5 : 3.5, 0, 6.2832); g.fill();
+  ui.setTransform(1, 0, 0, 1, 0, 0); ui.globalAlpha = 1;
+  if (R) { render(look); ui.drawImage(glCanvas, 0, 0); }
+  else { ui.fillStyle = "#04060b"; ui.fillRect(0, 0, W, H); ui.drawImage(content, 0, 0); }
+  for (const paint of later) paint();
+  if (!recorder && step > 0) for (let i = 1; i < STEPS.length; i++) {      // where we are: one short line per step
+    ui.fillStyle = i === step ? "rgba(245,242,234,0.95)" : i < step ? "rgba(245,242,234,0.42)" : "rgba(245,242,234,0.15)";
+    ui.beginPath(); ui.roundRect(W - 96 - (STEPS.length - i) * 30, 1036, 22, 3, 2); ui.fill();
   }
-  const edge = g.createRadialGradient(W / 2, H / 2, H * 0.55, W / 2, H / 2, H * 1.08); edge.addColorStop(0, "rgba(0,0,0,0)"); edge.addColorStop(1, "rgba(0,0,0,0.6)");
-  g.fillStyle = edge; g.fillRect(0, 0, W, H);
 }
-let recorder = null, chunks = [];
 function tick(now) {
   time += Math.min((now - lastFrame) / 1000, 0.1); lastFrame = now;
   if (live.target) live.shown = live.shown ? live.shown.map((v, i) => lerp(v, live.target[i], 0.22)) : live.target.slice();
@@ -397,7 +538,7 @@ function record() {                                       // plays every step fo
   go(0); changed = time; chunks = [];
   // H.264 where the browser offers it: it is encoded by the graphics chip and leaves the processor to the simulator
   const kind = ["video/mp4;codecs=avc1.640033", "video/webm;codecs=h264", "video/webm;codecs=vp9"].find(type => MediaRecorder.isTypeSupported(type));
-  recorder = new MediaRecorder(stage.captureStream(30), { mimeType: kind, videoBitsPerSecond: 18000000 });
+  recorder = new MediaRecorder(stage.captureStream(30), { mimeType: kind, videoBitsPerSecond: 22000000 });
   recorder.ondataavailable = event => event.data.size && chunks.push(event.data);
   recorder.onstop = () => fetch("/recording", { method: "POST", headers: { "Content-Type": kind }, body: new Blob(chunks, { type: kind }) }).then(reply => reply.json()).then(reply => document.title = "Saved: " + reply.saved);
   recorder.start(1000); document.title = "Recording…";
@@ -411,6 +552,7 @@ addEventListener("keydown", event => {
   else if (event.key === "r" || event.key === "R") record();
 });
 stage.addEventListener("click", () => { if (!recorder) go(step === STEPS.length - 1 ? 0 : step + 1); });
+try { setUp(); } catch (problem) { console.error("The graphics chip refused a shader; showing the plain version.", problem); R = null; }
 fetch("/scene.json").then(reply => reply.json()).then(scene => { SCENE = scene; });
 requestAnimationFrame(now => { lastFrame = now; tick(now); });
 </script></body></html>
