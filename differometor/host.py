@@ -468,13 +468,24 @@ def _no_factor_matrices(*arguments):
 
 REFINEMENT_STEPS = 1
 """
-Rounds of iterative refinement after every solve: compute the residual b - A x, solve for
+Rounds of iterative refinement after a solve: compute the residual b - A x, solve for
 the correction with the same factors, add it.
 
 The signal matrices have entries from 1e-22 to 1e13. A plain LU solve is then accurate in
 the large entries of the solution but not always in the small ones, which the noise
 depends on, and how accurate depends on the column order SuperLU happens to use. One
 round removes that dependence (measured against exact solutions in tests/solver_experiment.py).
+"""
+
+SIGNAL_REFINEMENT_STEPS = 0
+"""
+The same for the solve that gives the signal and the adjoint of the noise in `_forward`.
+
+Neither needs the small entries: the signal is read out where it is large, and the adjoint
+only enters the gradient. Without refinement the signal agrees with the JAX version to
+1e-10 or better on the test setups and the gradients are unchanged at the level the tests
+resolve (tests/test_host.py), for one triangular solve and one matrix product less per
+right-hand side. The noise weights keep `REFINEMENT_STEPS`.
 """
 
 _LAYOUTS = {}
@@ -525,10 +536,10 @@ def _solver_layout(layout, size, value_count, entries):
         middle = entries[value_count // 2]
         gather, indices, pointers = block(column_order)
         chosen = np.asarray(_factorize(size, middle[gather], indices, pointers, ordering="MMD_ATA").perm_c)
-        # SuperLU reports its order as a permutation; apply it the way round that reproduces its factors.
-        candidates = [np.argsort(chosen), chosen]
-        fills = [_factorize(size, middle[gather], indices, pointers).nnz for gather, indices, pointers in map(block, candidates)]
-        column_order = candidates[int(np.argmin(fills))]
+        # SuperLU reports where each column goes (Pr A Pc = L U with Pc[i, perm_c[i]] = 1), so the
+        # columns in their new order are the inverse permutation. Any order gives correct factors;
+        # this one reproduces SuperLU's own, the sparsest.
+        column_order = np.argsort(chosen)
     gather, indices, pointers = block(column_order)
     blocks = np.arange(value_count, dtype=np.int64)[:, None]
     row_starts = np.concatenate([[0], np.cumsum(np.bincount(rows, minlength=size))])
@@ -611,11 +622,11 @@ class _Factors:
             result[:, :, index] = np.add.reduceat(products.ravel(), starts).reshape(vectors.shape[:2])
         return result.reshape(vectors.shape)
 
-    def solve(self, right_hand_side, transpose="N"):
+    def solve(self, right_hand_side, transpose="N", refinement_steps=None):
         """Solve for every frequency. `right_hand_side` has shape (SV, SN) or (SV, SN, D)."""
         right_hand_side = np.asarray(right_hand_side, dtype=np.complex128)
         solution = self._once(right_hand_side, transpose)
-        for _ in range(REFINEMENT_STEPS):
+        for _ in range(REFINEMENT_STEPS if refinement_steps is None else refinement_steps):
             solution = solution + self._once(right_hand_side - self._apply(solution, transpose), transpose)
         return solution
 
@@ -649,7 +660,7 @@ def _forward(optimized_parameters, a, static, adjoint):
     np.add.at(weight_cotangent, (everything, noise_layout["columns"]), left * s["noise_values"][:, :, None])
     np.add.at(weight_cotangent, (everything, noise_layout["rows"]), np.conj(right))
     # The signal and the noise adjoint are solves with the same matrix: one call with several right-hand sides.
-    both = factors.solve(np.concatenate([s["right_hand_side"][:, :, None], np.conj(weight_cotangent)], axis=2))
+    both = factors.solve(np.concatenate([s["right_hand_side"][:, :, None], np.conj(weight_cotangent)], axis=2), refinement_steps=SIGNAL_REFINEMENT_STEPS)
     return s["carrier"], np.ascontiguousarray(both[:, :, 0]), weights, noise, np.conj(both[:, :, 1:])
 
 
