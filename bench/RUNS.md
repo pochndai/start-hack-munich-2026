@@ -24,6 +24,9 @@ Raw data: `bench/results/apple-m5-16g-darwin/`. A Mac cannot pin a process to on
 | 20:38 | `run.py aa`: `v07` against itself, 5 rounds | Noise floor ±16%; medians 0.66 and 0.69 s, fastest 0.34 s | `sessions/2026-11-21T20-38-57Z_aa.json` |
 | 20:42 | `run.py official --versions v07-numpy-host` | First run 0.66 s, repeat 0.051 s, `PASS` | `official/v07-numpy-host.json` |
 | 21:50 | `validate.py --force` on `v01` to `v07`, after the per-entry gradient tolerance was set to 0.1% | `PASS` for all seven; entry 158 is at 0.29 of the allowed difference | `validation/<version>@<commit>.json` |
+| 23:31 | `run.py quick --rounds 8`: `v07` and the working tree with change 14 | Medians 0.35 and 0.35 s; not distinguishable (1.03x, 0.34 to 1.19) | `sessions/2026-11-21T23-31-32Z_quick.json` |
+| 23:37 | `tests/variations.py` on the working tree with changes 14 and 15 | 18 `PASS`, 1 `DEVIATION` (20 to 5000 Hz, known) | `variations/2026-11-21T23-37-37Z.json`, `VARIATIONS.md` |
+| 23:38 | `run.py run`: `v07`, `v09`, `v10`, 10 shuffled rounds, machine busy with a demo page | Medians 0.44, 0.43 and 0.43 s; gradient phase 38.3, 30.6, 30.7 ms; build phase 43.1, 41.8, 37.7 ms | `sessions/2026-11-21T23-38-07Z_run.json`, `SUMMARY.md` |
 
 Validation was switched off for the timing session because the harness leaves out versions with a `FAIL` verdict; the verdicts themselves were not changed. `SUMMARY.md` is regenerated from the sessions.
 

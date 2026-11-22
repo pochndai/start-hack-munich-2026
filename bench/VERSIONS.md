@@ -266,3 +266,57 @@ On the Mac the switch has no effect (macOS has no such request), so there is no 
 **Dead ends and notes**
 
 The switch is private to NumPy and exists in the pinned 2.5.5; if it is missing the call is skipped. Setting the environment variable inside the package would be too late, because `benchmark.py` imports NumPy before this package. Not shown: the worst state we observed (0.74 s becoming 2.8 s on a busy shared host) did not occur again during the test, so this version has not been measured against it. Two other settings were tried in the same test and did not remove the outliers: keeping freed memory in the allocator, and pinning to a different CPU.
+
+## v09-active-derivatives
+
+- **Date:** 2026-11-22
+- **Commit:** `9c1d7f3351e3` (tag `v09-active-derivatives`)
+- **Builds on:** v07-numpy-host
+- **Summary:** Take derivatives of the physics formulas only for inputs that depend on a design variable
+
+**What changed**
+
+In `differometor/host.py`, `_assemble` marks which entries of the parameter vector depend on the design variables: the entries the optimized values are written into, carried through the parameter links by the same two assignments that carry the values. `_evaluate` then asks a physics formula for derivatives only with respect to those of its seven inputs that read a marked entry somewhere. A formula none of whose inputs is marked runs on plain numbers, with no derivative at all. Change 14 in `CHANGES.md`.
+
+**Why it is faster**
+
+Before, every formula carried seven derivatives through every arithmetic step, one per input. Most of them were never used: the frequency and the fixed refractive indices are not design variables, and whole formulas (force calculations, signal sources, vacuum and loss noise) have no design variable among their inputs. Their derivatives were computed and then thrown away at the end of the reverse pass, where only the design variables' entries are read.
+
+**Why it is still correct**
+
+No requested derivative is skipped: all 193 gradient entries are computed as before. What is left out is arithmetic whose result was discarded. Each remaining derivative goes through exactly the same operations, so the gradient is bit-for-bit the same: checked on the supplied setup, the second UIFO setup (homodyne), aLIGO, Voyager and a random 3×3 layout, for all outputs and for gradients with random weights on every output (20 arrays compared byte by byte, script not in the repository). `python bench/validate.py v09-active-derivatives` (Apple M5, `results/apple-m5-16g-darwin/validation/v09-active-derivatives@9c1d7f3351e3.json`): `PASS`, with the same differences from the original as v07 (sensitivity 5.8e-08 in log, entry 158 at 0.29 of the allowed difference). `tests/test_host.py`: `ALL CHECKS PASSED` (it includes the tied lengths, which are parameter links). The rule is general: the marks come from the setup's own index arrays, nothing is tied to the supplied example.
+
+**Result**
+
+Session `results/apple-m5-16g-darwin/sessions/2026-11-21T23-38-07Z_run.json` (Apple M5, 16 GB, thread limits set to one, 10 shuffled rounds of `v07`, `v09` and `v10`, a fresh process per run; the Mac was busy with a running demo page, so 2 to 3 samples per version carry the `memory` flag): the gradient phase of a first run has a median of 30.6 ms against 38.3 ms for v07. The complete first run, 0.43 s against 0.44 s (medians), is not distinguishable from noise there: 1.01x (0.94 to 1.37) against v07. Compiled and warm, one forward evaluation plus gradient of the supplied setup takes 38.6 ms against 44.1 ms (median of 30 in one process, by hand). Not yet timed on Linux with one pinned core.
+
+**Dead ends and notes**
+
+The marks are per input of a group of cells that share a formula, not per cell: an input is differentiated for the whole group if any cell of the group needs it. Going down to single cells would mean calling a formula several times on parts of its cells; not tried. Precomputing the index bookkeeping of `_evaluate` once per setup was profiled and not done: it is 1 to 2 ms per evaluation on the Apple M5.
+
+## v10-host-swept-values
+
+- **Date:** 2026-11-22
+- **Commit:** `49f887148515` (tag `v10-host-swept-values`)
+- **Builds on:** v09-active-derivatives
+- **Summary:** Reshape and copy the swept values in NumPy, which removes two small compilations from the build step
+
+**What changed**
+
+`prepare_arrays` in `differometor/build.py` receives the swept values (in the benchmark: the 101 frequencies) as a JAX array, gives them the shape (1, 101) and copies them. Both steps now happen in NumPy and the result is turned into a JAX array once. Change 15 in `CHANGES.md`.
+
+**Why it is faster**
+
+On a JAX array, `reshape` and `copy` each run a small device program, and JAX compiles such a program the first time it meets a new shape. With compilation logging switched on (`JAX_LOG_COMPILES=1`) the build step showed five small compilations; these two were ours, the other three come from `benchmark.py` itself. Same idea as change 11, which removed 36 of them; these two were left over.
+
+**Why it is still correct**
+
+The values are the same numbers in the same shape and type; only where the reshape and the copy happen has changed. All outputs and gradients are bit-for-bit those of v09 on the five setups named there. `python bench/validate.py v10-host-swept-values` (Apple M5, `results/apple-m5-16g-darwin/validation/v10-host-swept-values@49f887148515.json`): `PASS`, same differences from the original as v07. `tests/test_host.py`: `ALL CHECKS PASSED`; `tests/handwritten_jacobians.py`: all 19 rules agree; `tests/variations.py` (session `results/apple-m5-16g-darwin/variations/2026-11-21T23-37-37Z.json`): 18 `PASS` and the one known `DEVIATION` (20 to 5000 Hz) on 19 scenarios, as for v07. Swept values that are NumPy arrays, or values being traced by JAX, take the same path as before.
+
+**Result**
+
+Same session as v09 (`results/apple-m5-16g-darwin/sessions/2026-11-21T23-38-07Z_run.json`): the build phase has a median of 37.7 ms against 41.8 ms for v09; the complete first run is not distinguishable from noise, 1.00x (0.77 to 1.75) against v09. Three runs of `benchmark.py` by hand on a quieter machine gave 30.7, 30.9 and 30.7 ms for the build phase, against 41.4 to 42.6 ms in three runs before the change. Not yet timed on Linux with one pinned core, where a small compilation costs more than on this Mac.
+
+**Dead ends and notes**
+
+The rest of the build step was profiled (Apple M5, about 10 ms once warm): 3.5 ms in `set_instructions`, 2 ms scanning the dense matrices for non-zero cells in `sparse_layout`. Not changed: a few milliseconds at most for edits to code that decides the sparsity pattern. Importing klujax takes 12 ms, of which 10 ms is `jaxtyping`, which klujax needs only for one type annotation; replacing that import with a stand-in was measured (12 ms to 2 ms) and not done, because it means interfering with another package's imports.

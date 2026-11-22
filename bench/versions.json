@@ -65,6 +65,20 @@
       "parent": "v07-numpy-host",
       "summary": "Switch off NumPy's request for large memory pages, for a steady first-run time on a busy Linux machine",
       "enabled": false
+    },
+    {
+      "name": "v09-active-derivatives",
+      "ref": "v09-active-derivatives",
+      "parent": "v07-numpy-host",
+      "summary": "Take derivatives of the physics formulas only for inputs that depend on a design variable",
+      "enabled": true
+    },
+    {
+      "name": "v10-host-swept-values",
+      "ref": "v10-host-swept-values",
+      "parent": "v09-active-derivatives",
+      "summary": "Reshape and copy the swept values in NumPy, which removes two small compilations from the build step",
+      "enabled": true
     }
   ]
 }
