@@ -27,6 +27,7 @@ Raw data: `bench/results/apple-m5-16g-darwin/`. A Mac cannot pin a process to on
 | 23:31 | `run.py quick --rounds 8`: `v07` and the working tree with change 14 | Medians 0.35 and 0.35 s; not distinguishable (1.03x, 0.34 to 1.19) | `sessions/2026-11-21T23-31-32Z_quick.json` |
 | 23:37 | `tests/variations.py` on the working tree with changes 14 and 15 | 18 `PASS`, 1 `DEVIATION` (20 to 5000 Hz, known) | `variations/2026-11-21T23-37-37Z.json`, `VARIATIONS.md` |
 | 23:38 | `run.py run`: `v07`, `v09`, `v10`, 10 shuffled rounds, machine busy with a demo page | Medians 0.44, 0.43 and 0.43 s; gradient phase 38.3, 30.6, 30.7 ms; build phase 43.1, 41.8, 37.7 ms | `sessions/2026-11-21T23-38-07Z_run.json`, `SUMMARY.md` |
+| 00:31 (22 Nov) | `run.py run`: `v10` and the branch `no-klujax-scipy` at `f3f1454` (SciPy SuperLU inside the host callbacks), 10 shuffled rounds, machine busy with a demo page | Medians 0.41 and 0.35 s, fastest 0.33 and 0.28 s; branch 1.20x (0.93 to 1.54), faster in 9 of 10 rounds. Compile 70 against 42 ms, forward 26 against 39 ms, gradient 30 against 15 ms. On the branch: `validate.py` `PASS`, `tests/test_host.py` all passed, `tests/variations.py` 18 `PASS` and the known `DEVIATION` (run from a separate checkout, files not stored here) | `sessions/2026-11-22T00-31-37Z_run.json` |
 
 Validation was switched off for the timing session because the harness leaves out versions with a `FAIL` verdict; the verdicts themselves were not changed. `SUMMARY.md` is regenerated from the sessions.
 
