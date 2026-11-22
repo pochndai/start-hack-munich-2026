@@ -8,41 +8,73 @@ This repository includes the public simulator source, example data, [challenge P
 
 ## Our submission
 
-This repository is our entry. The simulator in `differometor/` has been changed for speed; everything below this section is the organizers' original description of the challenge.
+This repository is our entry. The simulator in `differometor/` has been changed for speed; everything below this section is the organizers' original description of the challenge. The submitted code is the tag `v12-kept-assembly` (`v12`), which is the simulator on `main`.
 
-**Current version (`v12`) on the organizers' processor type:** Intel Xeon Platinum 8468, one pinned logical CPU with the official `--cpus 1`: **0.626 s** (median of 10 fresh runs, 0.612 to 0.640 s), against 0.666 s for `v11` in the same session, with `PASS` from our comparison of every output and all 193 gradient entries with the original's. Details: CHANGES.md, "Changes 19 to 21 measured".
+### Result
 
-**The version before it (`v11`), measured together with the original:** Intel Xeon Platinum 8468, one pinned logical CPU with the official `--cpus 1`. The original took 43.14 s in its one run there; ours takes **0.71 s** (median of 5 fresh runs, 0.68 to 0.72 s), about 61 times faster, with `PASS` from the official validation and from our comparison of every output and all 193 gradient entries with the original's. Details and raw data: CHANGES.md, "Result so far".
+Official `benchmark.py --cpus 1` on the organizers' processor type (Intel Xeon Platinum 8468, one pinned logical CPU, 32 GiB memory cap), both on the same VM:
 
-An earlier version (`v07`, changes 1–12), for which the official reports of both sides are saved. Official benchmark, one logical CPU (`--cpus 1`), original and ours on the same machine (AMD EPYC 9334, Linux, Python 3.12, 10 repeats):
-
-| | Original | Ours |
+| | Original | Ours (`v12`) |
 | --- | ---: | ---: |
-| **Complete first run** (the scored number) | 35.62 s | **0.715 s** |
-| Repeat run, once compiled (median) | 15.67 s | 0.124 s |
+| **Complete first run** (the scored number) | 41.31 s (one run) | **0.626 s** (median of 10 fresh runs, 0.612 to 0.640 s) |
 | Official validation | `PASS` | `PASS` |
-| Distance from the public reference in log sensitivity (limit 1e-5) | 5.374e-06 | 5.375e-06 |
 
-Reports and plots of these two runs: [original](benchmarks/amd-epyc-9334-original.json) ([plot](benchmarks/amd-epyc-9334-original.png)) and [ours](benchmarks/amd-epyc-9334-candidate.json) ([plot](benchmarks/amd-epyc-9334-candidate.png)).
+That is about 66 times faster. On another VM of the same type the original took 43.14 s and our previous version (`v11`) 0.71 s; within one session `v12` is 1.07 times faster than `v11`, in ten of ten rounds.
 
-Reproduce and check:
+### Before and after: reports and plots
+
+| | Report | Plot |
+| --- | --- | --- |
+| Before: the original, Intel Xeon Platinum 8468, `--cpus 1` (41.31 s) | [json](bench/results/nebius-xeon-8468-200g-linux/original-reproduction/original-1cpu-32g-vm2.json) | [png](bench/results/nebius-xeon-8468-200g-linux/original-reproduction/original-1cpu-32g-vm2.png) |
+| After: `v12`, same VM, 10 fresh runs through our harness (0.626 s median) | [session](bench/results/intel-xeon-platinum-8468-197g-linux/sessions/2026-11-22T10-05-52Z_run.json), [check against the original](bench/results/intel-xeon-platinum-8468-197g-linux/validation/f4f5c40@f4f5c40d53d8.json) | [png](bench/results/intel-xeon-platinum-8468-197g-linux/summary.png) |
+| After: `v12`, official report, one pinned core of an AMD EPYC 7763 (0.734 s) | [json](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly.json) | [png](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly.png) |
+| After: `v12`, official aLIGO report, same machine (0.595 s) | [json](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly-aligo.json) | [png](bench/results/amd-epyc-7763-64-core-processor-16g-linux/official/v12-kept-assembly-aligo.png) |
+| After: `v11`, official report on the Intel Xeon Platinum 8468 (0.667 s) | [json](bench/results/intel-xeon-platinum-8468-197g-linux/official/v11-scipy-stacked-solver.json) | [png](bench/results/intel-xeon-platinum-8468-197g-linux/official/v11-scipy-stacked-solver.png) |
+| Before and after on one more machine (AMD EPYC 9334, `v07`: 35.62 s and 0.715 s) | [original](benchmarks/amd-epyc-9334-original.json), [ours](benchmarks/amd-epyc-9334-candidate.json) | [original](benchmarks/amd-epyc-9334-original.png), [ours](benchmarks/amd-epyc-9334-candidate.png) |
+
+An official single-run report of `v12` itself on the Intel Xeon is not in the repository; `python bench/run.py official --versions v12-kept-assembly` on that machine produces it.
+
+### Our approach in short
+
+1. **Compile less.** In the original, most of a first run is JAX tracing and compiling. We first made the compiled program small (each physics formula compiled once, only non-zero matrix entries built, quick-compile settings), then moved the simulation itself into NumPy behind one JAX call, so almost nothing is left to compile. `simulate` is still a JAX function that works under `jit`, `grad` and `vjp`.
+2. **Solve sparse.** The signal matrices are 0.5% filled. They are solved with a sparse LU (SciPy's SuperLU), all frequencies in one factorisation, and one factorisation serves the forward pass and the gradient.
+3. **Do the algebra first.** One of three solves per frequency cancels and was dropped; the gradient's solves reuse what the forward pass has; the reverse pass is written out by hand and reuses the matrices the forward pass built.
+4. **Derivatives only where needed.** The physics formulas are differentiated only with respect to inputs that depend on a design variable.
+5. **Nothing tied to the supplied setup.** Sizes, sparsity patterns and index maps are derived from the setup at hand, and every change was tested on 19 other setups.
+
+What we learned: after the solver, the time is in compilation and imports, not in arithmetic; a faster number means nothing until every output and all gradient entries agree with the original's; and on one core a measurement is only worth as much as its noise floor. About 0.42 s of a first run on that processor is outside our code (`import jax` and the benchmark's own compilations).
+
+### Correctness
+
+- `benchmark.py` and `benchmark_aligo.py` print `PASS`; the distance from the public reference is 5.374e-06 in log sensitivity (limit 1e-5), the same as the original's.
+- `bench/validate.py` compares every output and all 193 gradient entries with the arrays the original produced: `PASS` on the Intel Xeon, an AMD EPYC and an Apple M5 (sensitivity within 6e-08 in log).
+- `tests/variations.py` compares 19 other setups with the original (other values, frequencies, layouts, readouts, grid sizes, modulation modes): 18 `PASS` and one explained `DEVIATION`, where the original's own rounding is the larger error ([tests/variations/README.md](tests/variations/README.md), CHANGES.md "Correctness checks").
+- `tests/test_host.py` compares our NumPy path with our JAX path on 13 cases and checks the gradient against finite differences; `tests/stress.py` adds 24 random layouts from 1 Hz to 10 kHz, gradients requested out of order and from several threads, and memory over 300 evaluations.
+- All frequencies and all design variables are computed, in double precision. Nothing is cached between runs and no work is moved out of the timed region.
+
+### Reproduce and check
 
 ```bash
 python3.12 -m venv .venv && source .venv/bin/activate
 python -m pip install -r requirements.txt && python -m pip install -e .
 python benchmark.py --cpus 1 --output benchmark-candidate.json   # the scored run; prints PASS
+python benchmark_aligo.py --cpus 1                               # the second benchmark; prints PASS
 python bench/validate.py WORKTREE     # every output and all 193 gradient entries against the original's
 python tests/variations.py            # 19 other setups against the original
 python tests/test_host.py             # our NumPy path against our JAX path
+python tests/stress.py                # random layouts, threads, memory
 ```
 
-- **The second benchmark (aLIGO):** `python benchmark_aligo.py` prints `PASS` with our code; on the same laptop the complete first run takes 0.38 s against 4.10 s for the original ([reports](benchmarks/mac-aligo-candidate.json), details in CHANGES.md).
-- **What we changed and why:** [CHANGES.md](CHANGES.md), twenty changes, each with its measurement and its correctness evidence.
-- **Other setups:** the final evaluation uses a variation of the example, so [tests/variations/README.md](tests/variations/README.md) lists 19 varied setups (other values, frequencies, layouts, readouts, grid sizes, modulation modes) that are compared with the original code.
+These commands were run from a fresh clone and a fresh environment on 22 November 2026; all pass. The very first run after installing is slower for any version, because the packages are read from disk for the first time (on a Mac we saw 10.7 s once, then 0.3 s); time the second run.
+
+### More
+
+- **What we changed and why:** [CHANGES.md](CHANGES.md), twenty changes, each with its measurement and its correctness evidence. Version by version: [bench/VERSIONS.md](bench/VERSIONS.md).
 - **Every run we made:** [bench/RUNS.md](bench/RUNS.md).
-- **One added dependency:** `klujax==0.5.3`, a JAX wrapper around the sparse solver KLU, pinned in `requirements.txt` and `pyproject.toml`. Since change 16 the main path solves with SciPy, which the organizers' requirements already list; klujax is only used by the fallback for setups with linking functions.
+- **Dependencies:** nothing beyond the organizers' `requirements.txt` is needed on the main path, which solves with SciPy. `klujax==0.5.3` (a JAX wrapper around the sparse solver KLU, pinned in `requirements.txt` and `pyproject.toml`) is used only by the fallback for setups with linking functions.
 - **The code before the SciPy solver** is kept on the branch `legacy-klujax`.
-- **A caveat on timing:** on a busy shared Linux host the same code took between 0.74 and 2.8 s in one session. What we found out about it, and a setting that may help on such a host (`NUMPY_MADVISE_HUGEPAGE=0`), is in CHANGES.md ("The same on one pinned Linux core" and "Withdrawn").
+- **On Linux the package changes one process-wide setting:** the C library keeps freed memory for reuse (change 21). It is skipped if `MALLOC_*` variables or `GLIBC_TUNABLES` are set.
+- **A caveat on timing:** on a busy shared Linux host an earlier version took between 0.74 and 2.8 s in one session. What we found out about it, and a setting that may help on such a host (`NUMPY_MADVISE_HUGEPAGE=0`), is in CHANGES.md ("The same on one pinned Linux core" and "Withdrawn").
 
 ## Start here
 

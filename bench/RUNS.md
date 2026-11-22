@@ -28,6 +28,7 @@ Raw data: `bench/results/apple-m5-16g-darwin/`. A Mac cannot pin a process to on
 | 23:37 | `tests/variations.py` on the working tree with changes 14 and 15 | 18 `PASS`, 1 `DEVIATION` (20 to 5000 Hz, known) | `variations/2026-11-21T23-37-37Z.json`, `VARIATIONS.md` |
 | 23:38 | `run.py run`: `v07`, `v09`, `v10`, 10 shuffled rounds, machine busy with a demo page | Medians 0.44, 0.43 and 0.43 s; gradient phase 38.3, 30.6, 30.7 ms; build phase 43.1, 41.8, 37.7 ms | `sessions/2026-11-21T23-38-07Z_run.json`, `SUMMARY.md` |
 | 00:31 (22 Nov) | `run.py run`: `v10` and the branch `no-klujax-scipy` at `f3f1454` (SciPy SuperLU inside the host callbacks), 10 shuffled rounds, machine busy with a demo page | Medians 0.41 and 0.35 s, fastest 0.33 and 0.28 s; branch 1.20x (0.93 to 1.54), faster in 9 of 10 rounds. Compile 70 against 42 ms, forward 26 against 39 ms, gradient 30 against 15 ms. On the branch: `validate.py` `PASS`, `tests/test_host.py` all passed, `tests/variations.py` 18 `PASS` and the known `DEVIATION` (run from a separate checkout, files not stored here) | `sessions/2026-11-22T00-31-37Z_run.json` |
+| 10:44 (22 Nov) | `run.py official --versions v12-kept-assembly` (all cores, a Mac cannot pin); and a fresh clone from GitHub with a fresh environment from `requirements.txt`: `benchmark.py`, `benchmark_aligo.py`, `validate.py WORKTREE`, `tests/test_host.py` | Official: first run 0.649 s, repeat 0.032 s, `PASS`. Fresh clone: all four pass; the first benchmark run after installing took 10.7 s, the aLIGO run after it 0.27 s | `official/v12-kept-assembly.json`; the fresh clone was not kept |
 
 Validation was switched off for the timing session because the harness leaves out versions with a `FAIL` verdict; the verdicts themselves were not changed. `SUMMARY.md` is regenerated from the sessions.
 
@@ -69,6 +70,7 @@ Follow-up on a third instance of the same kind (21:55 UTC; a container with 16 C
 | 09:50 | `validate.py cand4` (`f4f5c40` = `v12`), `tests/test_host.py`, `benchmark_aligo.py --cpus 1` | `PASS`, `ALL CHECKS PASSED`, `PASS` | `validation/cand4@f4f5c40d53d8.json` |
 | 09:52 | `run.py run`: `v11`, `cand2`, `cand4` (= `v12`), 8 shuffled rounds | Medians 0.789, 0.755 and 0.751 s; gradient run 56.2, 36.3, 27.2 ms | `sessions/2026-11-22T09-52-29Z_run.json`, `SUMMARY.md` |
 | 10:41 | `tests/stress.py` and `tests/variations.py` on `v12` | `STRESS TEST PASSED` (24 random layouts, out-of-order and threaded gradients identical, peak memory level over 300 gradients); 18 `PASS` and the known `DEVIATION` | `variations/2026-11-22T10-41-43Z.json`, `VARIATIONS.md` |
+| 10:50 | `run.py official --versions v12-kept-assembly` (second run; the first, right after the machine started, took 1.58 s) and `benchmark_aligo.py --cpus 1 --repeats 10` | First run 0.734 s, repeat 0.093 s, `PASS`; aLIGO 0.595 s, repeat 0.015 s, `PASS` | `official/v12-kept-assembly.json`, `official/v12-kept-assembly-aligo.json` |
 
 ## 2. By hand, with a saved report
 
