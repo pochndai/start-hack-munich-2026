@@ -5,54 +5,54 @@
     "platform": "Linux-6.11.0-1016-nvidia-x86_64-with-glibc2.39",
     "logical_cpus": 16,
     "cpu_model": "Intel(R) Xeon(R) Platinum 8468",
-    "ram_bytes": 211069939712,
+    "ram_bytes": 211069927424,
     "machine_id": "intel-xeon-platinum-8468-197g-linux"
   },
   "limits": {
     "strategy": "affinity",
-    "bench_cpu": 8,
+    "bench_cpu": 15,
     "env": {}
   },
   "calibration": {
-    "utc": "2026-11-21T22:49:32.219330+00:00",
+    "utc": "2026-11-22T09:45:45.760387+00:00",
     "python": "3.12.3",
     "results": {
       "unlimited": {
         "matmul": {
-          "wall": 0.3150337149999132,
-          "cpu": 2.8,
-          "cpu_per_wall": 8.887937597411666
+          "wall": 0.19017904399998997,
+          "cpu": 3.0000000000000004,
+          "cpu_per_wall": 15.774608689273665
         },
         "elementwise": {
-          "wall": 1.176294975000019,
-          "cpu": 3.3099999999999996,
-          "cpu_per_wall": 2.8139200373613313
+          "wall": 0.8481221009999445,
+          "cpu": 3.13,
+          "cpu_per_wall": 3.6905063508069165
         },
         "batched_solve": {
-          "wall": 0.7683662580000146,
-          "cpu": 6.37,
-          "cpu_per_wall": 8.29031719401697
+          "wall": 0.7803678710000099,
+          "cpu": 12.130000000000003,
+          "cpu_per_wall": 15.543951065612038
         }
       },
       "limited": {
         "matmul": {
-          "wall": 1.5173688879999645,
-          "cpu": 1.52,
-          "cpu_per_wall": 1.0017339962752918
+          "wall": 1.4369668280000383,
+          "cpu": 1.44,
+          "cpu_per_wall": 1.0021108156019045
         },
         "elementwise": {
-          "wall": 3.0603050260000373,
-          "cpu": 3.07,
-          "cpu_per_wall": 1.0031679763675827
+          "wall": 2.924964535000015,
+          "cpu": 2.93,
+          "cpu_per_wall": 1.0017215473691155
         },
         "batched_solve": {
-          "wall": 1.3391974799999389,
-          "cpu": 1.3399999999999996,
-          "cpu_per_wall": 1.0005992544132183
+          "wall": 1.2753353450000304,
+          "cpu": 1.28,
+          "cpu_per_wall": 1.003657590937362
         }
       }
     },
-    "worst_cpu_per_wall": 1.0031679763675827,
+    "worst_cpu_per_wall": 1.003657590937362,
     "single_core": true
   }
 }

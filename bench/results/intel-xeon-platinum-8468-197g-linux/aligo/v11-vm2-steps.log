@@ -1,0 +1,320 @@
+== OFFICIAL
+[validate] v11-scipy-stacked-solver: full official run (10 warm repeats); this takes a while...
+
+PASS: v11-scipy-stacked-solver @ f3f14542ea40
+  official benchmark: PASS, first-run 0.667 s, warm median 0.132 s, max log sensitivity error vs public reference 5.374237780131352e-06
+  carrier      vs baseline: scale-relative 3.23e-12, worst element 1.23e-11
+  signal       vs baseline: scale-relative 1.18e-07, worst element 3.99e-07
+  noise        vs baseline: scale-relative 3.89e-08, worst element 5.72e-08
+  sensitivity  vs baseline: scale-relative 5.73e-09, worst element 6.04e-08, log 6.04e-08
+  powers       vs baseline: scale-relative 4.54e-12, worst element 1.11e-11
+  gradient     vs baseline: 0 of 193 entries outside tolerance, worst relative error 1.93e-03; closest to the limit: entry 158 (m01.reflectivity) at 0.29x the allowed error; scale-relative 8.12e-08
+
+Official reports and plots: /home/jia/shm/bench/results/intel-xeon-platinum-8468-197g-linux/official
+== VALIDATE v11
+[validate] v11-scipy-stacked-solver: full official run (3 warm repeats); this takes a while...
+
+PASS: v11-scipy-stacked-solver @ f3f14542ea40
+  official benchmark: PASS, first-run 0.671 s, warm median 0.133 s, max log sensitivity error vs public reference 5.374237780131352e-06
+  carrier      vs baseline: scale-relative 3.23e-12, worst element 1.23e-11
+  signal       vs baseline: scale-relative 1.18e-07, worst element 3.99e-07
+  noise        vs baseline: scale-relative 3.89e-08, worst element 5.72e-08
+  sensitivity  vs baseline: scale-relative 5.73e-09, worst element 6.04e-08, log 6.04e-08
+  powers       vs baseline: scale-relative 4.54e-12, worst element 1.11e-11
+  gradient     vs baseline: 0 of 193 entries outside tolerance, worst relative error 1.93e-03; closest to the limit: entry 158 (m01.reflectivity) at 0.29x the allowed error; scale-relative 8.12e-08
+== VALIDATE f1bc7a7
+[validate] f1bc7a7: full official run (3 warm repeats); this takes a while...
+
+PASS: f1bc7a7 @ f1bc7a7654f9
+  official benchmark: PASS, first-run 0.645 s, warm median 0.108 s, max log sensitivity error vs public reference 5.374266365265612e-06
+  carrier      vs baseline: scale-relative 3.23e-12, worst element 1.23e-11
+  signal       vs baseline: scale-relative 1.18e-07, worst element 4.06e-07
+  noise        vs baseline: scale-relative 3.89e-08, worst element 5.72e-08
+  sensitivity  vs baseline: scale-relative 5.73e-09, worst element 6.04e-08, log 6.04e-08
+  powers       vs baseline: scale-relative 4.54e-12, worst element 1.11e-11
+  gradient     vs baseline: 0 of 193 entries outside tolerance, worst relative error 1.93e-03; closest to the limit: entry 158 (m01.reflectivity) at 0.29x the allowed error; scale-relative 7.62e-08
+== ALIGO v11 run 1
+Initialize CPU backend: 0.003542 s
+CPU: Intel(R) Xeon(R) Platinum 8468; affinity: 1; devices: [CpuDevice(id=0)]
+Read and parse public inputs: 0.000232 s
+Build optical setup and prepare inputs: 0.040240 s
+Workload: 101 frequencies; 29 physical design variables; no optimizer
+Forward: trace / lower: 0.008621 s
+Forward: compile: 0.009035 s
+Forward simulation + AD residuals: 0.012747 s
+Sensitivity: trace / lower: 0.032263 s
+Sensitivity: compile: 0.028393 s
+Sensitivity, powers and scalar loss: 0.000553 s
+Gradient: trace / lower: 0.015053 s
+Gradient: compile: 0.029926 s
+Reverse-mode gradient: 0.010693 s
+Transfer results to host: 0.000193 s
+Complete first-run total (excluding validation): 0.490451 s
+Forward: 0.009858 s
+Sensitivity: 0.000177 s
+Gradient: 0.007430 s
+Host transfer: 0.000117 s
+Repeat 01/10: 0.017581 s
+Forward: 0.009634 s
+Sensitivity: 0.000194 s
+Gradient: 0.007743 s
+Host transfer: 0.000124 s
+Repeat 02/10: 0.017694 s
+Forward: 0.009211 s
+Sensitivity: 0.000189 s
+Gradient: 0.007632 s
+Host transfer: 0.000124 s
+Repeat 03/10: 0.017156 s
+Forward: 0.008912 s
+Sensitivity: 0.000178 s
+Gradient: 0.007277 s
+Host transfer: 0.000109 s
+Repeat 04/10: 0.016476 s
+Forward: 0.008705 s
+Sensitivity: 0.000142 s
+Gradient: 0.007132 s
+Host transfer: 0.000112 s
+Repeat 05/10: 0.016091 s
+Forward: 0.008855 s
+Sensitivity: 0.000155 s
+Gradient: 0.007602 s
+Host transfer: 0.000138 s
+Repeat 06/10: 0.016749 s
+Forward: 0.008762 s
+Sensitivity: 0.000140 s
+Gradient: 0.007198 s
+Host transfer: 0.000117 s
+Repeat 07/10: 0.016218 s
+Forward: 0.009005 s
+Sensitivity: 0.000171 s
+Gradient: 0.007561 s
+Host transfer: 0.000138 s
+Repeat 08/10: 0.016875 s
+Forward: 0.008684 s
+Sensitivity: 0.000134 s
+Gradient: 0.006962 s
+Host transfer: 0.000125 s
+Repeat 09/10: 0.015905 s
+Forward: 0.008702 s
+Sensitivity: 0.000138 s
+Gradient: 0.007248 s
+Host transfer: 0.000114 s
+Repeat 10/10: 0.016201 s
+Validating outputs, reference sensitivity and finite-difference gradient...
+PASS: reference sensitivity and gradient spot check; full runtime median 0.016613 s
+JSON: /home/jia/out/aligo-v11-run1.json
+Plot: /home/jia/out/aligo-v11-run1.png
+== ALIGO v11 run 2
+Initialize CPU backend: 0.003417 s
+CPU: Intel(R) Xeon(R) Platinum 8468; affinity: 1; devices: [CpuDevice(id=0)]
+Read and parse public inputs: 0.000239 s
+Build optical setup and prepare inputs: 0.042001 s
+Workload: 101 frequencies; 29 physical design variables; no optimizer
+Forward: trace / lower: 0.008766 s
+Forward: compile: 0.009405 s
+Forward simulation + AD residuals: 0.012643 s
+Sensitivity: trace / lower: 0.032891 s
+Sensitivity: compile: 0.027933 s
+Sensitivity, powers and scalar loss: 0.000402 s
+Gradient: trace / lower: 0.013382 s
+Gradient: compile: 0.028610 s
+Reverse-mode gradient: 0.010278 s
+Transfer results to host: 0.000169 s
+Complete first-run total (excluding validation): 0.485673 s
+Forward: 0.008641 s
+Sensitivity: 0.000146 s
+Gradient: 0.007101 s
+Host transfer: 0.000112 s
+Repeat 01/10: 0.016000 s
+Forward: 0.008456 s
+Sensitivity: 0.000142 s
+Gradient: 0.007419 s
+Host transfer: 0.000108 s
+Repeat 02/10: 0.016125 s
+Forward: 0.008886 s
+Sensitivity: 0.000156 s
+Gradient: 0.006918 s
+Host transfer: 0.000110 s
+Repeat 03/10: 0.016069 s
+Forward: 0.008653 s
+Sensitivity: 0.000134 s
+Gradient: 0.007255 s
+Host transfer: 0.000115 s
+Repeat 04/10: 0.016156 s
+Forward: 0.008731 s
+Sensitivity: 0.000158 s
+Gradient: 0.007124 s
+Host transfer: 0.000110 s
+Repeat 05/10: 0.016122 s
+Forward: 0.008720 s
+Sensitivity: 0.000132 s
+Gradient: 0.007141 s
+Host transfer: 0.000102 s
+Repeat 06/10: 0.016096 s
+Forward: 0.008504 s
+Sensitivity: 0.000129 s
+Gradient: 0.007268 s
+Host transfer: 0.000111 s
+Repeat 07/10: 0.016012 s
+Forward: 0.008487 s
+Sensitivity: 0.000139 s
+Gradient: 0.006712 s
+Host transfer: 0.000102 s
+Repeat 08/10: 0.015440 s
+Forward: 0.008675 s
+Sensitivity: 0.000133 s
+Gradient: 0.006909 s
+Host transfer: 0.000106 s
+Repeat 09/10: 0.015823 s
+Forward: 0.008789 s
+Sensitivity: 0.000135 s
+Gradient: 0.007172 s
+Host transfer: 0.000115 s
+Repeat 10/10: 0.016211 s
+Validating outputs, reference sensitivity and finite-difference gradient...
+PASS: reference sensitivity and gradient spot check; full runtime median 0.016083 s
+JSON: /home/jia/out/aligo-v11-run2.json
+Plot: /home/jia/out/aligo-v11-run2.png
+== ALIGO v11 run 3
+Initialize CPU backend: 0.003494 s
+CPU: Intel(R) Xeon(R) Platinum 8468; affinity: 1; devices: [CpuDevice(id=0)]
+Read and parse public inputs: 0.000231 s
+Build optical setup and prepare inputs: 0.041780 s
+Workload: 101 frequencies; 29 physical design variables; no optimizer
+Forward: trace / lower: 0.008303 s
+Forward: compile: 0.009432 s
+Forward simulation + AD residuals: 0.012753 s
+Sensitivity: trace / lower: 0.033480 s
+Sensitivity: compile: 0.029228 s
+Sensitivity, powers and scalar loss: 0.000422 s
+Gradient: trace / lower: 0.013991 s
+Gradient: compile: 0.029807 s
+Reverse-mode gradient: 0.009953 s
+Transfer results to host: 0.000161 s
+Complete first-run total (excluding validation): 0.490189 s
+Forward: 0.008753 s
+Sensitivity: 0.000162 s
+Gradient: 0.007210 s
+Host transfer: 0.000114 s
+Repeat 01/10: 0.016240 s
+Forward: 0.008700 s
+Sensitivity: 0.000133 s
+Gradient: 0.007083 s
+Host transfer: 0.000134 s
+Repeat 02/10: 0.016050 s
+Forward: 0.008722 s
+Sensitivity: 0.000169 s
+Gradient: 0.006669 s
+Host transfer: 0.000108 s
+Repeat 03/10: 0.015667 s
+Forward: 0.008257 s
+Sensitivity: 0.000125 s
+Gradient: 0.006806 s
+Host transfer: 0.000108 s
+Repeat 04/10: 0.015297 s
+Forward: 0.008454 s
+Sensitivity: 0.000156 s
+Gradient: 0.007009 s
+Host transfer: 0.000111 s
+Repeat 05/10: 0.015729 s
+Forward: 0.008127 s
+Sensitivity: 0.000120 s
+Gradient: 0.007193 s
+Host transfer: 0.000115 s
+Repeat 06/10: 0.015555 s
+Forward: 0.008820 s
+Sensitivity: 0.000151 s
+Gradient: 0.006704 s
+Host transfer: 0.000114 s
+Repeat 07/10: 0.015789 s
+Forward: 0.008843 s
+Sensitivity: 0.000134 s
+Gradient: 0.007442 s
+Host transfer: 0.000113 s
+Repeat 08/10: 0.016532 s
+Forward: 0.008959 s
+Sensitivity: 0.000150 s
+Gradient: 0.007059 s
+Host transfer: 0.000099 s
+Repeat 09/10: 0.016266 s
+Forward: 0.008388 s
+Sensitivity: 0.000132 s
+Gradient: 0.007047 s
+Host transfer: 0.000111 s
+Repeat 10/10: 0.015677 s
+Validating outputs, reference sensitivity and finite-difference gradient...
+PASS: reference sensitivity and gradient spot check; full runtime median 0.015759 s
+JSON: /home/jia/out/aligo-v11-run3.json
+Plot: /home/jia/out/aligo-v11-run3.png
+== ALIGO v11 run 4
+Initialize CPU backend: 0.003596 s
+CPU: Intel(R) Xeon(R) Platinum 8468; affinity: 1; devices: [CpuDevice(id=0)]
+Read and parse public inputs: 0.000230 s
+Build optical setup and prepare inputs: 0.041647 s
+Workload: 101 frequencies; 29 physical design variables; no optimizer
+Forward: trace / lower: 0.008917 s
+Forward: compile: 0.009432 s
+Forward simulation + AD residuals: 0.012691 s
+Sensitivity: trace / lower: 0.033107 s
+Sensitivity: compile: 0.029440 s
+Sensitivity, powers and scalar loss: 0.000438 s
+Gradient: trace / lower: 0.014516 s
+Gradient: compile: 0.030063 s
+Reverse-mode gradient: 0.010437 s
+Transfer results to host: 0.000175 s
+Complete first-run total (excluding validation): 0.489280 s
+Forward: 0.008924 s
+Sensitivity: 0.000155 s
+Gradient: 0.007667 s
+Host transfer: 0.000112 s
+Repeat 01/10: 0.016859 s
+Forward: 0.008737 s
+Sensitivity: 0.000130 s
+Gradient: 0.007093 s
+Host transfer: 0.000111 s
+Repeat 02/10: 0.016071 s
+Forward: 0.008609 s
+Sensitivity: 0.000148 s
+Gradient: 0.006894 s
+Host transfer: 0.000113 s
+Repeat 03/10: 0.015764 s
+Forward: 0.008628 s
+Sensitivity: 0.000134 s
+Gradient: 0.006953 s
+Host transfer: 0.000111 s
+Repeat 04/10: 0.015826 s
+Forward: 0.008658 s
+Sensitivity: 0.000128 s
+Gradient: 0.007250 s
+Host transfer: 0.000115 s
+Repeat 05/10: 0.016151 s
+Forward: 0.008807 s
+Sensitivity: 0.000147 s
+Gradient: 0.006927 s
+Host transfer: 0.000127 s
+Repeat 06/10: 0.016008 s
+Forward: 0.008701 s
+Sensitivity: 0.000148 s
+Gradient: 0.006744 s
+Host transfer: 0.000107 s
+Repeat 07/10: 0.015699 s
+Forward: 0.008509 s
+Sensitivity: 0.000130 s
+Gradient: 0.006996 s
+Host transfer: 0.000104 s
+Repeat 08/10: 0.015739 s
+Forward: 0.008348 s
+Sensitivity: 0.000128 s
+Gradient: 0.006954 s
+Host transfer: 0.000111 s
+Repeat 09/10: 0.015541 s
+Forward: 0.008483 s
+Sensitivity: 0.000139 s
+Gradient: 0.007599 s
+Host transfer: 0.000121 s
+Repeat 10/10: 0.016342 s
+Validating outputs, reference sensitivity and finite-difference gradient...
+PASS: reference sensitivity and gradient spot check; full runtime median 0.015917 s
+JSON: /home/jia/out/aligo-v11-run4.json
+Plot: /home/jia/out/aligo-v11-run4.png
+== DONE

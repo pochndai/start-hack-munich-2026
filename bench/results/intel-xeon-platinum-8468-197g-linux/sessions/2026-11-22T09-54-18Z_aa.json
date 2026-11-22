@@ -1,0 +1,1342 @@
+{
+  "schema": 1,
+  "id": "2026-11-22T09-54-18Z_aa",
+  "mode": "aa",
+  "note": "Second Nebius H100 VM (new instance), noise floor",
+  "complete": true,
+  "started_utc": "2026-11-22T09:54:18.593308+00:00",
+  "finished_utc": "2026-11-22T09:56:21.692135+00:00",
+  "git_head": "f1bc7a7654f93566596981ee3bff34fcffe6925e",
+  "machine": {
+    "system": "Linux",
+    "arch": "x86_64",
+    "platform": "Linux-6.11.0-1016-nvidia-x86_64-with-glibc2.39",
+    "logical_cpus": 16,
+    "cpu_model": "Intel(R) Xeon(R) Platinum 8468",
+    "ram_bytes": 211069927424,
+    "machine_id": "intel-xeon-platinum-8468-197g-linux"
+  },
+  "python": "3.12.3",
+  "limits": {
+    "strategy": "affinity",
+    "bench_cpu": 15,
+    "env": {}
+  },
+  "calibrated": true,
+  "power": {},
+  "config": {
+    "rounds": 5,
+    "cooldown_seconds": 5.0,
+    "timeout_seconds": 1800.0,
+    "seed": 1471301561,
+    "canary_gate": {
+      "enabled": true,
+      "tolerance": 0.05,
+      "max_wait_seconds": 120.0
+    }
+  },
+  "registry": {
+    "baseline": "v00-baseline",
+    "anchor": null
+  },
+  "reference_label": "v11-scipy-stacked-solver#A",
+  "stored_reference": null,
+  "entries": [
+    {
+      "label": "v11-scipy-stacked-solver#A",
+      "spec": "v11-scipy-stacked-solver",
+      "name": "v11-scipy-stacked-solver",
+      "kind": "commit",
+      "ref": "v11-scipy-stacked-solver",
+      "id": "f3f14542ea4034464e6e44bbeb642a3ee5352179",
+      "dirty": false,
+      "parent": "v10-host-swept-values",
+      "benchmark_sha256": "b2e8c5367705e220f83c3d5f2bb95301e3148b102dc0d34f5c2c6f5792b9984e",
+      "official_benchmark": false,
+      "validation": null
+    },
+    {
+      "label": "v11-scipy-stacked-solver#B",
+      "spec": "v11-scipy-stacked-solver",
+      "name": "v11-scipy-stacked-solver",
+      "kind": "commit",
+      "ref": "v11-scipy-stacked-solver",
+      "id": "f3f14542ea4034464e6e44bbeb642a3ee5352179",
+      "dirty": false,
+      "parent": "v10-host-swept-values",
+      "benchmark_sha256": "b2e8c5367705e220f83c3d5f2bb95301e3148b102dc0d34f5c2c6f5792b9984e",
+      "official_benchmark": false,
+      "validation": null
+    }
+  ],
+  "excluded_after_failed_validation": [],
+  "warnings": [],
+  "orders": [
+    [
+      "v11-scipy-stacked-solver#A",
+      "v11-scipy-stacked-solver#B"
+    ],
+    [
+      "v11-scipy-stacked-solver#B",
+      "v11-scipy-stacked-solver#A"
+    ],
+    [
+      "v11-scipy-stacked-solver#A",
+      "v11-scipy-stacked-solver#B"
+    ],
+    [
+      "v11-scipy-stacked-solver#B",
+      "v11-scipy-stacked-solver#A"
+    ],
+    [
+      "v11-scipy-stacked-solver#A",
+      "v11-scipy-stacked-solver#B"
+    ]
+  ],
+  "samples": [
+    {
+      "label": "v11-scipy-stacked-solver#A",
+      "round": 0,
+      "position": 0,
+      "started_utc": "2026-11-22T09:54:19.309561+00:00",
+      "canary": {
+        "seconds": 0.2993237580000141,
+        "attempts": 1,
+        "waited_seconds": 0.0
+      },
+      "load_before": 0.15,
+      "memory_before": {
+        "available_bytes": 208577171456,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "status": "ok",
+      "returncode": null,
+      "passed": false,
+      "wall_to_first_run": 0.6848950360000572,
+      "wall_total": 0.7056649650000963,
+      "cpu_seconds": 0.694186,
+      "cpu_per_wall": 1.0135655297696478,
+      "peak_rss_bytes": 340979712,
+      "peak_footprint_bytes": null,
+      "end_to_end": 0.658058,
+      "phases": [
+        {
+          "key": "imports",
+          "label": "Python / library imports",
+          "seconds": 0.29516600000000004
+        },
+        {
+          "key": "initialize",
+          "label": "Initialize CPU backend",
+          "seconds": 0.003327
+        },
+        {
+          "key": "load",
+          "label": "Read and parse public inputs",
+          "seconds": 0.002057
+        },
+        {
+          "key": "build",
+          "label": "Build optical setup and prepare inputs",
+          "seconds": 0.080573
+        },
+        {
+          "key": "forward_lower",
+          "label": "Forward: trace / lower",
+          "seconds": 0.008589
+        },
+        {
+          "key": "forward_compile",
+          "label": "Forward: compile",
+          "seconds": 0.008034
+        },
+        {
+          "key": "forward",
+          "label": "Forward simulation + AD residuals",
+          "seconds": 0.103914
+        },
+        {
+          "key": "sensitivity_lower",
+          "label": "Sensitivity: trace / lower",
+          "seconds": 0.03295
+        },
+        {
+          "key": "sensitivity_compile",
+          "label": "Sensitivity: compile",
+          "seconds": 0.026919
+        },
+        {
+          "key": "sensitivity",
+          "label": "Sensitivity, powers and scalar loss",
+          "seconds": 0.000833
+        },
+        {
+          "key": "gradient_lower",
+          "label": "Gradient: trace / lower",
+          "seconds": 0.013721
+        },
+        {
+          "key": "gradient_compile",
+          "label": "Gradient: compile",
+          "seconds": 0.028068
+        },
+        {
+          "key": "gradient",
+          "label": "Reverse-mode gradient",
+          "seconds": 0.05373
+        },
+        {
+          "key": "host_transfer",
+          "label": "Transfer results to host",
+          "seconds": 0.000177
+        }
+      ],
+      "groups": {
+        "Setup": 0.38112300000000005,
+        "Compilation": 0.118281,
+        "Forward simulation": 0.103914,
+        "Sensitivity": 0.00101,
+        "Gradient": 0.05373,
+        "Other": 0.0
+      },
+      "untimed_overhead": 0.026837036000057157,
+      "memory_after": {
+        "available_bytes": 208452460544,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "log": ".cache/logs/2026-11-22T09-54-18Z_aa/r01_1_v11-scipy-stacked-solver-A.log"
+    },
+    {
+      "label": "v11-scipy-stacked-solver#B",
+      "round": 0,
+      "position": 1,
+      "started_utc": "2026-11-22T09:54:25.341109+00:00",
+      "canary": {
+        "seconds": 0.3015540900000815,
+        "attempts": 1,
+        "waited_seconds": 0.0
+      },
+      "load_before": 0.14,
+      "memory_before": {
+        "available_bytes": 208475852800,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "status": "ok",
+      "returncode": null,
+      "passed": false,
+      "wall_to_first_run": 0.6777019500000279,
+      "wall_total": 0.6980832220000366,
+      "cpu_seconds": 0.6869810000000001,
+      "cpu_per_wall": 1.0136919334524148,
+      "peak_rss_bytes": 340959232,
+      "peak_footprint_bytes": null,
+      "end_to_end": 0.651337,
+      "phases": [
+        {
+          "key": "imports",
+          "label": "Python / library imports",
+          "seconds": 0.28458100000000003
+        },
+        {
+          "key": "initialize",
+          "label": "Initialize CPU backend",
+          "seconds": 0.003444
+        },
+        {
+          "key": "load",
+          "label": "Read and parse public inputs",
+          "seconds": 0.002094
+        },
+        {
+          "key": "build",
+          "label": "Build optical setup and prepare inputs",
+          "seconds": 0.077738
+        },
+        {
+          "key": "forward_lower",
+          "label": "Forward: trace / lower",
+          "seconds": 0.008576
+        },
+        {
+          "key": "forward_compile",
+          "label": "Forward: compile",
+          "seconds": 0.008905
+        },
+        {
+          "key": "forward",
+          "label": "Forward simulation + AD residuals",
+          "seconds": 0.104216
+        },
+        {
+          "key": "sensitivity_lower",
+          "label": "Sensitivity: trace / lower",
+          "seconds": 0.033492
+        },
+        {
+          "key": "sensitivity_compile",
+          "label": "Sensitivity: compile",
+          "seconds": 0.028327
+        },
+        {
+          "key": "sensitivity",
+          "label": "Sensitivity, powers and scalar loss",
+          "seconds": 0.000927
+        },
+        {
+          "key": "gradient_lower",
+          "label": "Gradient: trace / lower",
+          "seconds": 0.014478
+        },
+        {
+          "key": "gradient_compile",
+          "label": "Gradient: compile",
+          "seconds": 0.028515
+        },
+        {
+          "key": "gradient",
+          "label": "Reverse-mode gradient",
+          "seconds": 0.055851
+        },
+        {
+          "key": "host_transfer",
+          "label": "Transfer results to host",
+          "seconds": 0.000193
+        }
+      ],
+      "groups": {
+        "Setup": 0.367857,
+        "Compilation": 0.12229300000000001,
+        "Forward simulation": 0.104216,
+        "Sensitivity": 0.00112,
+        "Gradient": 0.055851,
+        "Other": 0.0
+      },
+      "untimed_overhead": 0.02636495000002781,
+      "memory_after": {
+        "available_bytes": 208462888960,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "log": ".cache/logs/2026-11-22T09-54-18Z_aa/r01_2_v11-scipy-stacked-solver-B.log"
+    },
+    {
+      "label": "v11-scipy-stacked-solver#B",
+      "round": 1,
+      "position": 0,
+      "started_utc": "2026-11-22T09:54:31.368086+00:00",
+      "canary": {
+        "seconds": 0.3002944459999526,
+        "attempts": 2,
+        "waited_seconds": 10.0
+      },
+      "load_before": 0.16,
+      "memory_before": {
+        "available_bytes": 208572051456,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "status": "ok",
+      "returncode": null,
+      "passed": false,
+      "wall_to_first_run": 0.6873723950000112,
+      "wall_total": 0.7077453709999872,
+      "cpu_seconds": 0.696998,
+      "cpu_per_wall": 1.0140034791475567,
+      "peak_rss_bytes": 339517440,
+      "peak_footprint_bytes": null,
+      "end_to_end": 0.661646,
+      "phases": [
+        {
+          "key": "imports",
+          "label": "Python / library imports",
+          "seconds": 0.29367199999999993
+        },
+        {
+          "key": "initialize",
+          "label": "Initialize CPU backend",
+          "seconds": 0.003324
+        },
+        {
+          "key": "load",
+          "label": "Read and parse public inputs",
+          "seconds": 0.00192
+        },
+        {
+          "key": "build",
+          "label": "Build optical setup and prepare inputs",
+          "seconds": 0.082467
+        },
+        {
+          "key": "forward_lower",
+          "label": "Forward: trace / lower",
+          "seconds": 0.008596
+        },
+        {
+          "key": "forward_compile",
+          "label": "Forward: compile",
+          "seconds": 0.008072
+        },
+        {
+          "key": "forward",
+          "label": "Forward simulation + AD residuals",
+          "seconds": 0.105557
+        },
+        {
+          "key": "sensitivity_lower",
+          "label": "Sensitivity: trace / lower",
+          "seconds": 0.033226
+        },
+        {
+          "key": "sensitivity_compile",
+          "label": "Sensitivity: compile",
+          "seconds": 0.027262
+        },
+        {
+          "key": "sensitivity",
+          "label": "Sensitivity, powers and scalar loss",
+          "seconds": 0.000836
+        },
+        {
+          "key": "gradient_lower",
+          "label": "Gradient: trace / lower",
+          "seconds": 0.014192
+        },
+        {
+          "key": "gradient_compile",
+          "label": "Gradient: compile",
+          "seconds": 0.027532
+        },
+        {
+          "key": "gradient",
+          "label": "Reverse-mode gradient",
+          "seconds": 0.054788
+        },
+        {
+          "key": "host_transfer",
+          "label": "Transfer results to host",
+          "seconds": 0.000202
+        }
+      ],
+      "groups": {
+        "Setup": 0.3813829999999999,
+        "Compilation": 0.11888,
+        "Forward simulation": 0.105557,
+        "Sensitivity": 0.001038,
+        "Gradient": 0.054788,
+        "Other": 0.0
+      },
+      "untimed_overhead": 0.025726395000011282,
+      "memory_after": {
+        "available_bytes": 208474902528,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "log": ".cache/logs/2026-11-22T09-54-18Z_aa/r02_1_v11-scipy-stacked-solver-B.log"
+    },
+    {
+      "label": "v11-scipy-stacked-solver#A",
+      "round": 1,
+      "position": 1,
+      "started_utc": "2026-11-22T09:54:47.746555+00:00",
+      "canary": {
+        "seconds": 0.3042331600000807,
+        "attempts": 1,
+        "waited_seconds": 0.0
+      },
+      "load_before": 0.15,
+      "memory_before": {
+        "available_bytes": 208502681600,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "status": "ok",
+      "returncode": null,
+      "passed": false,
+      "wall_to_first_run": 0.6805210170000464,
+      "wall_total": 0.7009277950000978,
+      "cpu_seconds": 0.6900569999999999,
+      "cpu_per_wall": 1.0140127678083937,
+      "peak_rss_bytes": 341618688,
+      "peak_footprint_bytes": null,
+      "end_to_end": 0.653361,
+      "phases": [
+        {
+          "key": "imports",
+          "label": "Python / library imports",
+          "seconds": 0.286062
+        },
+        {
+          "key": "initialize",
+          "label": "Initialize CPU backend",
+          "seconds": 0.003451
+        },
+        {
+          "key": "load",
+          "label": "Read and parse public inputs",
+          "seconds": 0.002023
+        },
+        {
+          "key": "build",
+          "label": "Build optical setup and prepare inputs",
+          "seconds": 0.078557
+        },
+        {
+          "key": "forward_lower",
+          "label": "Forward: trace / lower",
+          "seconds": 0.00855
+        },
+        {
+          "key": "forward_compile",
+          "label": "Forward: compile",
+          "seconds": 0.009718
+        },
+        {
+          "key": "forward",
+          "label": "Forward simulation + AD residuals",
+          "seconds": 0.105522
+        },
+        {
+          "key": "sensitivity_lower",
+          "label": "Sensitivity: trace / lower",
+          "seconds": 0.035202
+        },
+        {
+          "key": "sensitivity_compile",
+          "label": "Sensitivity: compile",
+          "seconds": 0.027507
+        },
+        {
+          "key": "sensitivity",
+          "label": "Sensitivity, powers and scalar loss",
+          "seconds": 0.000785
+        },
+        {
+          "key": "gradient_lower",
+          "label": "Gradient: trace / lower",
+          "seconds": 0.013566
+        },
+        {
+          "key": "gradient_compile",
+          "label": "Gradient: compile",
+          "seconds": 0.027994
+        },
+        {
+          "key": "gradient",
+          "label": "Reverse-mode gradient",
+          "seconds": 0.054241
+        },
+        {
+          "key": "host_transfer",
+          "label": "Transfer results to host",
+          "seconds": 0.000183
+        }
+      ],
+      "groups": {
+        "Setup": 0.37009299999999995,
+        "Compilation": 0.122537,
+        "Forward simulation": 0.105522,
+        "Sensitivity": 0.000968,
+        "Gradient": 0.054241,
+        "Other": 0.0
+      },
+      "untimed_overhead": 0.027160017000046444,
+      "memory_after": {
+        "available_bytes": 208474206208,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "log": ".cache/logs/2026-11-22T09-54-18Z_aa/r02_2_v11-scipy-stacked-solver-A.log"
+    },
+    {
+      "label": "v11-scipy-stacked-solver#A",
+      "round": 2,
+      "position": 0,
+      "started_utc": "2026-11-22T09:54:53.779631+00:00",
+      "canary": {
+        "seconds": 0.3060593010000048,
+        "attempts": 1,
+        "waited_seconds": 0.0
+      },
+      "load_before": 0.14,
+      "memory_before": {
+        "available_bytes": 208490647552,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "status": "ok",
+      "returncode": null,
+      "passed": false,
+      "wall_to_first_run": 0.6746629010000333,
+      "wall_total": 0.6950190020000946,
+      "cpu_seconds": 0.682213,
+      "cpu_per_wall": 1.011190920663898,
+      "peak_rss_bytes": 341024768,
+      "peak_footprint_bytes": null,
+      "end_to_end": 0.649525,
+      "phases": [
+        {
+          "key": "imports",
+          "label": "Python / library imports",
+          "seconds": 0.288963
+        },
+        {
+          "key": "initialize",
+          "label": "Initialize CPU backend",
+          "seconds": 0.0033
+        },
+        {
+          "key": "load",
+          "label": "Read and parse public inputs",
+          "seconds": 0.001944
+        },
+        {
+          "key": "build",
+          "label": "Build optical setup and prepare inputs",
+          "seconds": 0.077878
+        },
+        {
+          "key": "forward_lower",
+          "label": "Forward: trace / lower",
+          "seconds": 0.008469
+        },
+        {
+          "key": "forward_compile",
+          "label": "Forward: compile",
+          "seconds": 0.009188
+        },
+        {
+          "key": "forward",
+          "label": "Forward simulation + AD residuals",
+          "seconds": 0.105796
+        },
+        {
+          "key": "sensitivity_lower",
+          "label": "Sensitivity: trace / lower",
+          "seconds": 0.032651
+        },
+        {
+          "key": "sensitivity_compile",
+          "label": "Sensitivity: compile",
+          "seconds": 0.026448
+        },
+        {
+          "key": "sensitivity",
+          "label": "Sensitivity, powers and scalar loss",
+          "seconds": 0.000803
+        },
+        {
+          "key": "gradient_lower",
+          "label": "Gradient: trace / lower",
+          "seconds": 0.014155
+        },
+        {
+          "key": "gradient_compile",
+          "label": "Gradient: compile",
+          "seconds": 0.026437
+        },
+        {
+          "key": "gradient",
+          "label": "Reverse-mode gradient",
+          "seconds": 0.053294
+        },
+        {
+          "key": "host_transfer",
+          "label": "Transfer results to host",
+          "seconds": 0.000199
+        }
+      ],
+      "groups": {
+        "Setup": 0.37208500000000005,
+        "Compilation": 0.117348,
+        "Forward simulation": 0.105796,
+        "Sensitivity": 0.001002,
+        "Gradient": 0.053294,
+        "Other": 0.0
+      },
+      "untimed_overhead": 0.025137901000033325,
+      "memory_after": {
+        "available_bytes": 208486842368,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "log": ".cache/logs/2026-11-22T09-54-18Z_aa/r03_1_v11-scipy-stacked-solver-A.log"
+    },
+    {
+      "label": "v11-scipy-stacked-solver#B",
+      "round": 2,
+      "position": 1,
+      "started_utc": "2026-11-22T09:54:59.809736+00:00",
+      "canary": {
+        "seconds": 0.3028846849999809,
+        "attempts": 2,
+        "waited_seconds": 10.0
+      },
+      "load_before": 0.11,
+      "memory_before": {
+        "available_bytes": 208561881088,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "status": "ok",
+      "returncode": null,
+      "passed": false,
+      "wall_to_first_run": 0.6682095759999811,
+      "wall_total": 0.688642275999996,
+      "cpu_seconds": 0.675885,
+      "cpu_per_wall": 1.0114865519377398,
+      "peak_rss_bytes": 339906560,
+      "peak_footprint_bytes": null,
+      "end_to_end": 0.642116,
+      "phases": [
+        {
+          "key": "imports",
+          "label": "Python / library imports",
+          "seconds": 0.282906
+        },
+        {
+          "key": "initialize",
+          "label": "Initialize CPU backend",
+          "seconds": 0.00319
+        },
+        {
+          "key": "load",
+          "label": "Read and parse public inputs",
+          "seconds": 0.001842
+        },
+        {
+          "key": "build",
+          "label": "Build optical setup and prepare inputs",
+          "seconds": 0.076284
+        },
+        {
+          "key": "forward_lower",
+          "label": "Forward: trace / lower",
+          "seconds": 0.008088
+        },
+        {
+          "key": "forward_compile",
+          "label": "Forward: compile",
+          "seconds": 0.00773
+        },
+        {
+          "key": "forward",
+          "label": "Forward simulation + AD residuals",
+          "seconds": 0.104986
+        },
+        {
+          "key": "sensitivity_lower",
+          "label": "Sensitivity: trace / lower",
+          "seconds": 0.03314
+        },
+        {
+          "key": "sensitivity_compile",
+          "label": "Sensitivity: compile",
+          "seconds": 0.027171
+        },
+        {
+          "key": "sensitivity",
+          "label": "Sensitivity, powers and scalar loss",
+          "seconds": 0.000905
+        },
+        {
+          "key": "gradient_lower",
+          "label": "Gradient: trace / lower",
+          "seconds": 0.013641
+        },
+        {
+          "key": "gradient_compile",
+          "label": "Gradient: compile",
+          "seconds": 0.027674
+        },
+        {
+          "key": "gradient",
+          "label": "Reverse-mode gradient",
+          "seconds": 0.054388
+        },
+        {
+          "key": "host_transfer",
+          "label": "Transfer results to host",
+          "seconds": 0.000171
+        }
+      ],
+      "groups": {
+        "Setup": 0.36422200000000005,
+        "Compilation": 0.117444,
+        "Forward simulation": 0.104986,
+        "Sensitivity": 0.001076,
+        "Gradient": 0.054388,
+        "Other": 0.0
+      },
+      "untimed_overhead": 0.026093575999981078,
+      "memory_after": {
+        "available_bytes": 208479186944,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "log": ".cache/logs/2026-11-22T09-54-18Z_aa/r03_2_v11-scipy-stacked-solver-B.log"
+    },
+    {
+      "label": "v11-scipy-stacked-solver#B",
+      "round": 3,
+      "position": 0,
+      "started_utc": "2026-11-22T09:55:16.175461+00:00",
+      "canary": {
+        "seconds": 0.3056226130000823,
+        "attempts": 1,
+        "waited_seconds": 0.0
+      },
+      "load_before": 0.17,
+      "memory_before": {
+        "available_bytes": 208493072384,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "status": "ok",
+      "returncode": null,
+      "passed": false,
+      "wall_to_first_run": 0.6758913670000766,
+      "wall_total": 0.6962271300000111,
+      "cpu_seconds": 0.682859,
+      "cpu_per_wall": 1.0103088060302488,
+      "peak_rss_bytes": 341622784,
+      "peak_footprint_bytes": null,
+      "end_to_end": 0.64872,
+      "phases": [
+        {
+          "key": "imports",
+          "label": "Python / library imports",
+          "seconds": 0.28526499999999994
+        },
+        {
+          "key": "initialize",
+          "label": "Initialize CPU backend",
+          "seconds": 0.003191
+        },
+        {
+          "key": "load",
+          "label": "Read and parse public inputs",
+          "seconds": 0.001918
+        },
+        {
+          "key": "build",
+          "label": "Build optical setup and prepare inputs",
+          "seconds": 0.078296
+        },
+        {
+          "key": "forward_lower",
+          "label": "Forward: trace / lower",
+          "seconds": 0.00863
+        },
+        {
+          "key": "forward_compile",
+          "label": "Forward: compile",
+          "seconds": 0.008119
+        },
+        {
+          "key": "forward",
+          "label": "Forward simulation + AD residuals",
+          "seconds": 0.106529
+        },
+        {
+          "key": "sensitivity_lower",
+          "label": "Sensitivity: trace / lower",
+          "seconds": 0.032249
+        },
+        {
+          "key": "sensitivity_compile",
+          "label": "Sensitivity: compile",
+          "seconds": 0.026941
+        },
+        {
+          "key": "sensitivity",
+          "label": "Sensitivity, powers and scalar loss",
+          "seconds": 0.000807
+        },
+        {
+          "key": "gradient_lower",
+          "label": "Gradient: trace / lower",
+          "seconds": 0.014101
+        },
+        {
+          "key": "gradient_compile",
+          "label": "Gradient: compile",
+          "seconds": 0.027898
+        },
+        {
+          "key": "gradient",
+          "label": "Reverse-mode gradient",
+          "seconds": 0.054597
+        },
+        {
+          "key": "host_transfer",
+          "label": "Transfer results to host",
+          "seconds": 0.000179
+        }
+      ],
+      "groups": {
+        "Setup": 0.36866999999999994,
+        "Compilation": 0.11793800000000002,
+        "Forward simulation": 0.106529,
+        "Sensitivity": 0.000986,
+        "Gradient": 0.054597,
+        "Other": 0.0
+      },
+      "untimed_overhead": 0.027171367000076607,
+      "memory_after": {
+        "available_bytes": 208450510848,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "log": ".cache/logs/2026-11-22T09-54-18Z_aa/r04_1_v11-scipy-stacked-solver-B.log"
+    },
+    {
+      "label": "v11-scipy-stacked-solver#A",
+      "round": 3,
+      "position": 1,
+      "started_utc": "2026-11-22T09:55:22.205412+00:00",
+      "canary": {
+        "seconds": 0.29321412599995256,
+        "attempts": 3,
+        "waited_seconds": 20.0
+      },
+      "load_before": 0.19,
+      "memory_before": {
+        "available_bytes": 208541892608,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "status": "ok",
+      "returncode": null,
+      "passed": false,
+      "wall_to_first_run": 0.6759378340000239,
+      "wall_total": 0.6964137290000281,
+      "cpu_seconds": 0.683874,
+      "cpu_per_wall": 1.0117409702501958,
+      "peak_rss_bytes": 340987904,
+      "peak_footprint_bytes": null,
+      "end_to_end": 0.65,
+      "phases": [
+        {
+          "key": "imports",
+          "label": "Python / library imports",
+          "seconds": 0.286855
+        },
+        {
+          "key": "initialize",
+          "label": "Initialize CPU backend",
+          "seconds": 0.00331
+        },
+        {
+          "key": "load",
+          "label": "Read and parse public inputs",
+          "seconds": 0.00209
+        },
+        {
+          "key": "build",
+          "label": "Build optical setup and prepare inputs",
+          "seconds": 0.079186
+        },
+        {
+          "key": "forward_lower",
+          "label": "Forward: trace / lower",
+          "seconds": 0.008268
+        },
+        {
+          "key": "forward_compile",
+          "label": "Forward: compile",
+          "seconds": 0.007912
+        },
+        {
+          "key": "forward",
+          "label": "Forward simulation + AD residuals",
+          "seconds": 0.105669
+        },
+        {
+          "key": "sensitivity_lower",
+          "label": "Sensitivity: trace / lower",
+          "seconds": 0.033058
+        },
+        {
+          "key": "sensitivity_compile",
+          "label": "Sensitivity: compile",
+          "seconds": 0.02688
+        },
+        {
+          "key": "sensitivity",
+          "label": "Sensitivity, powers and scalar loss",
+          "seconds": 0.000871
+        },
+        {
+          "key": "gradient_lower",
+          "label": "Gradient: trace / lower",
+          "seconds": 0.013345
+        },
+        {
+          "key": "gradient_compile",
+          "label": "Gradient: compile",
+          "seconds": 0.028109
+        },
+        {
+          "key": "gradient",
+          "label": "Reverse-mode gradient",
+          "seconds": 0.054263
+        },
+        {
+          "key": "host_transfer",
+          "label": "Transfer results to host",
+          "seconds": 0.000184
+        }
+      ],
+      "groups": {
+        "Setup": 0.371441,
+        "Compilation": 0.11757199999999998,
+        "Forward simulation": 0.105669,
+        "Sensitivity": 0.001055,
+        "Gradient": 0.054263,
+        "Other": 0.0
+      },
+      "untimed_overhead": 0.025937834000023918,
+      "memory_after": {
+        "available_bytes": 208521388032,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "log": ".cache/logs/2026-11-22T09-54-18Z_aa/r04_2_v11-scipy-stacked-solver-A.log"
+    },
+    {
+      "label": "v11-scipy-stacked-solver#A",
+      "round": 4,
+      "position": 0,
+      "started_utc": "2026-11-22T09:55:48.958999+00:00",
+      "canary": {
+        "seconds": 0.3023115539999708,
+        "attempts": 1,
+        "waited_seconds": 0.0
+      },
+      "load_before": 0.17,
+      "memory_before": {
+        "available_bytes": 208557588480,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "status": "ok",
+      "returncode": null,
+      "passed": false,
+      "wall_to_first_run": 0.6832539690000203,
+      "wall_total": 0.7036438430000089,
+      "cpu_seconds": 0.691508,
+      "cpu_per_wall": 1.0120804728175379,
+      "peak_rss_bytes": 339636224,
+      "peak_footprint_bytes": null,
+      "end_to_end": 0.65619,
+      "phases": [
+        {
+          "key": "imports",
+          "label": "Python / library imports",
+          "seconds": 0.2891870000000001
+        },
+        {
+          "key": "initialize",
+          "label": "Initialize CPU backend",
+          "seconds": 0.003328
+        },
+        {
+          "key": "load",
+          "label": "Read and parse public inputs",
+          "seconds": 0.00205
+        },
+        {
+          "key": "build",
+          "label": "Build optical setup and prepare inputs",
+          "seconds": 0.080505
+        },
+        {
+          "key": "forward_lower",
+          "label": "Forward: trace / lower",
+          "seconds": 0.00896
+        },
+        {
+          "key": "forward_compile",
+          "label": "Forward: compile",
+          "seconds": 0.008259
+        },
+        {
+          "key": "forward",
+          "label": "Forward simulation + AD residuals",
+          "seconds": 0.106385
+        },
+        {
+          "key": "sensitivity_lower",
+          "label": "Sensitivity: trace / lower",
+          "seconds": 0.03258
+        },
+        {
+          "key": "sensitivity_compile",
+          "label": "Sensitivity: compile",
+          "seconds": 0.027097
+        },
+        {
+          "key": "sensitivity",
+          "label": "Sensitivity, powers and scalar loss",
+          "seconds": 0.000841
+        },
+        {
+          "key": "gradient_lower",
+          "label": "Gradient: trace / lower",
+          "seconds": 0.014048
+        },
+        {
+          "key": "gradient_compile",
+          "label": "Gradient: compile",
+          "seconds": 0.027931
+        },
+        {
+          "key": "gradient",
+          "label": "Reverse-mode gradient",
+          "seconds": 0.054823
+        },
+        {
+          "key": "host_transfer",
+          "label": "Transfer results to host",
+          "seconds": 0.000196
+        }
+      ],
+      "groups": {
+        "Setup": 0.37507000000000007,
+        "Compilation": 0.118875,
+        "Forward simulation": 0.106385,
+        "Sensitivity": 0.001037,
+        "Gradient": 0.054823,
+        "Other": 0.0
+      },
+      "untimed_overhead": 0.027063969000020283,
+      "memory_after": {
+        "available_bytes": 208528605184,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "log": ".cache/logs/2026-11-22T09-54-18Z_aa/r05_1_v11-scipy-stacked-solver-A.log"
+    },
+    {
+      "label": "v11-scipy-stacked-solver#B",
+      "round": 4,
+      "position": 1,
+      "started_utc": "2026-11-22T09:55:54.993396+00:00",
+      "canary": {
+        "seconds": 0.29688744800000677,
+        "attempts": 3,
+        "waited_seconds": 20.0
+      },
+      "load_before": 0.11,
+      "memory_before": {
+        "available_bytes": 208638726144,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "status": "ok",
+      "returncode": null,
+      "passed": false,
+      "wall_to_first_run": 0.6672593049999023,
+      "wall_total": 0.6875977949999879,
+      "cpu_seconds": 0.676439,
+      "cpu_per_wall": 1.0137573128337252,
+      "peak_rss_bytes": 340840448,
+      "peak_footprint_bytes": null,
+      "end_to_end": 0.641076,
+      "phases": [
+        {
+          "key": "imports",
+          "label": "Python / library imports",
+          "seconds": 0.28608599999999995
+        },
+        {
+          "key": "initialize",
+          "label": "Initialize CPU backend",
+          "seconds": 0.003378
+        },
+        {
+          "key": "load",
+          "label": "Read and parse public inputs",
+          "seconds": 0.002132
+        },
+        {
+          "key": "build",
+          "label": "Build optical setup and prepare inputs",
+          "seconds": 0.076001
+        },
+        {
+          "key": "forward_lower",
+          "label": "Forward: trace / lower",
+          "seconds": 0.008744
+        },
+        {
+          "key": "forward_compile",
+          "label": "Forward: compile",
+          "seconds": 0.009847
+        },
+        {
+          "key": "forward",
+          "label": "Forward simulation + AD residuals",
+          "seconds": 0.101857
+        },
+        {
+          "key": "sensitivity_lower",
+          "label": "Sensitivity: trace / lower",
+          "seconds": 0.033714
+        },
+        {
+          "key": "sensitivity_compile",
+          "label": "Sensitivity: compile",
+          "seconds": 0.025857
+        },
+        {
+          "key": "sensitivity",
+          "label": "Sensitivity, powers and scalar loss",
+          "seconds": 0.000774
+        },
+        {
+          "key": "gradient_lower",
+          "label": "Gradient: trace / lower",
+          "seconds": 0.013417
+        },
+        {
+          "key": "gradient_compile",
+          "label": "Gradient: compile",
+          "seconds": 0.027615
+        },
+        {
+          "key": "gradient",
+          "label": "Reverse-mode gradient",
+          "seconds": 0.051482
+        },
+        {
+          "key": "host_transfer",
+          "label": "Transfer results to host",
+          "seconds": 0.000172
+        }
+      ],
+      "groups": {
+        "Setup": 0.36759699999999995,
+        "Compilation": 0.11919400000000001,
+        "Forward simulation": 0.101857,
+        "Sensitivity": 0.000946,
+        "Gradient": 0.051482,
+        "Other": 0.0
+      },
+      "untimed_overhead": 0.02618330499990229,
+      "memory_after": {
+        "available_bytes": 208529154048,
+        "swap_used_bytes": 0,
+        "swapouts": 0,
+        "swapins": 0
+      },
+      "log": ".cache/logs/2026-11-22T09-54-18Z_aa/r05_2_v11-scipy-stacked-solver-B.log"
+    }
+  ],
+  "summary": {
+    "reference_label": "v11-scipy-stacked-solver#A",
+    "anchor_label": null,
+    "noise_floor": 0.023575987870392945,
+    "best_canary": 0.29321412599995256,
+    "rows": [
+      {
+        "label": "v11-scipy-stacked-solver#A",
+        "name": "v11-scipy-stacked-solver",
+        "id": "f3f14542ea4034464e6e44bbeb642a3ee5352179",
+        "n_ok": 5,
+        "n_total": 5,
+        "median": 0.653361,
+        "min": 0.649525,
+        "max": 0.658058,
+        "spread_pct": 1.3060161227866391,
+        "groups": {
+          "Setup": 0.37208500000000005,
+          "Compilation": 0.118281,
+          "Forward simulation": 0.105669,
+          "Sensitivity": 0.00101,
+          "Gradient": 0.054241,
+          "Other": 0.0
+        },
+        "peak_bytes": 340987904,
+        "cpu_per_wall": 1.0120804728175379,
+        "flags": {},
+        "official_benchmark": false,
+        "validation": null,
+        "ratios": {
+          "reference": null,
+          "anchor": null,
+          "parent": null
+        }
+      },
+      {
+        "label": "v11-scipy-stacked-solver#B",
+        "name": "v11-scipy-stacked-solver",
+        "id": "f3f14542ea4034464e6e44bbeb642a3ee5352179",
+        "n_ok": 5,
+        "n_total": 5,
+        "median": 0.64872,
+        "min": 0.641076,
+        "max": 0.661646,
+        "spread_pct": 3.170859538784064,
+        "groups": {
+          "Setup": 0.367857,
+          "Compilation": 0.11888,
+          "Forward simulation": 0.104986,
+          "Sensitivity": 0.001038,
+          "Gradient": 0.054597,
+          "Other": 0.0
+        },
+        "peak_bytes": 340840448,
+        "cpu_per_wall": 1.0136919334524148,
+        "flags": {},
+        "official_benchmark": false,
+        "validation": null,
+        "ratios": {
+          "reference": {
+            "reference": "v11-scipy-stacked-solver#A",
+            "rounds": 5,
+            "median": 1.010318775073426,
+            "min": 0.9874781983114838,
+            "max": 1.023575987870393,
+            "per_round": [
+              1.010318775073426,
+              0.9874781983114838,
+              1.011538413619969,
+              1.0019731162905414,
+              1.023575987870393
+            ],
+            "ratio_of_mins": 1.0131794046259726,
+            "within_noise": true,
+            "reference_memory_pressured": false,
+            "stored_reference": false
+          },
+          "anchor": null,
+          "parent": null
+        }
+      }
+    ],
+    "stored_reference": null
+  }
+}

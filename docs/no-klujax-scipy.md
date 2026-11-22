@@ -96,7 +96,7 @@ Quick comparisons while developing: the official benchmark, three or four altern
 - **A stall that `main` has too.** On one pinned CPU, starting the gradient before the previous JAX call has finished hangs inside the host callback. `benchmark.py` waits after every phase and is not affected. `v07` hangs in the same test.
 - **The harness flags `v10` and the branch as `unofficial-benchmark`** because their `benchmark.py` is the organizers' newer file (with aLIGO), which differs from the one at the baseline commit. Nobody on the team edited it.
 - **Not done:** a noise-floor session on the VM in its present state (one was started and stopped: `sessions/2026-11-22T00-10-37Z_aa.json` is incomplete), and timings of `v07` on the two extra setups.
-- **Registered after the measurements.** The version `v11-scipy-stacked-solver` is the commit that was measured (`f3f1454`); the stored sessions list it under the branch name `no-klujax-scipy`. The official report file and chart of a `v11` run on the VM (`python bench/run.py official --versions v11-scipy-stacked-solver`) have not been made yet.
+- **Registered after the measurements.** The version `v11-scipy-stacked-solver` is the commit that was measured (`f3f1454`); the stored sessions list it under the branch name `no-klujax-scipy`. The official report file and chart of a `v11` run, and a noise-floor session (±2.4%), were made later on a second VM of the same type: `bench/RUNS.md`, "On a second Nebius VM of the same type".
 
 ## Reproduce
 

@@ -164,7 +164,22 @@ The second AMD session (19:01 to 19:08) has saved reports and is in section 2. O
 | 00:24 | `tests/variations.py` on `v10`, all 19 scenarios | 17 `PASS`, 2 `DEVIATION` (`band-20-5000` and `uifo-20-5000`); NumPy path 0.68 to 1.05 s, JAX fallback 2.47 s | `variations-v10/2026-11-22T00-24-58Z.json` |
 | between 00:14 and 00:30, time not noted | `tests/test_host.py` and `tests/handwritten_jacobians.py` on `v11` | `ALL CHECKS PASSED`; all 19 rules agree | `no-klujax-scipy-logs/` |
 
-The sessions up to 22:53 were made by a teammate's session; the ones of 22 November are those behind changes 16 to 18 in `CHANGES.md`. Still owed on this machine: a noise-floor session, and `run.py official --versions v11-scipy-stacked-solver` for the report file and chart of the final version.
+The sessions up to 22:53 were made by a teammate's session; the ones of 22 November are those behind changes 16 to 18 in `CHANGES.md`. The noise-floor session and the official report and chart of `v11` that were still owed here were made on a second VM of the same type; see the next table.
+
+### On a second Nebius VM of the same type (Intel Xeon Platinum 8468, 197 GB, Linux, one pinned core)
+
+22 November, times in UTC. A new instance (`89.169.127.49`), set up from nothing with `bench/setup_mac.sh`, because the first one could not be reached. It has the same machine id, so its files are in the same folder, `bench/results/intel-xeon-platinum-8468-197g-linux/`. Every run is inside a 32 GiB memory cap with swap off. `run.py calibrate` chose logical CPU 15 on this instance, so the harness runs are pinned there; the original was pinned to CPU 8 by hand, as on the first VM. `selftest` and `doctor` passed first.
+
+| Time | What | Result | Raw data |
+| --- | --- | --- | --- |
+| 09:45 | The original (`02ec741`), once, by hand with the official `benchmark.py --cpus 1` (10 warm repeats). Not imported as the stored baseline, which is still the first VM's 43.14 s | First run 41.31 s, repeat median 17.69 s, `PASS` | `bench/results/nebius-xeon-8468-200g-linux/original-reproduction/original-1cpu-32g-vm2.*` |
+| 09:50 | `run.py run`: `v07`, `v10`, `v11` and `main` at `f1bc7a7`, 5 shuffled rounds | Medians 0.83, 0.81, 0.67 and 0.64 s. `v11` 0.67 to 0.69 s, which is 61.5 times faster than the original's run on this instance (60.2 to 61.8). `v11` against `v10` 1.20x (1.17 to 1.22), against `v07` 1.23x (1.22 to 1.26); `f1bc7a7` against `v11` 1.06x (1.04 to 1.11), faster in 5 of 5 rounds. The factors the harness prints divide the first VM's 43.14 s and are not the ones to quote | `sessions/2026-11-22T09-50-17Z_run.json` |
+| 09:54 | `run.py aa`: `v11` against itself, 5 rounds | Medians 0.65 and 0.65 s; noise floor ±2.4% | `sessions/2026-11-22T09-54-18Z_aa.json`, `SUMMARY.md` |
+| 09:59 | `run.py official --versions v11-scipy-stacked-solver` | First run 0.667 s, repeat median 0.132 s, `PASS` | `official/v11-scipy-stacked-solver.json` and `.png` |
+| 10:00 | `validate.py --force` on `v11` and on `f1bc7a7`, against the committed reference arrays | `PASS` for both; first runs 0.671 and 0.645 s; `v11`: signal 1.2e-07, sensitivity 6.0e-08 in log, 0 of 193 gradient entries outside | `validation/v11-scipy-stacked-solver@f3f14542ea40.json`, `validation/f1bc7a7@f1bc7a7654f9.json` |
+| 10:01 | `benchmark_aligo.py --cpus 1` on `v11` by hand, 4 runs, pinned to CPU 15 | 0.486 to 0.490 s; `PASS` in every run. The original was not run on this setup here | `aligo/v11-vm2-*.json`, `aligo/v11-vm2-steps.log` |
+
+Not run on this instance: `tests/variations.py`, `tests/test_host.py`, and the original on the aLIGO setup.
 
 ## 4. Other setups
 

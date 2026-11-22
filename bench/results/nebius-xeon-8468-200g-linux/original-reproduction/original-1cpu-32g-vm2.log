@@ -1,0 +1,77 @@
+Running as unit: run-u0.service; invocation ID: 5aaa93855c634768a9b2355c657bef97
+Initialize CPU backend: 0.002980 s
+CPU: Intel(R) Xeon(R) Platinum 8468; affinity: 1; devices: [CpuDevice(id=0)]
+Read and parse public inputs: 0.001640 s
+Build optical setup and prepare inputs: 0.841906 s
+Workload: 101 frequencies; 193 physical design variables; no optimizer
+Forward: trace / lower: 1.438989 s
+Forward: compile: 14.790841 s
+Forward simulation + AD residuals: 13.412868 s
+Sensitivity: trace / lower: 0.088928 s
+Sensitivity: compile: 0.300430 s
+Sensitivity, powers and scalar loss: 0.000921 s
+Gradient: trace / lower: 0.374465 s
+Gradient: compile: 5.330776 s
+Reverse-mode gradient: 4.378972 s
+Transfer results to host: 0.000333 s
+Complete first-run total (excluding validation): 41.312287 s
+Forward: 13.267550 s
+Sensitivity: 0.096886 s
+Gradient: 4.334277 s
+Host transfer: 0.000246 s
+Repeat 01/10: 17.698959 s
+Forward: 13.315622 s
+Sensitivity: 0.094776 s
+Gradient: 4.346989 s
+Host transfer: 0.000233 s
+Repeat 02/10: 17.757620 s
+Forward: 13.226923 s
+Sensitivity: 0.094373 s
+Gradient: 4.392461 s
+Host transfer: 0.000236 s
+Repeat 03/10: 17.713993 s
+Forward: 13.246337 s
+Sensitivity: 0.094697 s
+Gradient: 4.338140 s
+Host transfer: 0.000241 s
+Repeat 04/10: 17.679416 s
+Forward: 13.270441 s
+Sensitivity: 0.101183 s
+Gradient: 4.379644 s
+Host transfer: 0.000242 s
+Repeat 05/10: 17.751509 s
+Forward: 13.515878 s
+Sensitivity: 0.096716 s
+Gradient: 4.365153 s
+Host transfer: 0.000241 s
+Repeat 06/10: 17.977989 s
+Forward: 13.211845 s
+Sensitivity: 0.096950 s
+Gradient: 4.356810 s
+Host transfer: 0.000232 s
+Repeat 07/10: 17.665837 s
+Forward: 13.268888 s
+Sensitivity: 0.096542 s
+Gradient: 4.303300 s
+Host transfer: 0.000247 s
+Repeat 08/10: 17.668977 s
+Forward: 12.983099 s
+Sensitivity: 0.095908 s
+Gradient: 4.311908 s
+Host transfer: 0.000237 s
+Repeat 09/10: 17.391152 s
+Forward: 13.118537 s
+Sensitivity: 0.096755 s
+Gradient: 4.353272 s
+Host transfer: 0.000232 s
+Repeat 10/10: 17.568797 s
+Validating outputs, reference sensitivity and finite-difference gradient...
+PASS: reference sensitivity and gradient spot check; full runtime median 17.689187 s
+JSON: /home/jia/out/original-1cpu-32g-vm2.json
+Plot: /home/jia/out/original-1cpu-32g-vm2.png
+Finished with result: success
+Main processes terminated with: code=exited/status=0
+Service runtime: 4min 21.417s
+CPU time consumed: 4min 21.380s
+Memory peak: 256.0K
+Memory swap peak: 0B
