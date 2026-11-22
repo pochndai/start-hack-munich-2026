@@ -1,0 +1,37 @@
+1. Every component function: NumPy value and Dual derivative against JAX
+   19 functions, worst relative error 9.3e-10
+2. Host simulation against JAX simulation (largest difference relative to largest value)
+main example (UIFO 800-3000)                 carrier 4.0e-16  signal 9.5e-09  noise 9.5e-10  gradients 2.4e-08  | 193 variables, carrier (286, 1), signal (751, 101), noise (101,)
+  same, parameters shifted by 0.1%           carrier 4.8e-16  signal 2.6e-12  noise 2.5e-15  gradients 5.0e-12  | 193 variables, carrier (286, 1), signal (751, 101), noise (101,)
+second UIFO (20-5000, homodyne detector)     carrier 4.7e-15  signal 1.5e-04  noise 1.0e-12  gradients 5.7e-07  | 192 variables, carrier (296, 1), signal (769, 101), noise (101,)
+  same, parameters shifted by 0.1%           carrier 1.7e-15  signal 2.7e-09  noise 2.5e-13  gradients 1.4e-08  | 192 variables, carrier (296, 1), signal (769, 101), noise (101,)
+aLIGO                                        carrier 0.0e+00  signal 4.5e-09  noise 3.3e-14  gradients 5.9e-10  | 29 variables, carrier (36, 1), signal (82, 60), noise (60,)
+  same, parameters shifted by 0.1%           carrier 0.0e+00  signal 2.6e-10  noise 4.6e-14  gradients 1.9e-08  | 29 variables, carrier (36, 1), signal (82, 60), noise (60,)
+Voyager (balanced homodyne)                  carrier 0.0e+00  signal 1.4e-07  noise 2.3e-13  gradients 5.7e-09  | 45 variables, carrier (70, 1), signal (161, 60), noise (60,)
+  same, parameters shifted by 0.1%           carrier 0.0e+00  signal 2.2e-09  noise 3.5e-11  gradients 3.9e-09  | 45 variables, carrier (70, 1), signal (161, 60), noise (60,)
+cavity, carrier sweep over a tuning          carrier 0.0e+00  signal 0.0e+00  noise 0.0e+00  gradients 1.3e-16  | 6 variables, carrier (10, 50), signal (21, 50), noise (0, 50)
+random UIFO, 2x2 grid, seed 1                carrier 5.7e-16  signal 2.2e-15  noise 4.7e-16  gradients 2.7e-13  | 127 variables, carrier (152, 1), signal (393, 40), noise (40,)
+random UIFO, 2x2 grid, seed 2                carrier 4.7e-16  signal 1.4e-15  noise 7.2e-16  gradients 6.5e-12  | 126 variables, carrier (142, 1), signal (373, 40), noise (40,)
+random UIFO, 3x3 grid, seed 3                carrier 6.5e-16  signal 9.8e-15  noise 8.4e-16  gradients 1.6e-14  | 252 variables, carrier (286, 1), signal (751, 40), noise (40,)
+3. jit, vmap and the fallback (main example)
+   jit(value_and_grad): value 1.0e-07, gradient 4.1e-09
+   vmap over two parameter sets against one at a time: 0.0e+00
+   a non-identity linking function switches to the JAX version: True
+   gradient with respect to another input is NaN, not a silent zero: True
+4. Finite differences, one design variable of every kind (main example, benchmark loss)
+   reflectivity  ['mr13', 'reflectivity']       gradient  5.758565e+04  finite difference  5.756385e+04  relative difference 3.8e-04
+   tuning        ['m14', 'tuning']              gradient  8.082814e+02  finite difference  8.082287e+02  relative difference 6.5e-05
+   mass          ['mr13sus', 'mass']            gradient  7.383218e+01  finite difference  7.383181e+01  relative difference 5.0e-06
+   power         ['boundary43', 'power']        gradient -1.808347e+00  finite difference -1.822522e+00  relative difference 7.8e-03
+   length        ['mr13_m14', 'length']         gradient  1.910936e-03  finite difference  1.910986e-03  relative difference 2.6e-05
+   db            ['boundary34', 'db']           gradient  4.248307e-10  finite difference  4.248294e-10  relative difference 3.1e-06
+   angle         ['boundary34', 'angle']        gradient -1.394119e-13  finite difference -1.392045e-13  relative difference 1.5e-03
+   tied lengths  3 tied spaces                  gradient -2.221422e-04  finite difference -2.221391e-04  relative difference 1.4e-05
+5. Situations no public setup has (aLIGO as the base)
+two noise detectors                          carrier 0.0e+00  signal 4.5e-09  noise 2.2e-14  gradients 2.8e-09  | 29 variables, carrier (36, 1), signal (82, 60), noise (2, 60)
+   two noise detectors, gradient against finite differences: 1.2e-03 (4 of 4 directions settled)
+cells written twice                          carrier 0.0e+00  signal 2.0e-09  noise 9.2e-15  gradients 1.1e-09  | 29 variables, carrier (36, 1), signal (82, 60), noise (60,)
+   cells written twice: the second write changes the result by 2.9e+00 (so the case is not empty)
+   cells written twice, gradient against finite differences: 2.1e-03 (4 of 4 directions settled)
+
+ALL CHECKS PASSED

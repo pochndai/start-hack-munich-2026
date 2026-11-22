@@ -1,0 +1,35 @@
+Initialize CPU backend: 0.003361 s
+CPU: Intel(R) Xeon(R) Platinum 8468; affinity: 1; devices: [CpuDevice(id=0)]
+Read and parse public inputs: 0.000237 s
+Build optical setup and prepare inputs: 0.044701 s
+Workload: 101 frequencies; 29 physical design variables; no optimizer
+Forward: trace / lower: 0.030077 s
+Forward: compile: 0.032360 s
+Forward simulation + AD residuals: 0.009052 s
+Sensitivity: trace / lower: 0.031169 s
+Sensitivity: compile: 0.027856 s
+Sensitivity, powers and scalar loss: 0.000527 s
+Gradient: trace / lower: 0.034333 s
+Gradient: compile: 0.060550 s
+Reverse-mode gradient: 0.013727 s
+Transfer results to host: 0.000191 s
+Complete first-run total (excluding validation): 0.613127 s
+Forward: 0.006536 s
+Sensitivity: 0.000201 s
+Gradient: 0.010794 s
+Host transfer: 0.000146 s
+Repeat 01/3: 0.017677 s
+Forward: 0.006110 s
+Sensitivity: 0.000202 s
+Gradient: 0.011242 s
+Host transfer: 0.000135 s
+Repeat 02/3: 0.017688 s
+Forward: 0.006136 s
+Sensitivity: 0.000176 s
+Gradient: 0.010237 s
+Host transfer: 0.000120 s
+Repeat 03/3: 0.016669 s
+Validating outputs, reference sensitivity and finite-difference gradient...
+PASS: reference sensitivity and gradient spot check; full runtime median 0.017677 s
+JSON: /tmp/quick-benchmark_aligo.py/mainlatest-3.json
+Plot: /tmp/quick-benchmark_aligo.py/mainlatest-3.png

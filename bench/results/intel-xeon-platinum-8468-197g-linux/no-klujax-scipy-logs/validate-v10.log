@@ -1,0 +1,10 @@
+[validate] v10-host-swept-values: full official run (3 warm repeats); this takes a while...
+
+PASS: v10-host-swept-values @ 49f887148515
+  official benchmark: PASS, first-run 0.814 s, warm median 0.157 s, max log sensitivity error vs public reference 5.3740799188517485e-06
+  carrier      vs baseline: scale-relative 0.00e+00, worst element 0.00e+00
+  signal       vs baseline: scale-relative 1.36e-07, worst element 4.54e-07
+  noise        vs baseline: scale-relative 4.00e-08, worst element 7.68e-08
+  sensitivity  vs baseline: scale-relative 5.88e-09, worst element 7.14e-08, log 7.14e-08
+  powers       vs baseline: scale-relative 1.64e-20, worst element 5.39e-16
+  gradient     vs baseline: 0 of 193 entries outside tolerance, worst relative error 1.04e-03; closest to the limit: entry 158 (m01.reflectivity) at 0.083x the allowed error; scale-relative 9.15e-08

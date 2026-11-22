@@ -1,0 +1,162 @@
+{
+  "schema": 1,
+  "id": "2026-11-22T00-18-43Z",
+  "git_head": "bf8d047844d3f6baae44dab6f4e059228d34fbfa",
+  "dirty": true,
+  "machine": {
+    "system": "Linux",
+    "arch": "x86_64",
+    "platform": "Linux-6.11.0-1016-nvidia-x86_64-with-glibc2.39",
+    "logical_cpus": 16,
+    "cpu_model": "Intel(R) Xeon(R) Platinum 8468",
+    "ram_bytes": 211069927424,
+    "machine_id": "intel-xeon-platinum-8468-197g-linux"
+  },
+  "limits": {
+    "strategy": "affinity",
+    "bench_cpu": 8,
+    "env": {}
+  },
+  "calibrated": true,
+  "tolerances": {
+    "outputs_scale_rel": 1e-06,
+    "log_sensitivity_abs": 1e-06,
+    "gradient_rtol": 0.001,
+    "gradient_floor_scale_rel": 1e-12,
+    "gradient_scale_rel": 1e-06
+  },
+  "judges_log_limit": 1e-05,
+  "cases": [
+    {
+      "case": "random-layout-1",
+      "description": "A random 3x3 layout (uifo with random_seed=1) with random design values.",
+      "case_sha256": "9348b1c07a94bab778201fab61df05011cff66d02080b94fb073f63c203f67d4",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.8279111490019204,
+        "phases": {
+          "imports": 0.3153442210000321,
+          "initialize": 0.003052706000289618,
+          "load": 0.00200987600010194,
+          "build": 0.095066923000104,
+          "forward_lower": 0.027566098000079364,
+          "forward_compile": 0.029633100999944872,
+          "forward": 0.08404234800036647,
+          "sensitivity_lower": 0.03423356000030253,
+          "sensitivity_compile": 0.025046753999959037,
+          "sensitivity": 0.000883512000200426,
+          "gradient_lower": 0.0356047899999794,
+          "gradient_compile": 0.06827521400009573,
+          "gradient": 0.10692094400019414,
+          "host_transfer": 0.00023110200027076644
+        },
+        "path": "NumPy",
+        "loss": -19.240131035316796,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 771,
+        "detector_ports": 2,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 1.3852358599205046e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 193,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "random-layout-1",
+        "case_sha256": "9348b1c07a94bab778201fab61df05011cff66d02080b94fb073f63c203f67d4",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:42:52.889543+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 12.527174083981663,
+          "phases": {
+            "imports": 0.17699395795352757,
+            "initialize": 0.0015014999080449343,
+            "load": 0.0008258749730885029,
+            "build": 0.39013395900838077,
+            "forward_lower": 0.5396044999361038,
+            "forward_compile": 1.3929031670559198,
+            "forward": 6.5076047910843045,
+            "sensitivity_lower": 0.02325787511654198,
+            "sensitivity_compile": 0.03252029209397733,
+            "sensitivity": 0.00034962501376867294,
+            "gradient_lower": 0.13553550001233816,
+            "gradient_compile": 1.047430207952857,
+            "gradient": 2.27746225008741,
+            "host_transfer": 0.0010505837853997946
+          },
+          "path": "original",
+          "loss": -19.240131035432405,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 771,
+          "detector_ports": 2,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.929642751054232e-14,
+          "scale_rel": 1.3429091586844288e-15,
+          "max_elementwise_rel": 2.628125231995142e-15
+        },
+        "signal": {
+          "max_abs": 23.00279472296035,
+          "scale_rel": 4.054390013245616e-09,
+          "max_elementwise_rel": 7.790185364653866e-09
+        },
+        "noise": {
+          "max_abs": 2.2648205171701898e-21,
+          "scale_rel": 8.725641804928956e-12,
+          "max_elementwise_rel": 8.726596645697732e-12
+        },
+        "sensitivity": {
+          "max_abs": 2.4596748265668014e-28,
+          "scale_rel": 2.9049584086941167e-09,
+          "max_elementwise_rel": 2.9997611129078465e-09,
+          "max_log_abs": 2.9997622164046334e-09
+        },
+        "powers": {
+          "max_abs": 4.547473508864641e-13,
+          "scale_rel": 1.9110150880428118e-15,
+          "max_elementwise_rel": 5.4705630806064e-15
+        },
+        "gradient": {
+          "max_abs": 1.3328853576410893e-09,
+          "scale_rel": 4.223407891893403e-10,
+          "max_elementwise_rel": 4.9264642056511097e-08,
+          "floor": 3.155947499647118e-12,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 69,
+          "worst_ours": 0.002854397811576294,
+          "worst_baseline": 0.0028543979521971873,
+          "worst_error_over_allowed": 4.926458758742352e-05
+        }
+      },
+      "verdict": "PASS"
+    }
+  ]
+}
