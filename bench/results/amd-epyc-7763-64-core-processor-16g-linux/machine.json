@@ -1,0 +1,58 @@
+{
+  "machine": {
+    "system": "Linux",
+    "arch": "x86_64",
+    "platform": "Linux-6.8.0-1070-azure-x86_64-with-glibc2.39",
+    "logical_cpus": 4,
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "ram_bytes": 16770469888,
+    "machine_id": "amd-epyc-7763-64-core-processor-16g-linux"
+  },
+  "limits": {
+    "strategy": "affinity",
+    "bench_cpu": 3,
+    "env": {}
+  },
+  "calibration": {
+    "utc": "2026-11-22T00:14:30.360810+00:00",
+    "python": "3.12.3",
+    "results": {
+      "unlimited": {
+        "matmul": {
+          "wall": 0.6712730259998807,
+          "cpu": 2.2299999999999995,
+          "cpu_per_wall": 3.322046192275266
+        },
+        "elementwise": {
+          "wall": 2.6699849620001714,
+          "cpu": 5.0,
+          "cpu_per_wall": 1.8726697232984937
+        },
+        "batched_solve": {
+          "wall": 2.9358468400000675,
+          "cpu": 9.1,
+          "cpu_per_wall": 3.099616736137295
+        }
+      },
+      "limited": {
+        "matmul": {
+          "wall": 1.3552593869999328,
+          "cpu": 1.3599999999999999,
+          "cpu_per_wall": 1.0034979377715738
+        },
+        "elementwise": {
+          "wall": 3.852536569999984,
+          "cpu": 3.8499999999999996,
+          "cpu_per_wall": 0.999341584446015
+        },
+        "batched_solve": {
+          "wall": 1.6062259170000743,
+          "cpu": 1.5999999999999992,
+          "cpu_per_wall": 0.9961238846078992
+        }
+      }
+    },
+    "worst_cpu_per_wall": 1.0034979377715738,
+    "single_core": true
+  }
+}

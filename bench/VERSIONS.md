@@ -288,7 +288,7 @@ No requested derivative is skipped: all 193 gradient entries are computed as bef
 
 **Result**
 
-Session `results/apple-m5-16g-darwin/sessions/2026-11-21T23-38-07Z_run.json` (Apple M5, 16 GB, thread limits set to one, 10 shuffled rounds of `v07`, `v09` and `v10`, a fresh process per run; the Mac was busy with a running demo page, so 2 to 3 samples per version carry the `memory` flag): the gradient phase of a first run has a median of 30.6 ms against 38.3 ms for v07. The complete first run, 0.43 s against 0.44 s (medians), is not distinguishable from noise there: 1.01x (0.94 to 1.37) against v07. Compiled and warm, one forward evaluation plus gradient of the supplied setup takes 38.6 ms against 44.1 ms (median of 30 in one process, by hand). Not yet timed on Linux with one pinned core.
+Session `results/apple-m5-16g-darwin/sessions/2026-11-21T23-38-07Z_run.json` (Apple M5, 16 GB, thread limits set to one, 10 shuffled rounds of `v07`, `v09` and `v10`, a fresh process per run; the Mac was busy with a running demo page, so 2 to 3 samples per version carry the `memory` flag): the gradient phase of a first run has a median of 30.6 ms against 38.3 ms for v07. The complete first run, 0.43 s against 0.44 s (medians), is not distinguishable from noise there: 1.01x (0.94 to 1.37) against v07. Compiled and warm, one forward evaluation plus gradient of the supplied setup takes 38.6 ms against 44.1 ms (median of 30 in one process, by hand). One pinned Linux core (GitHub Codespace, AMD EPYC 7763, `results/amd-epyc-7763-64-core-processor-16g-linux/sessions/2026-11-22T00-14-30Z_run.json`, 10 shuffled rounds of `v07`, `v09` and `v10`): complete first run 0.999 s against 1.026 s for v07 (medians), 1.02x (0.99 to 1.05), not distinguishable from noise on its own; gradient phase 109.9 ms against 130.5 ms.
 
 **Dead ends and notes**
 
@@ -315,7 +315,7 @@ The values are the same numbers in the same shape and type; only where the resha
 
 **Result**
 
-Same session as v09 (`results/apple-m5-16g-darwin/sessions/2026-11-21T23-38-07Z_run.json`): the build phase has a median of 37.7 ms against 41.8 ms for v09; the complete first run is not distinguishable from noise, 1.00x (0.77 to 1.75) against v09. Three runs of `benchmark.py` by hand on a quieter machine gave 30.7, 30.9 and 30.7 ms for the build phase, against 41.4 to 42.6 ms in three runs before the change. Not yet timed on Linux with one pinned core, where a small compilation costs more than on this Mac.
+Same session as v09 (`results/apple-m5-16g-darwin/sessions/2026-11-21T23-38-07Z_run.json`): the build phase has a median of 37.7 ms against 41.8 ms for v09; the complete first run is not distinguishable from noise, 1.00x (0.77 to 1.75) against v09. Three runs of `benchmark.py` by hand on a quieter machine gave 30.7, 30.9 and 30.7 ms for the build phase, against 41.4 to 42.6 ms in three runs before the change. One pinned Linux core (GitHub Codespace, AMD EPYC 7763, `results/amd-epyc-7763-64-core-processor-16g-linux/sessions/2026-11-22T00-14-30Z_run.json`, 10 shuffled rounds of `v07`, `v09` and `v10`): complete first run 0.976 s against 0.999 s for v09 and 1.026 s for v07 (medians); build phase 98.8 ms against 117.5 ms for v09. Against v07, v09 and v10 together are 1.04x (1.03 to 1.08): faster in every round. `bench/validate.py v10-host-swept-values` on that machine: `PASS` (`results/amd-epyc-7763-64-core-processor-16g-linux/validation/`).
 
 **Dead ends and notes**
 

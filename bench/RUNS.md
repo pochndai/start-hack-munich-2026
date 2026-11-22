@@ -55,6 +55,16 @@ Follow-up on a third instance of the same kind (21:55 UTC; a container with 16 C
 | 21:58 | 96 runs of `benchmark.py --cpus 1` on the current code (`e44b489`): four settings, 8 rounds each, on a quiet machine, next to four memory-churning processes, and right after a 14 GB memory user | Quiet and after the memory user: 0.69 to 0.75 s in all 64 runs. Next to the churning processes: 0.93 to 1.51 s; lumps in the NumPy steps in 8 of 24 runs with NumPy's large-page request on, in 0 of 8 with it off | `diagnosis/runs.jsonl`, `diagnosis/diagnose.log`, `diagnosis/machine.txt` |
 | 22:35 | 72 runs of `benchmark.py --cpus 1` on `8ff051a` (change 13): NumPy's large-page request off (as committed) and on, 12 rounds each, quiet, next to four memory-churning processes, quiet again | Quiet: 0.74 s off, 0.71 s on. Next to the churning processes: 1.16 s off, 1.11 s on (medians). No step took more than twice its normal time with either setting | `diagnosis-change-13/runs.jsonl`, `diagnosis-change-13/diagnose.log` |
 
+### Through the harness on the GitHub Codespace (AMD EPYC 7763, 4 logical CPUs, 16 GB, Linux, one pinned core)
+
+22 November, times in UTC. The repository was copied there as a git bundle of `main` at `bf8d047`. Files under `bench/results/amd-epyc-7763-64-core-processor-16g-linux/`. The original has no stored run on this machine (it does not fit in 16 GB), so factors are against `v07`.
+
+| Time | What | Result | Raw data |
+| --- | --- | --- | --- |
+| 00:13 | `run.py calibrate` | The one-CPU limit holds: at most 1.00 CPU-seconds per wall-second | `machine.json` |
+| 00:14 | `run.py run`: `v07`, `v09`, `v10`, 10 shuffled rounds | Medians 1.026, 0.999 and 0.976 s; `v10` against `v07` 1.04x (1.03 to 1.08) | `sessions/2026-11-22T00-14-30Z_run.json`, `SUMMARY.md` |
+| 00:27 | `validate.py` on `v10` and `v07` | `PASS` for both; first runs 0.997 and 1.031 s | `validation/` |
+
 ## 2. By hand, with a saved report
 
 All are complete runs of the unchanged `benchmark.py`. "Repeat" is the median of the repeat runs, with their number in brackets. "Reference" is the distance from the public reference sensitivities in log (limit 1e-5).

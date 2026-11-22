@@ -1,0 +1,103 @@
+{
+  "schema": 1,
+  "name": "v10-host-swept-values",
+  "id": "49f887148515c3b1d52530a93774c8d4089f55bd",
+  "kind": "commit",
+  "validated_utc": "2026-11-22T00:20:15.308878+00:00",
+  "machine_id": "amd-epyc-7763-64-core-processor-16g-linux",
+  "benchmark_sha256": "b2e8c5367705e220f83c3d5f2bb95301e3148b102dc0d34f5c2c6f5792b9984e",
+  "limits": {
+    "strategy": "affinity",
+    "bench_cpu": 3,
+    "env": {}
+  },
+  "repeats": 3,
+  "tolerances": {
+    "outputs_scale_rel": 1e-06,
+    "log_sensitivity_abs": 1e-06,
+    "gradient_rtol": 0.001,
+    "gradient_floor_scale_rel": 1e-12,
+    "gradient_scale_rel": 1e-06
+  },
+  "official": {
+    "passed": true,
+    "status": "ok",
+    "returncode": 0,
+    "end_to_end": 0.9966620070003955,
+    "warm_median": 0.1753848579996884,
+    "max_log_sensitivity_error": 5.374871257401992e-06,
+    "gradient_check": {
+      "parameter": "mb11.tuning",
+      "autodiff": 7.616168271956085e-05,
+      "finite_differences": [
+        {
+          "step": 0.001,
+          "central_difference": 7.631944743673698e-05,
+          "absolute_error": 1.5776471717613056e-07
+        },
+        {
+          "step": 0.0005,
+          "central_difference": 7.634476980951661e-05,
+          "absolute_error": 1.8308708995576578e-07
+        }
+      ],
+      "rtol": 0.01,
+      "atol": 1e-06,
+      "passed": true
+    },
+    "loss": 9.705942476094713e-08,
+    "gradient_norm": 70517.09932310868
+  },
+  "run": {
+    "end_to_end": 0.996662,
+    "wall_total": 2.7402519119996214,
+    "cpu_per_wall": 0.9983246387021872,
+    "peak_rss_bytes": 386281472,
+    "peak_footprint_bytes": null
+  },
+  "arrays": {
+    "carrier": {
+      "max_abs": 2.329035164484539e-09,
+      "scale_rel": 8.845367080497254e-13,
+      "max_elementwise_rel": 3.708785598224298e-12
+    },
+    "signal": {
+      "max_abs": 8999859268647398.0,
+      "scale_rel": 1.2016916156643785e-07,
+      "max_elementwise_rel": 3.9906033880264195e-07
+    },
+    "noise": {
+      "max_abs": 7.675359479837944e-17,
+      "scale_rel": 3.8898309155429366e-08,
+      "max_elementwise_rel": 5.6877861701114965e-08
+    },
+    "sensitivity": {
+      "max_abs": 1.0861725896404573e-32,
+      "scale_rel": 6.028847527645621e-09,
+      "max_elementwise_rel": 5.965486543206953e-08,
+      "max_log_abs": 5.965485883052679e-08
+    },
+    "powers": {
+      "max_abs": 5.305744707584381e-06,
+      "scale_rel": 1.530579792572229e-12,
+      "max_elementwise_rel": 4.652763702398925e-12
+    },
+    "gradient": {
+      "max_abs": 0.005763466120697558,
+      "scale_rel": 1.0008510957397337e-07,
+      "max_elementwise_rel": 0.0019313847955435722,
+      "floor": 5.758565030533091e-08,
+      "entries": 193,
+      "entries_outside": 0,
+      "worst_index": 158,
+      "worst_ours": -0.0004890100830895327,
+      "worst_baseline": -0.0004888495413349827,
+      "worst_error_over_allowed": 0.2937983442612301,
+      "worst_parameter": "m01.reflectivity"
+    }
+  },
+  "problems": [],
+  "deviations": [],
+  "deviations_allowed": false,
+  "verdict": "PASS"
+}

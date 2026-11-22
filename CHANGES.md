@@ -19,7 +19,7 @@ Official benchmark, one CPU core (`--cpus 1`), original and current version on t
 
 That is about 50 times faster for the scored first run. A second run of our version on the same machine gave 0.716 s against 0.715 s. On that machine `tests/test_host.py` ends with `ALL CHECKS PASSED` and `tests/handwritten_jacobians.py` with all 19 rules agreeing with JAX. The reports and charts are `benchmarks/amd-epyc-9334-original.*` and `benchmarks/amd-epyc-9334-candidate.*`; the file fingerprints inside them match the upstream code and the code on `main`. The saved output arrays of the two runs were compared on the machine but not brought back; the array comparisons recorded below are from the Apple M5 and the Codespace.
 
-The same pair on the processor type the organizers use (Intel Xeon Platinum 8468, a teammate's Nebius machine, 197 GB RAM, one logical CPU with the official `--cpus 1`): the original took **43.14 s** in its one run there, changes 1–12 (`v07`) took **0.90 s** (median of 5 fresh runs, fastest 0.89 s), about 48 times faster, with `PASS` from `bench/validate.py`. Data: `bench/results/intel-xeon-platinum-8468-197g-linux/SUMMARY.md`. Changes 14 and 15 below came after that session and have not been timed on that machine.
+The same pair on the processor type the organizers use (Intel Xeon Platinum 8468, a teammate's Nebius machine, 197 GB RAM, one logical CPU with the official `--cpus 1`): the original took **43.14 s** in its one run there, changes 1–12 (`v07`) took **0.90 s** (median of 5 fresh runs, fastest 0.89 s), about 48 times faster, with `PASS` from `bench/validate.py`. Data: `bench/results/intel-xeon-platinum-8468-197g-linux/SUMMARY.md`. Changes 14 and 15 below came after that session and have not been timed on that machine; on another Linux machine they take a further 4% off the first run ("Changes 14 and 15 measured").
 
 How the total came down on that machine (the AMD EPYC 9334): an earlier run of changes 1–11 there took 2.13 s (printed timings only, no report saved), so change 12 accounts for the step from 2.13 s to 0.72 s.
 
@@ -314,16 +314,28 @@ The Codespace was a little slower in this session than when changes 5–7 were m
 - **What:** in the NumPy version (change 12), the reverse pass marks which entries of the parameter vector depend on the design variables, and asks each physics formula for derivatives only with respect to the inputs that read a marked entry. A formula with no such input runs without derivatives.
 - **Why:** each formula has seven inputs, and the `Dual` type carried seven derivatives through every arithmetic step. Most were never used. The frequency and the fixed refractive indices are not design variables, and force calculations, signal sources, vacuum noise and loss noise have no design variable among their inputs at all. Those derivatives were computed and discarded.
 - **Nothing requested is skipped:** all 193 gradient entries are computed. Only arithmetic whose result was thrown away is gone.
-- **Effect:** the gradient phase of a first run went from 38.3 to 30.6 ms (Apple M5, medians of 10; table below). All outputs and gradients are bit-for-bit the same as before on five setups (supplied, second UIFO, aLIGO, Voyager, a random 3×3 layout).
+- **Effect:** the gradient phase of a first run went from 130.5 to 109.9 ms on one pinned Linux core, and from 38.3 to 30.6 ms on the Apple M5 (medians of 10; tables below). All outputs and gradients are bit-for-bit the same as before on five setups (supplied, second UIFO, aLIGO, Voyager, a random 3×3 layout).
 - **General:** the marks are derived from the setup's index arrays, including the parameter links (tied lengths).
 
 ### 15. Reshape and copy the swept values on the host
 
 - **What:** the build step reshapes and copies the swept values (the frequencies) in NumPy and converts the result to a JAX array once.
 - **Why:** on a JAX array each of the two steps compiled a small device program at first use. They were the last two such compilations in our build step; the three that remain in that phase are made by `benchmark.py` itself.
-- **Effect:** the build phase went from 41.8 to 37.7 ms in the session below, and from about 42 to 31 ms in runs by hand on a quieter machine (Apple M5). Outputs are bit-for-bit the same.
+- **Effect:** the build phase went from 117.5 to 98.8 ms on one pinned Linux core (medians of 10; tables below). On the Apple M5: from 41.8 to 37.7 ms in the session below, and from about 42 to 31 ms in runs by hand on a quieter machine. Outputs are bit-for-bit the same.
 
 ### Changes 14 and 15 measured
+
+One pinned Linux core (GitHub Codespace, AMD EPYC 7763, 16 GB, Python 3.12.3, official `--cpus 1`), 10 shuffled rounds, a fresh process per run (`bench/results/amd-epyc-7763-64-core-processor-16g-linux/sessions/2026-11-22T00-14-30Z_run.json`). This is the comparison to quote for these two changes:
+
+| Version | Changes | Complete first run (median) | Fastest | Slowest | Imports | Build phase | Gradient phase |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: |
+| `v07-numpy-host` | 1–12 | 1.026 s | 0.998 s | 1.056 s | 414 ms | 116.7 ms | 130.5 ms |
+| `v09-active-derivatives` | + 14 | 0.999 s | 0.987 s | 1.034 s | 410 ms | 117.5 ms | 109.9 ms |
+| `v10-host-swept-values` | + 15 | 0.976 s | 0.964 s | 0.998 s | 411 ms | 98.8 ms | 111.1 ms |
+
+`v10` against `v07`: 1.04 times faster as the median of the per-round ratios, between 1.03 and 1.08 in every one of the 10 rounds, so it is outside the noise of that machine. That is about 50 ms of the scored first run: 20 ms from the gradient phase (change 14) and 18 ms from the build phase (change 15). Each change on its own (1.02 times) is not distinguishable from noise there. Imports did not change. `bench/validate.py` on that machine gives `PASS` for `v10` and for `v07`, with the same differences from the original's arrays (sensitivity 6.0e-08 in log; gradient entry 158 at 0.29 of the allowed difference); the files are in `bench/results/amd-epyc-7763-64-core-processor-16g-linux/validation/`. These seconds are not comparable with the 0.90 s on the Intel Xeon or the 0.72 s on the AMD EPYC 9334: a different machine.
+
+The same three versions on the Mac:
 
 Apple M5 MacBook Air, 16 GB, thread limits set to one, 10 shuffled rounds, a fresh process per run (`bench/results/apple-m5-16g-darwin/sessions/2026-11-21T23-38-07Z_run.json`). The Mac was busy during the session, so the totals are higher than in earlier tables.
 
@@ -333,7 +345,7 @@ Apple M5 MacBook Air, 16 GB, thread limits set to one, 10 shuffled rounds, a fre
 | `v09-active-derivatives` | + 14 | 0.43 s | 0.34 s | 41.8 ms | 30.6 ms |
 | `v10-host-swept-values` | + 15 | 0.43 s | 0.33 s | 37.7 ms | 30.7 ms |
 
-The two phases moved as expected. The complete first run did not move by more than the noise of this machine (the harness marks both steps as not distinguishable from noise), so we claim no speed-up of the scored number from these two changes until they are timed on one pinned Linux core. Together they remove about 12 ms of work on this Mac, where a first run is about 330 ms on a quiet machine and half of that is `import jax`.
+The two phases moved as on Linux. The complete first run did not move by more than the noise of the Mac (the harness marks both steps as not distinguishable from noise); the Linux table above is the evidence for the total. Together the two changes remove about 12 ms of work on this Mac, where a first run is about 330 ms on a quiet machine and half of that is `import jax`.
 
 ### Tried and not adopted
 
@@ -486,7 +498,7 @@ python tests/test_host.py             # NumPy version against the JAX version
 ## Known limits
 
 - Change 12 is new code for the whole reverse pass. It is verified against the JAX version on the setups listed above; a setup that uses a feature none of them has would be new ground, and `HOST_SIMULATION = False` switches back.
-- Changes 14 and 15 have been timed on the Apple M5 only. The run on the contest's processor type (Intel Xeon Platinum 8468) is of changes 1–12.
+- Changes 14 and 15 have been timed on the Apple M5 and on one pinned core of an AMD EPYC 7763, not on the contest's processor type (Intel Xeon Platinum 8468). The run there is of changes 1–12.
 - The original could not complete the official benchmark on the 16 GB Codespace, so the official-style "before" on that machine is missing.
 - On the AMD EPYC 9334 both versions have saved reports, but their output arrays were not brought back, so there is no array-by-array comparison from that machine. The comparisons on the Mac and the Codespace cover it.
 - The carrier system (286×286, solved once) still uses the dense solver.
