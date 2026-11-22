@@ -1,0 +1,2515 @@
+{
+  "schema": 1,
+  "id": "2026-11-22T10-41-43Z",
+  "git_head": "f4f5c40d53d8a35788bc383a9f66b385aa09ef5f",
+  "dirty": false,
+  "machine": {
+    "system": "Linux",
+    "arch": "x86_64",
+    "platform": "Linux-6.8.0-1070-azure-x86_64-with-glibc2.39",
+    "logical_cpus": 4,
+    "cpu_model": "AMD EPYC 7763 64-Core Processor",
+    "ram_bytes": 16770465792,
+    "machine_id": "amd-epyc-7763-64-core-processor-16g-linux"
+  },
+  "limits": {
+    "strategy": "affinity",
+    "bench_cpu": 3,
+    "env": {}
+  },
+  "calibrated": true,
+  "tolerances": {
+    "outputs_scale_rel": 1e-06,
+    "log_sensitivity_abs": 1e-06,
+    "gradient_rtol": 0.001,
+    "gradient_floor_scale_rel": 1e-12,
+    "gradient_scale_rel": 1e-06
+  },
+  "judges_log_limit": 1e-05,
+  "cases": [
+    {
+      "case": "amplitude-modulation",
+      "description": "Supplied layout and design values in amplitude-modulation mode, which has linking functions, so our code takes its JAX fallback.",
+      "case_sha256": "ff291dc31dd76131ecb4cd6d2695c461ad6dfac21867775c7f44ad0f4102b996",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 3.0104304839996985,
+        "phases": {
+          "imports": 0.3512487580001107,
+          "initialize": 0.011540268999851833,
+          "load": 0.001154606000000058,
+          "build": 0.09471961799999917,
+          "forward_lower": 0.8208503540004131,
+          "forward_compile": 0.7694047110003339,
+          "forward": 0.08481524399985574,
+          "sensitivity_lower": 0.03967922199990426,
+          "sensitivity_compile": 0.029138869999769668,
+          "sensitivity": 0.0005538840000554046,
+          "gradient_lower": 0.23165133699967555,
+          "gradient_compile": 0.47321037399979105,
+          "gradient": 0.10208963000013682,
+          "host_transfer": 0.0003736069998012681
+        },
+        "path": "JAX fallback",
+        "loss": -6.693528443018668,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 687,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 3.204106612089841e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 184,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "amplitude-modulation",
+        "case_sha256": "ff291dc31dd76131ecb4cd6d2695c461ad6dfac21867775c7f44ad0f4102b996",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:41:06.617038+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 14.691328044049442,
+          "phases": {
+            "imports": 0.15839833300560713,
+            "initialize": 0.00641087512485683,
+            "load": 0.00034208386205136776,
+            "build": 0.45352387498132885,
+            "forward_lower": 0.5531508331187069,
+            "forward_compile": 1.547298749908805,
+            "forward": 5.870296875014901,
+            "sensitivity_lower": 0.028688708785921335,
+            "sensitivity_compile": 0.035148541908711195,
+            "sensitivity": 0.00025441707111895084,
+            "gradient_lower": 0.14481466705910861,
+            "gradient_compile": 0.928520750021562,
+            "gradient": 4.959422167157754,
+            "host_transfer": 0.005057167029008269
+          },
+          "path": "original",
+          "loss": -6.693528442955779,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 687,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.329035164484539e-09,
+          "scale_rel": 8.845367080497254e-13,
+          "max_elementwise_rel": 3.708785598224298e-12
+        },
+        "signal": {
+          "max_abs": 2.15426834566686e-10,
+          "scale_rel": 1.2056375559311263e-08,
+          "max_elementwise_rel": 1.4218108294837973e-08
+        },
+        "noise": {
+          "max_abs": 8.742105039471282e-18,
+          "scale_rel": 4.430451674324845e-09,
+          "max_elementwise_rel": 5.511917305233014e-09
+        },
+        "sensitivity": {
+          "max_abs": 1.0402645353383945e-15,
+          "scale_rel": 1.2557421409866266e-09,
+          "max_elementwise_rel": 7.3467681771211364e-09,
+          "max_log_abs": 7.3467703032292775e-09
+        },
+        "powers": {
+          "max_abs": 5.305744707584381e-06,
+          "scale_rel": 1.530579792572229e-12,
+          "max_elementwise_rel": 4.652763702398925e-12
+        },
+        "gradient": {
+          "max_abs": 0.002343122847378254,
+          "scale_rel": 5.026185105984759e-10,
+          "max_elementwise_rel": 1.01143536687071e-08,
+          "floor": 4.661831583934822e-06,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 32,
+          "worst_ours": -205.43736623752116,
+          "worst_baseline": -205.4373644815907,
+          "worst_error_over_allowed": 8.547085038942776e-06
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "band-20-5000",
+      "description": "Supplied setup at 101 frequencies from 20 to 5000 Hz.",
+      "case_sha256": "bac70151f35b231013e84076f3b94de182fbc3e5d91f53a402c33c2913e9c60d",
+      "problems": [],
+      "deviations": [
+        "gradient: 2 of 193 entries outside |a-b| <= 1.7e-08 + 1e-03*|baseline|; worst is entry 17: -1.692493e-01 vs baseline -1.701932e-01"
+      ],
+      "ours": {
+        "first_run_total": 0.725804158000301,
+        "phases": {
+          "imports": 0.34668597800009593,
+          "initialize": 0.011404725999909715,
+          "load": 0.002601007000066602,
+          "build": 0.10663711100005457,
+          "forward_lower": 0.00919445799991081,
+          "forward_compile": 0.008608975999777613,
+          "forward": 0.09647133900034532,
+          "sensitivity_lower": 0.040366526000070735,
+          "sensitivity_compile": 0.029201437000210717,
+          "sensitivity": 0.001056162000168115,
+          "gradient_lower": 0.017882751999877655,
+          "gradient_compile": 0.029195705999882193,
+          "gradient": 0.02628330899960929,
+          "host_transfer": 0.00021467100032168673
+        },
+        "path": "NumPy",
+        "loss": -22.56881621486863,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 751,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 0.00016374222445140227,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 184,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "band-20-5000",
+        "case_sha256": "bac70151f35b231013e84076f3b94de182fbc3e5d91f53a402c33c2913e9c60d",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:41:23.599579+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 15.007999915163964,
+          "phases": {
+            "imports": 0.1585312499664724,
+            "initialize": 0.001436999998986721,
+            "load": 0.0007641250267624855,
+            "build": 0.35169750009663403,
+            "forward_lower": 0.5208005409222096,
+            "forward_compile": 1.314620791003108,
+            "forward": 7.352189874975011,
+            "sensitivity_lower": 0.02787512494251132,
+            "sensitivity_compile": 0.033002916956320405,
+            "sensitivity": 0.0003671660088002682,
+            "gradient_lower": 0.147569167194888,
+            "gradient_compile": 1.0582043749745935,
+            "gradient": 4.039487333036959,
+            "host_transfer": 0.0014527500607073307
+          },
+          "path": "original",
+          "loss": -22.568816214650234,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 751,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.329035164484539e-09,
+          "scale_rel": 8.845367080497254e-13,
+          "max_elementwise_rel": 3.708785598224298e-12
+        },
+        "signal": {
+          "max_abs": 738830945.0589528,
+          "scale_rel": 8.607617220548365e-08,
+          "max_elementwise_rel": 1.4738487921982586e-07
+        },
+        "noise": {
+          "max_abs": 4.974698428491753e-17,
+          "scale_rel": 2.9866047122207666e-08,
+          "max_elementwise_rel": 7.383546887855818e-08
+        },
+        "sensitivity": {
+          "max_abs": 1.2076702003647467e-28,
+          "scale_rel": 2.391323357535132e-09,
+          "max_elementwise_rel": 6.70201921901514e-08,
+          "max_log_abs": 6.702018851001412e-08
+        },
+        "powers": {
+          "max_abs": 5.305744707584381e-06,
+          "scale_rel": 1.530579792572229e-12,
+          "max_elementwise_rel": 4.652763702398925e-12
+        },
+        "gradient": {
+          "max_abs": 0.004085865593197013,
+          "scale_rel": 2.357737233553554e-07,
+          "max_elementwise_rel": 0.005545959514932331,
+          "floor": 1.7329605415947242e-08,
+          "entries": 193,
+          "entries_outside": 2,
+          "worst_index": 17,
+          "worst_ours": -0.1692493231707317,
+          "worst_baseline": -0.1701932078109678,
+          "worst_error_over_allowed": 5.5453948654605325
+        }
+      },
+      "verdict": "DEVIATION"
+    },
+    {
+      "case": "boundary-swap",
+      "description": "Supplied layout with the laser at boundary 10 and the squeezer at boundary 20 exchanged.",
+      "case_sha256": "38546d4d9a63f900f663677c548eb252a9042d2a09d1c7616c606ac83b21a070",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.746497217000524,
+        "phases": {
+          "imports": 0.3643251759999657,
+          "initialize": 0.011256119000336184,
+          "load": 0.0024675170002410596,
+          "build": 0.10471745599988935,
+          "forward_lower": 0.009415711999736232,
+          "forward_compile": 0.008879239999714628,
+          "forward": 0.09543921099975705,
+          "sensitivity_lower": 0.04044371999998475,
+          "sensitivity_compile": 0.029648152000390837,
+          "sensitivity": 0.0011087400002907088,
+          "gradient_lower": 0.017773638000107894,
+          "gradient_compile": 0.029726999000104115,
+          "gradient": 0.031060699000136083,
+          "host_transfer": 0.00023483799986934173
+        },
+        "path": "NumPy",
+        "loss": -17.89846101770656,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 751,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 2.8141936044826264e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 184,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "boundary-swap",
+        "case_sha256": "38546d4d9a63f900f663677c548eb252a9042d2a09d1c7616c606ac83b21a070",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:41:38.820530+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 13.97699674940668,
+          "phases": {
+            "imports": 0.16033575008623302,
+            "initialize": 0.0015017909463495016,
+            "load": 0.0008084999863058329,
+            "build": 0.3420357499271631,
+            "forward_lower": 0.5327568331267685,
+            "forward_compile": 1.2584772501140833,
+            "forward": 6.7200844581238925,
+            "sensitivity_lower": 0.021168707869946957,
+            "sensitivity_compile": 0.03310629213228822,
+            "sensitivity": 0.0002952089998871088,
+            "gradient_lower": 0.14319941704161465,
+            "gradient_compile": 0.984720875043422,
+            "gradient": 3.7774162909481674,
+            "host_transfer": 0.001089625060558319
+          },
+          "path": "original",
+          "loss": -17.898461017707262,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 751,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 1.1136367738022512e-11,
+          "scale_rel": 5.827145404176654e-13,
+          "max_elementwise_rel": 4.8618732155588606e-12
+        },
+        "signal": {
+          "max_abs": 1.6822337287267007e-05,
+          "scale_rel": 6.305233094639355e-11,
+          "max_elementwise_rel": 1.344245886569878e-10
+        },
+        "noise": {
+          "max_abs": 9.728863771909694e-26,
+          "scale_rel": 3.566202177368772e-13,
+          "max_elementwise_rel": 3.566217788218364e-13
+        },
+        "sensitivity": {
+          "max_abs": 1.3095591768454337e-28,
+          "scale_rel": 5.1368888629497536e-11,
+          "max_elementwise_rel": 7.269475251537793e-11,
+          "max_log_abs": 7.269562729561585e-11
+        },
+        "powers": {
+          "max_abs": 2.722799763432704e-11,
+          "scale_rel": 1.490974731092927e-13,
+          "max_elementwise_rel": 9.61661729957973e-12
+        },
+        "gradient": {
+          "max_abs": 1.4772405847907066e-05,
+          "scale_rel": 9.680377652603868e-12,
+          "max_elementwise_rel": 2.5109590506607153e-08,
+          "floor": 1.5260154487809184e-06,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 137,
+          "worst_ours": -0.00012021247937836732,
+          "worst_baseline": -0.00012021247635988126,
+          "worst_error_over_allowed": 1.833577239873175e-06
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "center-swap",
+      "description": "Supplied layout with center 22 made a directional beamsplitter and center 11 a plain one.",
+      "case_sha256": "ab06ffe21e5bbb271896728aac5112627beb5f5a9bb3e84fd0e53426e6695f8b",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7309432750002998,
+        "phases": {
+          "imports": 0.34661490600001343,
+          "initialize": 0.011321840999698907,
+          "load": 0.0025964890000977903,
+          "build": 0.10844433600004777,
+          "forward_lower": 0.009240695000244159,
+          "forward_compile": 0.008622049999758019,
+          "forward": 0.09521336000034353,
+          "sensitivity_lower": 0.0401213979998829,
+          "sensitivity_compile": 0.028714617999867187,
+          "sensitivity": 0.001105844999983674,
+          "gradient_lower": 0.017570038000030763,
+          "gradient_compile": 0.03471722700032842,
+          "gradient": 0.026388243999917904,
+          "host_transfer": 0.0002722280000853061
+        },
+        "path": "NumPy",
+        "loss": -17.955422633669855,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 751,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 0.0008082623603738336,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 185,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "center-swap",
+        "case_sha256": "ab06ffe21e5bbb271896728aac5112627beb5f5a9bb3e84fd0e53426e6695f8b",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:41:56.438878+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 16.301486624171957,
+          "phases": {
+            "imports": 0.16204408300109208,
+            "initialize": 0.0014712081756442785,
+            "load": 0.0007650000043213367,
+            "build": 0.3352681661490351,
+            "forward_lower": 0.5324174580164254,
+            "forward_compile": 1.3341556249652058,
+            "forward": 6.950918749906123,
+            "sensitivity_lower": 0.048088291892781854,
+            "sensitivity_compile": 0.05832912493497133,
+            "sensitivity": 0.0008275420404970646,
+            "gradient_lower": 0.2482423330657184,
+            "gradient_compile": 0.9293578329961747,
+            "gradient": 5.696031833998859,
+            "host_transfer": 0.0035693750251084566
+          },
+          "path": "original",
+          "loss": -17.955422633666064,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 751,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 3.813585005284579e-11,
+          "scale_rel": 1.2697316503367536e-12,
+          "max_elementwise_rel": 2.856077575671143e-12
+        },
+        "signal": {
+          "max_abs": 7.846080396997796e-05,
+          "scale_rel": 6.740328372773507e-11,
+          "max_elementwise_rel": 1.2466511676145233e-09
+        },
+        "noise": {
+          "max_abs": 1.4828060663258315e-25,
+          "scale_rel": 3.7816865853170484e-13,
+          "max_elementwise_rel": 3.781719935643103e-13
+        },
+        "sensitivity": {
+          "max_abs": 2.612525818454032e-26,
+          "scale_rel": 1.044881593800409e-09,
+          "max_elementwise_rel": 1.1597470231793438e-09,
+          "max_log_abs": 1.1597478533076355e-09
+        },
+        "powers": {
+          "max_abs": 2.5195845410053153e-10,
+          "scale_rel": 5.586193288354433e-13,
+          "max_elementwise_rel": 1.6407654418429198e-12
+        },
+        "gradient": {
+          "max_abs": 0.0010582349495962262,
+          "scale_rel": 1.8987721880145296e-09,
+          "max_elementwise_rel": 4.0976413480769176e-08,
+          "floor": 5.573259163347975e-07,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 152,
+          "worst_ours": -0.030900207317555013,
+          "worst_baseline": -0.030900208583734736,
+          "worst_error_over_allowed": 4.02504437709932e-05
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "detector-moved",
+      "description": "Supplied layout with the detector moved from boundary 03 to boundary 30.",
+      "case_sha256": "7b0e95547b22b8411d55890864b7858df637166d5269e55acfca6f8f4a16a065",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7334495620007146,
+        "phases": {
+          "imports": 0.3483267420001539,
+          "initialize": 0.011284772000180965,
+          "load": 0.002568416000030993,
+          "build": 0.10319781899988811,
+          "forward_lower": 0.009322908000285679,
+          "forward_compile": 0.00903438900013498,
+          "forward": 0.09448776499993983,
+          "sensitivity_lower": 0.04074287799994636,
+          "sensitivity_compile": 0.03430825299983553,
+          "sensitivity": 0.001122026000302867,
+          "gradient_lower": 0.018265706999955,
+          "gradient_compile": 0.0299753120002606,
+          "gradient": 0.030527301999882184,
+          "host_transfer": 0.00028527299991765176
+        },
+        "path": "NumPy",
+        "loss": -21.45133280967347,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 751,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 0.0001018597717517506,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 184,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "detector-moved",
+        "case_sha256": "7b0e95547b22b8411d55890864b7858df637166d5269e55acfca6f8f4a16a065",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:42:15.464678+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 17.621966999256983,
+          "phases": {
+            "imports": 0.173633832950145,
+            "initialize": 0.001503916922956705,
+            "load": 0.0010684591252356768,
+            "build": 0.4959298330359161,
+            "forward_lower": 0.761509999865666,
+            "forward_compile": 1.9009628330823034,
+            "forward": 8.126826792024076,
+            "sensitivity_lower": 0.022910833125934005,
+            "sensitivity_compile": 0.03494937508367002,
+            "sensitivity": 0.00033241603523492813,
+            "gradient_lower": 0.17543512512929738,
+            "gradient_compile": 1.3098954998422414,
+            "gradient": 4.6124730000738055,
+            "host_transfer": 0.004535082960501313
+          },
+          "path": "original",
+          "loss": -21.451332810040206,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 751,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.3310781222682038e-09,
+          "scale_rel": 8.816534921467836e-13,
+          "max_elementwise_rel": 2.3980007664516463e-12
+        },
+        "signal": {
+          "max_abs": 198300.13350487367,
+          "scale_rel": 5.626190586327125e-08,
+          "max_elementwise_rel": 1.62141355022736e-07
+        },
+        "noise": {
+          "max_abs": 4.168607716233954e-20,
+          "scale_rel": 8.50132128573421e-10,
+          "max_elementwise_rel": 8.50132266368795e-10
+        },
+        "sensitivity": {
+          "max_abs": 4.144764252235531e-28,
+          "scale_rel": 1.8979526948564808e-08,
+          "max_elementwise_rel": 1.5010109202283992e-07,
+          "max_log_abs": 1.5010108711521752e-07
+        },
+        "powers": {
+          "max_abs": 5.337409675121307e-06,
+          "scale_rel": 1.5270130248396351e-12,
+          "max_elementwise_rel": 4.62113817303001e-12
+        },
+        "gradient": {
+          "max_abs": 0.006314456069958396,
+          "scale_rel": 5.115213740287286e-08,
+          "max_elementwise_rel": 4.087251912761441e-06,
+          "floor": 1.2344461816377114e-07,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 189,
+          "worst_ours": 0.00018608020073166318,
+          "worst_baseline": 0.00018607944017811538,
+          "worst_error_over_allowed": 0.002457171025308497
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "frequencies-201",
+      "description": "Supplied setup at 201 frequencies from 800 to 3000 Hz (the original needs about 29 GB).",
+      "case_sha256": "de04c96d0f1a41f32c6d20abbd629cc8fde1e527918c9789a8db19562c3b2cab",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.8354174959990814,
+        "phases": {
+          "imports": 0.3487080539998715,
+          "initialize": 0.011382004000097368,
+          "load": 0.0026469529998394137,
+          "build": 0.10143211199965663,
+          "forward_lower": 0.009257255999727931,
+          "forward_compile": 0.011817296000117494,
+          "forward": 0.18110378000028504,
+          "sensitivity_lower": 0.04051127499997165,
+          "sensitivity_compile": 0.029130604999863863,
+          "sensitivity": 0.0017110459998548322,
+          "gradient_lower": 0.017761053999947762,
+          "gradient_compile": 0.02912142800005313,
+          "gradient": 0.050595595999766374,
+          "host_transfer": 0.00023903700002847472
+        },
+        "path": "NumPy",
+        "loss": -24.56730042583245,
+        "frequencies": 201,
+        "design_variables": 193,
+        "signal_system_size": 751,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 4.541787864790543e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 184,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "frequencies-201",
+        "case_sha256": "de04c96d0f1a41f32c6d20abbd629cc8fde1e527918c9789a8db19562c3b2cab",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T21:20:14.887970+00:00",
+        "machine_id": "amd-epyc-9334-32-core-processor-504g-linux",
+        "limits": {
+          "strategy": "affinity",
+          "bench_cpu": 127,
+          "env": {}
+        },
+        "run": {
+          "first_run_total": 58.27059249021113,
+          "phases": {
+            "imports": 0.269495015963912,
+            "initialize": 0.0029781032353639603,
+            "load": 0.0016240887343883514,
+            "build": 1.2985897492617369,
+            "forward_lower": 1.1322919987142086,
+            "forward_compile": 12.840384935960174,
+            "forward": 29.077386962249875,
+            "sensitivity_lower": 0.10706514865159988,
+            "sensitivity_compile": 0.8536114748567343,
+            "sensitivity": 0.0013814084231853485,
+            "gradient_lower": 0.2911537680774927,
+            "gradient_compile": 4.640007268637419,
+            "gradient": 7.754300942644477,
+            "host_transfer": 0.0003216248005628586
+          },
+          "path": "original",
+          "loss": -24.56730042568399,
+          "frequencies": 201,
+          "design_variables": 193,
+          "signal_system_size": 751,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 8.846680929195627e-09,
+          "scale_rel": 3.3598522450933493e-12,
+          "max_elementwise_rel": 8.690214324711414e-12
+        },
+        "signal": {
+          "max_abs": 918164868.1020344,
+          "scale_rel": 8.543755130847287e-08,
+          "max_elementwise_rel": 1.5221132775044176e-07
+        },
+        "noise": {
+          "max_abs": 8.098560466779466e-17,
+          "scale_rel": 3.614905366348874e-08,
+          "max_elementwise_rel": 7.577416243546295e-08
+        },
+        "sensitivity": {
+          "max_abs": 9.663072676791029e-33,
+          "scale_rel": 5.363529919707689e-09,
+          "max_elementwise_rel": 6.884097690797378e-08,
+          "max_log_abs": 6.884098269210881e-08
+        },
+        "powers": {
+          "max_abs": 1.1517200618982315e-05,
+          "scale_rel": 3.3224354932298304e-12,
+          "max_elementwise_rel": 8.356366691584105e-12
+        },
+        "gradient": {
+          "max_abs": 0.0036228000099072233,
+          "scale_rel": 6.264646393109255e-08,
+          "max_elementwise_rel": 0.00011760053913484061,
+          "floor": 5.7829281695645126e-08,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 161,
+          "worst_ours": -29.709844310928883,
+          "worst_baseline": -29.709964495206716,
+          "worst_error_over_allowed": 0.0040452436056848525
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "frequencies-51",
+      "description": "Supplied setup at 51 frequencies from 800 to 3000 Hz.",
+      "case_sha256": "67b22796d23ed2fa13a1d9c06ab9af26c2e1eadb22a42110321551bee1be25b8",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.679860947000634,
+        "phases": {
+          "imports": 0.34762352899997495,
+          "initialize": 0.01128535300040312,
+          "load": 0.002582481999979791,
+          "build": 0.10749476199998753,
+          "forward_lower": 0.010125077000338933,
+          "forward_compile": 0.009106304000397358,
+          "forward": 0.05676793100019495,
+          "sensitivity_lower": 0.04042667799967603,
+          "sensitivity_compile": 0.02891189599995414,
+          "sensitivity": 0.0007090129997777694,
+          "gradient_lower": 0.017607899000267935,
+          "gradient_compile": 0.02903951500002222,
+          "gradient": 0.017985894999583252,
+          "host_transfer": 0.00019461300007606042
+        },
+        "path": "NumPy",
+        "loss": -24.56341972147986,
+        "frequencies": 51,
+        "design_variables": 193,
+        "signal_system_size": 751,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 4.5745164152783316e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 184,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "frequencies-51",
+        "case_sha256": "67b22796d23ed2fa13a1d9c06ab9af26c2e1eadb22a42110321551bee1be25b8",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:42:24.253091+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 7.497161999810487,
+          "phases": {
+            "imports": 0.18014000006951392,
+            "initialize": 0.0015547501388937235,
+            "load": 0.0007735418621450663,
+            "build": 0.3988372499588877,
+            "forward_lower": 0.5480214168783277,
+            "forward_compile": 1.4255969999358058,
+            "forward": 2.720976083073765,
+            "sensitivity_lower": 0.023242624942213297,
+            "sensitivity_compile": 0.03821899998001754,
+            "sensitivity": 0.0002794999163597822,
+            "gradient_lower": 0.15260445908643305,
+            "gradient_compile": 1.0565399581100792,
+            "gradient": 0.9458790409844369,
+            "host_transfer": 0.004497374873608351
+          },
+          "path": "original",
+          "loss": -24.563419720944246,
+          "frequencies": 51,
+          "design_variables": 193,
+          "signal_system_size": 751,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.329035164484539e-09,
+          "scale_rel": 8.845367080497254e-13,
+          "max_elementwise_rel": 3.708785598224298e-12
+        },
+        "signal": {
+          "max_abs": 787998792.6257501,
+          "scale_rel": 8.503346471068543e-08,
+          "max_elementwise_rel": 1.1985445086801967e-07
+        },
+        "noise": {
+          "max_abs": 6.258396898505984e-17,
+          "scale_rel": 3.347576406021562e-08,
+          "max_elementwise_rel": 5.674562833384695e-08
+        },
+        "sensitivity": {
+          "max_abs": 1.0615400458259037e-32,
+          "scale_rel": 5.892123535704586e-09,
+          "max_elementwise_rel": 6.209367989040694e-08,
+          "max_log_abs": 6.209367597875826e-08
+        },
+        "powers": {
+          "max_abs": 5.305744707584381e-06,
+          "scale_rel": 1.530579792572229e-12,
+          "max_elementwise_rel": 4.652763702398925e-12
+        },
+        "gradient": {
+          "max_abs": 0.005773804150521755,
+          "scale_rel": 1.0118985023193851e-07,
+          "max_elementwise_rel": 0.00022606243768857767,
+          "floor": 5.7059123393181694e-08,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 158,
+          "worst_ours": -0.000485315967928242,
+          "worst_baseline": -0.0004853058767289339,
+          "worst_error_over_allowed": 0.01860591908735043
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "frequency-modulation",
+      "description": "Supplied layout and design values in frequency-modulation mode (the signal is applied to the lasers' frequency, not to the lengths).",
+      "case_sha256": "f3cc7ee6e074d061836d99027de9055bd2109ffdbd0d1e476ef2b3780dca640a",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7144349460004378,
+        "phases": {
+          "imports": 0.34884104200000365,
+          "initialize": 0.011366444000032061,
+          "load": 0.002242356999886397,
+          "build": 0.09486781400028121,
+          "forward_lower": 0.009468039999774192,
+          "forward_compile": 0.009003732000110176,
+          "forward": 0.08573977000014565,
+          "sensitivity_lower": 0.04104850900012025,
+          "sensitivity_compile": 0.02962080999986938,
+          "sensitivity": 0.0010982209996655001,
+          "gradient_lower": 0.018092855000304553,
+          "gradient_compile": 0.02966743700017105,
+          "gradient": 0.033149699000205146,
+          "host_transfer": 0.0002282159998685529
+        },
+        "path": "NumPy",
+        "loss": -2.4946314024103526,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 687,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 7.624341306106952e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 184,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "frequency-modulation",
+        "case_sha256": "f3cc7ee6e074d061836d99027de9055bd2109ffdbd0d1e476ef2b3780dca640a",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T22:10:23.274524+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 12.945670961169526,
+          "phases": {
+            "imports": 0.189163165865466,
+            "initialize": 0.007654624991118908,
+            "load": 0.0006818340625613928,
+            "build": 0.48210841696709394,
+            "forward_lower": 0.5370125828776509,
+            "forward_compile": 1.2895924590993673,
+            "forward": 6.935971250059083,
+            "sensitivity_lower": 0.02613729191944003,
+            "sensitivity_compile": 0.03861120902001858,
+            "sensitivity": 0.000378916971385479,
+            "gradient_lower": 0.13737216708250344,
+            "gradient_compile": 0.9383392501622438,
+            "gradient": 2.3611162090674043,
+            "host_transfer": 0.0015315830241888762
+          },
+          "path": "original",
+          "loss": -2.494631402364465,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 687,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.329035164484539e-09,
+          "scale_rel": 8.845367080497254e-13,
+          "max_elementwise_rel": 3.708785598224298e-12
+        },
+        "signal": {
+          "max_abs": 6.821826191832372e-14,
+          "scale_rel": 1.1587520585818839e-08,
+          "max_elementwise_rel": 1.529247919318583e-08
+        },
+        "noise": {
+          "max_abs": 8.665171865829869e-18,
+          "scale_rel": 4.391462357117417e-09,
+          "max_elementwise_rel": 6.9419587766040735e-09
+        },
+        "sensitivity": {
+          "max_abs": 1.8796848626212448e-11,
+          "scale_rel": 2.7948020888208583e-10,
+          "max_elementwise_rel": 5.929708903440197e-09,
+          "max_log_abs": 5.929709168128738e-09
+        },
+        "powers": {
+          "max_abs": 5.305744707584381e-06,
+          "scale_rel": 1.530579792572229e-12,
+          "max_elementwise_rel": 4.652763702398925e-12
+        },
+        "gradient": {
+          "max_abs": 0.0049569010734558105,
+          "scale_rel": 2.4427632611563814e-11,
+          "max_elementwise_rel": 8.795441136010523e-08,
+          "floor": 0.0002029218775424541,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 76,
+          "worst_ours": 51.83314517934116,
+          "worst_baseline": 51.83314973829533,
+          "worst_error_over_allowed": 8.761142093563395e-05
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "homodyne-readout",
+      "description": "Supplied layout with the detector replaced by a balanced homodyne readout.",
+      "case_sha256": "f6bb0072d6e13d20355c22fd5d3adc2a8e00ea94631d56855299799f1fc5193c",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7439183410010628,
+        "phases": {
+          "imports": 0.3488111870001376,
+          "initialize": 0.011509832000228926,
+          "load": 0.0028350640000098792,
+          "build": 0.11008180399994671,
+          "forward_lower": 0.009394110999892291,
+          "forward_compile": 0.008741202000237536,
+          "forward": 0.09945810600038385,
+          "sensitivity_lower": 0.04287713299981988,
+          "sensitivity_compile": 0.026507687000048463,
+          "sensitivity": 0.0010673930000848486,
+          "gradient_lower": 0.018938963999971747,
+          "gradient_compile": 0.03632496899990656,
+          "gradient": 0.027130259000387014,
+          "host_transfer": 0.00024063000000751344
+        },
+        "path": "NumPy",
+        "loss": -24.5368278499002,
+        "frequencies": 101,
+        "design_variables": 195,
+        "signal_system_size": 773,
+        "detector_ports": 2,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 1.0006066383045794e-05,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 186,
+          "variables": 195
+        }
+      },
+      "original": {
+        "case": "homodyne-readout",
+        "case_sha256": "f6bb0072d6e13d20355c22fd5d3adc2a8e00ea94631d56855299799f1fc5193c",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:42:39.062844+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 13.741758668795228,
+          "phases": {
+            "imports": 0.16223291703499854,
+            "initialize": 0.0014318751636892557,
+            "load": 0.0007946249097585678,
+            "build": 0.34690662496723235,
+            "forward_lower": 0.5443412919994444,
+            "forward_compile": 1.318128874991089,
+            "forward": 7.078750999877229,
+            "sensitivity_lower": 0.022958124987781048,
+            "sensitivity_compile": 0.03325049998238683,
+            "sensitivity": 0.00032791681587696075,
+            "gradient_lower": 0.13824133411981165,
+            "gradient_compile": 1.0159286670386791,
+            "gradient": 3.0757165420800447,
+            "host_transfer": 0.002748374827206135
+          },
+          "path": "original",
+          "loss": -24.536827850091214,
+          "frequencies": 101,
+          "design_variables": 195,
+          "signal_system_size": 773,
+          "detector_ports": 2,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 9.315143298733519e-09,
+          "scale_rel": 3.537768048382909e-12,
+          "max_elementwise_rel": 1.9259878018248177e-11
+        },
+        "signal": {
+          "max_abs": 1185186523.9537818,
+          "scale_rel": 1.1520954784541741e-07,
+          "max_elementwise_rel": 1.795680228596655e-07
+        },
+        "noise": {
+          "max_abs": 7.27457124110676e-17,
+          "scale_rel": 3.1026509190843004e-08,
+          "max_elementwise_rel": 7.522089707522449e-08
+        },
+        "sensitivity": {
+          "max_abs": 1.1315439945774845e-32,
+          "scale_rel": 4.9285398166765794e-09,
+          "max_elementwise_rel": 8.387209450133115e-08,
+          "max_log_abs": 8.387209504689963e-08
+        },
+        "powers": {
+          "max_abs": 1.9376631826162338e-05,
+          "scale_rel": 5.589692447668039e-12,
+          "max_elementwise_rel": 1.468781313162677e-11
+        },
+        "gradient": {
+          "max_abs": 0.008086264278972521,
+          "scale_rel": 1.2039710070287078e-07,
+          "max_elementwise_rel": 8.788501044593218e-05,
+          "floor": 6.7163280774748e-08,
+          "entries": 195,
+          "entries_outside": 0,
+          "worst_index": 158,
+          "worst_ours": -0.000567326271396669,
+          "worst_baseline": -0.0005673719381500325,
+          "worst_error_over_allowed": 0.07196882379657127
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "random-layout-1",
+      "description": "A random 3x3 layout (uifo with random_seed=1) with random design values.",
+      "case_sha256": "9348b1c07a94bab778201fab61df05011cff66d02080b94fb073f63c203f67d4",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7388444049993268,
+        "phases": {
+          "imports": 0.3484086449998358,
+          "initialize": 0.011297614999875805,
+          "load": 0.0025935829999070847,
+          "build": 0.1039885149998554,
+          "forward_lower": 0.00919540999984747,
+          "forward_compile": 0.00882055100009893,
+          "forward": 0.10013065099974483,
+          "sensitivity_lower": 0.042833310999867535,
+          "sensitivity_compile": 0.02665318900017155,
+          "sensitivity": 0.001055149999956484,
+          "gradient_lower": 0.019007793000128004,
+          "gradient_compile": 0.036511828000129753,
+          "gradient": 0.028115860000070825,
+          "host_transfer": 0.0002323039998373133
+        },
+        "path": "NumPy",
+        "loss": -19.240131035316796,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 771,
+        "detector_ports": 2,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 8.892620764766642e-07,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 193,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "random-layout-1",
+        "case_sha256": "9348b1c07a94bab778201fab61df05011cff66d02080b94fb073f63c203f67d4",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:42:52.889543+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 12.527174083981663,
+          "phases": {
+            "imports": 0.17699395795352757,
+            "initialize": 0.0015014999080449343,
+            "load": 0.0008258749730885029,
+            "build": 0.39013395900838077,
+            "forward_lower": 0.5396044999361038,
+            "forward_compile": 1.3929031670559198,
+            "forward": 6.5076047910843045,
+            "sensitivity_lower": 0.02325787511654198,
+            "sensitivity_compile": 0.03252029209397733,
+            "sensitivity": 0.00034962501376867294,
+            "gradient_lower": 0.13553550001233816,
+            "gradient_compile": 1.047430207952857,
+            "gradient": 2.27746225008741,
+            "host_transfer": 0.0010505837853997946
+          },
+          "path": "original",
+          "loss": -19.240131035432405,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 771,
+          "detector_ports": 2,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 4.2372720236999453e-14,
+          "scale_rel": 1.9423089748455903e-15,
+          "max_elementwise_rel": 3.751292385953691e-15
+        },
+        "signal": {
+          "max_abs": 23.002546520745025,
+          "scale_rel": 4.054346266014239e-09,
+          "max_elementwise_rel": 7.790163735024078e-09
+        },
+        "noise": {
+          "max_abs": 2.2648722159584743e-21,
+          "scale_rel": 8.725840984115518e-12,
+          "max_elementwise_rel": 8.72679584668033e-12
+        },
+        "sensitivity": {
+          "max_abs": 2.459696734019919e-28,
+          "scale_rel": 2.904984282130499e-09,
+          "max_elementwise_rel": 2.9997878307183614e-09,
+          "max_log_abs": 2.9997906381140638e-09
+        },
+        "powers": {
+          "max_abs": 9.379164112033322e-13,
+          "scale_rel": 3.941468619088299e-15,
+          "max_elementwise_rel": 7.1000925088721365e-15
+        },
+        "gradient": {
+          "max_abs": 1.3328902426223976e-09,
+          "scale_rel": 4.2234233705454053e-10,
+          "max_elementwise_rel": 4.926468946000332e-08,
+          "floor": 3.155947499647118e-12,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 69,
+          "worst_ours": 0.0028543978115761585,
+          "worst_baseline": 0.0028543979521971873,
+          "worst_error_over_allowed": 4.926463499086333e-05
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "random-layout-2",
+      "description": "A random 3x3 layout (uifo with random_seed=2) with random design values.",
+      "case_sha256": "3e8f12fa4dc19b8754337ac4da49b8570669623dc49928fb59fd001af72fafbf",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7317574739995507,
+        "phases": {
+          "imports": 0.34712135200015837,
+          "initialize": 0.01125270200009254,
+          "load": 0.0025283410000156437,
+          "build": 0.10292312599995057,
+          "forward_lower": 0.009272194000004674,
+          "forward_compile": 0.008873949999724573,
+          "forward": 0.09874749900018287,
+          "sensitivity_lower": 0.04044725599987942,
+          "sensitivity_compile": 0.029055123000034655,
+          "sensitivity": 0.001092519999929209,
+          "gradient_lower": 0.01790027500010183,
+          "gradient_compile": 0.02928287899976567,
+          "gradient": 0.033023323999714194,
+          "host_transfer": 0.00023693299999649753
+        },
+        "path": "NumPy",
+        "loss": -18.86059758825942,
+        "frequencies": 101,
+        "design_variables": 192,
+        "signal_system_size": 749,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 9.194726226016788e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 192,
+          "variables": 192
+        }
+      },
+      "original": {
+        "case": "random-layout-2",
+        "case_sha256": "3e8f12fa4dc19b8754337ac4da49b8570669623dc49928fb59fd001af72fafbf",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:43:06.325773+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 12.288792250677943,
+          "phases": {
+            "imports": 0.160619166912511,
+            "initialize": 0.0014324591029435396,
+            "load": 0.0007634160574525595,
+            "build": 0.3289379579946399,
+            "forward_lower": 0.5405268329195678,
+            "forward_compile": 1.3520288330037147,
+            "forward": 5.76721016690135,
+            "sensitivity_lower": 0.025792166823521256,
+            "sensitivity_compile": 0.03360749990679324,
+            "sensitivity": 0.0002575838007032871,
+            "gradient_lower": 0.1599401670973748,
+            "gradient_compile": 1.077222374966368,
+            "gradient": 2.8368831251282245,
+            "host_transfer": 0.003570500062778592
+          },
+          "path": "original",
+          "loss": -18.860597588264888,
+          "frequencies": 101,
+          "design_variables": 192,
+          "signal_system_size": 749,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 1.9075169528294934e-14,
+          "scale_rel": 9.577607698097207e-16,
+          "max_elementwise_rel": 1.1716662914240777e-14
+        },
+        "signal": {
+          "max_abs": 0.7258382556425752,
+          "scale_rel": 6.289014072235345e-10,
+          "max_elementwise_rel": 6.915350945822949e-10
+        },
+        "noise": {
+          "max_abs": 1.9596425699264071e-22,
+          "scale_rel": 1.3488476975563987e-12,
+          "max_elementwise_rel": 1.3489640415251706e-12
+        },
+        "sensitivity": {
+          "max_abs": 9.304439598939381e-29,
+          "scale_rel": 6.475202669389515e-10,
+          "max_elementwise_rel": 6.577585080367329e-10,
+          "max_log_abs": 6.577565159204823e-10
+        },
+        "powers": {
+          "max_abs": 1.4210854715202004e-13,
+          "scale_rel": 7.165186035366499e-16,
+          "max_elementwise_rel": 1.743057059050778e-14
+        },
+        "gradient": {
+          "max_abs": 3.685807214992565e-11,
+          "scale_rel": 1.5912212759416116e-11,
+          "max_elementwise_rel": 8.726573136778768e-07,
+          "floor": 2.3163385700781766e-12,
+          "entries": 192,
+          "entries_outside": 0,
+          "worst_index": 34,
+          "worst_ours": 1.0424529650124046e-05,
+          "worst_baseline": 1.0424529956664782e-05,
+          "worst_error_over_allowed": 2.9399180446387217e-05
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "random-layout-3",
+      "description": "A random 3x3 layout (uifo with random_seed=3) with random design values.",
+      "case_sha256": "21fcde21e963c46eac4be35b6372e9694f9ff5b2f87e0e3551daafc760e07aab",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7293318029996954,
+        "phases": {
+          "imports": 0.3481603819996053,
+          "initialize": 0.011183432000052562,
+          "load": 0.002597731000150816,
+          "build": 0.10803016199997728,
+          "forward_lower": 0.009205800000017916,
+          "forward_compile": 0.008621778999895469,
+          "forward": 0.09739571500040256,
+          "sensitivity_lower": 0.040310961000159296,
+          "sensitivity_compile": 0.028769058999841945,
+          "sensitivity": 0.0010736350000115635,
+          "gradient_lower": 0.017627374999847234,
+          "gradient_compile": 0.02916964799987909,
+          "gradient": 0.026966493999680097,
+          "host_transfer": 0.00021963000017422019
+        },
+        "path": "NumPy",
+        "loss": -18.117266549563958,
+        "frequencies": 101,
+        "design_variables": 197,
+        "signal_system_size": 751,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 2.0321864453710787e-07,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 197,
+          "variables": 197
+        }
+      },
+      "original": {
+        "case": "random-layout-3",
+        "case_sha256": "21fcde21e963c46eac4be35b6372e9694f9ff5b2f87e0e3551daafc760e07aab",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:43:20.520172+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 13.039966334123164,
+          "phases": {
+            "imports": 0.15632499987259507,
+            "initialize": 0.001405749935656786,
+            "load": 0.0007487079128623009,
+            "build": 0.3318806670140475,
+            "forward_lower": 0.5276416251435876,
+            "forward_compile": 1.3893915000371635,
+            "forward": 5.9905082089826465,
+            "sensitivity_lower": 0.022641416871920228,
+            "sensitivity_compile": 0.032259250059723854,
+            "sensitivity": 0.00033366610296070576,
+            "gradient_lower": 0.13785862503573298,
+            "gradient_compile": 0.9753837501630187,
+            "gradient": 3.4709633749444038,
+            "host_transfer": 0.0026247920468449593
+          },
+          "path": "original",
+          "loss": -18.117266549562913,
+          "frequencies": 101,
+          "design_variables": 197,
+          "signal_system_size": 751,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 1.5976352352565043e-13,
+          "scale_rel": 5.145643152263175e-15,
+          "max_elementwise_rel": 2.5879968373218887e-14
+        },
+        "signal": {
+          "max_abs": 0.029827458836632046,
+          "scale_rel": 1.8235712246614113e-09,
+          "max_elementwise_rel": 2.7200335659430626e-09
+        },
+        "noise": {
+          "max_abs": 6.090763494775223e-25,
+          "scale_rel": 7.859780960385072e-14,
+          "max_elementwise_rel": 7.85980849112323e-14
+        },
+        "sensitivity": {
+          "max_abs": 1.8593767388570128e-27,
+          "scale_rel": 2.1363453336125397e-09,
+          "max_elementwise_rel": 2.255184935974335e-09,
+          "max_log_abs": 2.2551844836016244e-09
+        },
+        "powers": {
+          "max_abs": 1.8189894035458565e-12,
+          "scale_rel": 3.7738465230951575e-15,
+          "max_elementwise_rel": 1.6986221746172547e-14
+        },
+        "gradient": {
+          "max_abs": 4.560645194828794e-10,
+          "scale_rel": 6.039186725944749e-12,
+          "max_elementwise_rel": 1.280767019374439e-08,
+          "floor": 7.551753906260188e-11,
+          "entries": 197,
+          "entries_outside": 0,
+          "worst_index": 106,
+          "worst_ours": 2.03486999130501e-05,
+          "worst_baseline": 2.0348699652430666e-05,
+          "worst_error_over_allowed": 1.2760314462795747e-05
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "size-2",
+      "description": "A random 2x2 layout with random design values.",
+      "case_sha256": "688eded0103180c2329293059effe9e9ef8b69692a0ffaefc32f0bddfad3b920",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.6601569730005394,
+        "phases": {
+          "imports": 0.34876017100032186,
+          "initialize": 0.011376333000043815,
+          "load": 0.0014563489999090962,
+          "build": 0.07557496900017213,
+          "forward_lower": 0.009408858999904623,
+          "forward_compile": 0.008857118999912927,
+          "forward": 0.05038696599967807,
+          "sensitivity_lower": 0.043172404000415554,
+          "sensitivity_compile": 0.02837750800017602,
+          "sensitivity": 0.0007405930000459193,
+          "gradient_lower": 0.01921447899985651,
+          "gradient_compile": 0.038207784999940486,
+          "gradient": 0.024392668000018602,
+          "host_transfer": 0.00023077000014382065
+        },
+        "path": "NumPy",
+        "loss": -19.390103481547563,
+        "frequencies": 101,
+        "design_variables": 102,
+        "signal_system_size": 393,
+        "detector_ports": 2,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 2.424816197150443e-07,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 102,
+          "variables": 102
+        }
+      },
+      "original": {
+        "case": "size-2",
+        "case_sha256": "688eded0103180c2329293059effe9e9ef8b69692a0ffaefc32f0bddfad3b920",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:43:26.282989+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 4.649731501238421,
+          "phases": {
+            "imports": 0.15898599987849593,
+            "initialize": 0.001436250051483512,
+            "load": 0.0004672079812735319,
+            "build": 0.31561829103156924,
+            "forward_lower": 0.5318907091859728,
+            "forward_compile": 1.3041260410100222,
+            "forward": 0.8568568751215935,
+            "sensitivity_lower": 0.013189875055104494,
+            "sensitivity_compile": 0.027572792023420334,
+            "sensitivity": 0.00022649997845292091,
+            "gradient_lower": 0.13262820895761251,
+            "gradient_compile": 0.9339789589866996,
+            "gradient": 0.3724072079639882,
+            "host_transfer": 0.00034658401273190975
+          },
+          "path": "original",
+          "loss": -19.390103481620297,
+          "frequencies": 101,
+          "design_variables": 102,
+          "signal_system_size": 393,
+          "detector_ports": 2,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.90394956512895e-14,
+          "scale_rel": 2.0709824434484935e-15,
+          "max_elementwise_rel": 8.927268008781682e-15
+        },
+        "signal": {
+          "max_abs": 1569.6415091694178,
+          "scale_rel": 2.3058788298961222e-08,
+          "max_elementwise_rel": 2.3117362645972734e-08
+        },
+        "noise": {
+          "max_abs": 8.446554233786698e-19,
+          "scale_rel": 5.128667427283984e-10,
+          "max_elementwise_rel": 5.202571382941242e-10
+        },
+        "sensitivity": {
+          "max_abs": 8.360719120603188e-28,
+          "scale_rel": 1.936486170116371e-08,
+          "max_elementwise_rel": 2.083026945114855e-08,
+          "max_log_abs": 2.083026373611574e-08
+        },
+        "powers": {
+          "max_abs": 2.4868995751603507e-13,
+          "scale_rel": 2.529664577494383e-15,
+          "max_elementwise_rel": 1.145721808953564e-14
+        },
+        "gradient": {
+          "max_abs": 2.989565928146476e-09,
+          "scale_rel": 9.907358810480958e-11,
+          "max_elementwise_rel": 3.126491700202421e-08,
+          "floor": 3.0175205979052916e-11,
+          "entries": 102,
+          "entries_outside": 0,
+          "worst_index": 5,
+          "worst_ours": 0.00035551277532596336,
+          "worst_baseline": 0.0003555127642108863,
+          "worst_error_over_allowed": 3.126226352418549e-05
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "size-4",
+      "description": "A random 4x4 layout with random design values, at 21 frequencies (the original would not fit in 16 GB with 101).",
+      "case_sha256": "2b59389f3f357e529d8cc1b896d809e4842fda82c56ce421d2fde5d2bcd27f53",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7435745279999537,
+        "phases": {
+          "imports": 0.3515805580000233,
+          "initialize": 0.011214180000024498,
+          "load": 0.003992224999819882,
+          "build": 0.1787961809995977,
+          "forward_lower": 0.009521119000055478,
+          "forward_compile": 0.00895453000021007,
+          "forward": 0.05822907999981908,
+          "sensitivity_lower": 0.03932094300034805,
+          "sensitivity_compile": 0.02628619400002208,
+          "sensitivity": 0.0006437219999497756,
+          "gradient_lower": 0.017424365999886504,
+          "gradient_compile": 0.020174069999939093,
+          "gradient": 0.017195909000292886,
+          "host_transfer": 0.00024145099996530917
+        },
+        "path": "NumPy",
+        "loss": -19.972167862916884,
+        "frequencies": 21,
+        "design_variables": 315,
+        "signal_system_size": 1255,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 7.170581512236547e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 315,
+          "variables": 315
+        }
+      },
+      "original": {
+        "case": "size-4",
+        "case_sha256": "2b59389f3f357e529d8cc1b896d809e4842fda82c56ce421d2fde5d2bcd27f53",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:43:35.120715+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 7.9568328759633005,
+          "phases": {
+            "imports": 0.15678412490524352,
+            "initialize": 0.0014222918543964624,
+            "load": 0.0011426671408116817,
+            "build": 0.35843470809049904,
+            "forward_lower": 0.5105348750948906,
+            "forward_compile": 1.2468459999654442,
+            "forward": 3.3256777501665056,
+            "sensitivity_lower": 0.022589291911572218,
+            "sensitivity_compile": 0.03400029195472598,
+            "sensitivity": 0.00026154215447604656,
+            "gradient_lower": 0.1371245828922838,
+            "gradient_compile": 0.9796517088543624,
+            "gradient": 1.1813798330258578,
+            "host_transfer": 0.0009832079522311687
+          },
+          "path": "original",
+          "loss": -19.97216786291281,
+          "frequencies": 21,
+          "design_variables": 315,
+          "signal_system_size": 1255,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.891753990177037e-13,
+          "scale_rel": 1.4771240333990083e-14,
+          "max_elementwise_rel": 7.737256655629725e-14
+        },
+        "signal": {
+          "max_abs": 4.882389703411111,
+          "scale_rel": 1.626863150755282e-10,
+          "max_elementwise_rel": 1.626863150755282e-10
+        },
+        "noise": {
+          "max_abs": 1.8766660147296815e-23,
+          "scale_rel": 1.0682886593844111e-13,
+          "max_elementwise_rel": 1.0692404564002606e-13
+        },
+        "sensitivity": {
+          "max_abs": 7.952646222860994e-31,
+          "scale_rel": 5.676909038676678e-11,
+          "max_elementwise_rel": 1.3609518016170025e-10,
+          "max_log_abs": 1.360973556074896e-10
+        },
+        "powers": {
+          "max_abs": 5.4001247917767614e-12,
+          "scale_rel": 2.8180262444006968e-14,
+          "max_elementwise_rel": 1.4736784666004964e-13
+        },
+        "gradient": {
+          "max_abs": 3.632020795230062e-10,
+          "scale_rel": 8.294650232554902e-11,
+          "max_elementwise_rel": 4.7748849418842765e-08,
+          "floor": 4.3787509941951274e-12,
+          "entries": 315,
+          "entries_outside": 0,
+          "worst_index": 116,
+          "worst_ours": -0.00021684326734688496,
+          "worst_baseline": -0.00021684327770090197,
+          "worst_error_over_allowed": 4.77478852381581e-05
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "size-4-full",
+      "description": "The 4x4 layout of size-4 at all 101 frequencies of the supplied band (the original needs about 40 GB).",
+      "case_sha256": "eee8f2164afd84cd4f019c2d6891923910095ad0182b4fbd270a58e3a9662a54",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.902967171000455,
+        "phases": {
+          "imports": 0.35037005799995313,
+          "initialize": 0.011519489999955113,
+          "load": 0.004035604999899078,
+          "build": 0.1798284890001014,
+          "forward_lower": 0.009481544999744074,
+          "forward_compile": 0.008974929000032716,
+          "forward": 0.18332506900014778,
+          "sensitivity_lower": 0.04015148400003454,
+          "sensitivity_compile": 0.029151044000172988,
+          "sensitivity": 0.0015427210000780178,
+          "gradient_lower": 0.0179791320001641,
+          "gradient_compile": 0.029809111999838933,
+          "gradient": 0.03655367600003956,
+          "host_transfer": 0.00024481700029355125
+        },
+        "path": "NumPy",
+        "loss": -19.962471922941862,
+        "frequencies": 101,
+        "design_variables": 315,
+        "signal_system_size": 1255,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 1.6532783449177024e-05,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 315,
+          "variables": 315
+        }
+      },
+      "original": {
+        "case": "size-4-full",
+        "case_sha256": "eee8f2164afd84cd4f019c2d6891923910095ad0182b4fbd270a58e3a9662a54",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T21:25:58.158179+00:00",
+        "machine_id": "amd-epyc-9334-32-core-processor-504g-linux",
+        "limits": {
+          "strategy": "affinity",
+          "bench_cpu": 127,
+          "env": {}
+        },
+        "run": {
+          "first_run_total": 72.52272703312337,
+          "phases": {
+            "imports": 0.2681678459048271,
+            "initialize": 0.0029290933161973953,
+            "load": 0.0024934280663728714,
+            "build": 0.8857269026339054,
+            "forward_lower": 1.1344169154763222,
+            "forward_compile": 13.07013938203454,
+            "forward": 42.667896235361695,
+            "sensitivity_lower": 0.09396701492369175,
+            "sensitivity_compile": 0.8119679410010576,
+            "sensitivity": 0.0012121908366680145,
+            "gradient_lower": 0.2855934537947178,
+            "gradient_compile": 4.598832311108708,
+            "gradient": 8.699048571288586,
+            "host_transfer": 0.0003357473760843277
+          },
+          "path": "original",
+          "loss": -19.9624719229401,
+          "frequencies": 101,
+          "design_variables": 315,
+          "signal_system_size": 1255,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 1.1264119494916037e-13,
+          "scale_rel": 5.753774932977712e-15,
+          "max_elementwise_rel": 2.5189415376876694e-14
+        },
+        "signal": {
+          "max_abs": 5.046356389514821,
+          "scale_rel": 1.6814985600138845e-10,
+          "max_elementwise_rel": 1.6814985600138845e-10
+        },
+        "noise": {
+          "max_abs": 5.42061795163656e-23,
+          "scale_rel": 3.085676747560728e-13,
+          "max_elementwise_rel": 3.0909646414593013e-13
+        },
+        "sensitivity": {
+          "max_abs": 8.165596898664998e-31,
+          "scale_rel": 5.826391714072963e-11,
+          "max_elementwise_rel": 1.3973944645651977e-10,
+          "max_log_abs": 1.397424398419389e-10
+        },
+        "powers": {
+          "max_abs": 2.1600499167107046e-12,
+          "scale_rel": 1.1272104977602972e-14,
+          "max_elementwise_rel": 4.660730090152642e-14
+        },
+        "gradient": {
+          "max_abs": 2.6293289767664874e-10,
+          "scale_rel": 5.696238507117228e-11,
+          "max_elementwise_rel": 3.316271618479859e-08,
+          "floor": 4.615903939909193e-12,
+          "entries": 315,
+          "entries_outside": 0,
+          "worst_index": 116,
+          "worst_ours": -0.00017553278196685905,
+          "worst_baseline": -0.00017553278778800307,
+          "worst_error_over_allowed": 3.316184414323322e-05
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "supplied",
+      "description": "The supplied example, unchanged (control: must reproduce benchmark.py).",
+      "case_sha256": "8d1ad3ccd6bcfda9a1c7d28012ea47b81ec058dafa5df7f0267ea0057baef8bc",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7306151580000915,
+        "phases": {
+          "imports": 0.3474646719996599,
+          "initialize": 0.011723371000243787,
+          "load": 0.004610719000083918,
+          "build": 0.10470062500007771,
+          "forward_lower": 0.00933392900014951,
+          "forward_compile": 0.008795953999651829,
+          "forward": 0.09544754700027624,
+          "sensitivity_lower": 0.0405936299998757,
+          "sensitivity_compile": 0.02905101599981208,
+          "sensitivity": 0.0010804069997902843,
+          "gradient_lower": 0.01772315400012303,
+          "gradient_compile": 0.029151253000236466,
+          "gradient": 0.03068743199992241,
+          "host_transfer": 0.00025144900018858607
+        },
+        "path": "NumPy",
+        "loss": -24.566004364580845,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 751,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 4.312907199025147e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 184,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "supplied",
+        "case_sha256": "8d1ad3ccd6bcfda9a1c7d28012ea47b81ec058dafa5df7f0267ea0057baef8bc",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:39:12.902164+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 12.570474376669154,
+          "phases": {
+            "imports": 0.16158908302895725,
+            "initialize": 0.0014444170519709587,
+            "load": 0.0007540411315858364,
+            "build": 0.33731562504544854,
+            "forward_lower": 0.5255919590126723,
+            "forward_compile": 1.3833402500022203,
+            "forward": 6.395506083033979,
+            "sensitivity_lower": 0.02664520894177258,
+            "sensitivity_compile": 0.035592541098594666,
+            "sensitivity": 0.0002675841096788645,
+            "gradient_lower": 0.13941141706891358,
+            "gradient_compile": 0.9513304170686752,
+            "gradient": 2.6067218750249594,
+            "host_transfer": 0.004963875049725175
+          },
+          "path": "original",
+          "loss": -24.56600436390661,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 101,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.329035164484539e-09,
+          "scale_rel": 8.845367080497254e-13,
+          "max_elementwise_rel": 3.708785598224298e-12
+        },
+        "signal": {
+          "max_abs": 787998792.6257501,
+          "scale_rel": 8.381264320087061e-08,
+          "max_elementwise_rel": 1.1985445086801967e-07
+        },
+        "noise": {
+          "max_abs": 7.749804163324552e-17,
+          "scale_rel": 3.9275590808601046e-08,
+          "max_elementwise_rel": 5.674562833384695e-08
+        },
+        "sensitivity": {
+          "max_abs": 1.0615400458259037e-32,
+          "scale_rel": 5.8921235371008475e-09,
+          "max_elementwise_rel": 6.209367989040694e-08,
+          "max_log_abs": 6.209367597875826e-08
+        },
+        "powers": {
+          "max_abs": 5.305744707584381e-06,
+          "scale_rel": 1.530579792572229e-12,
+          "max_elementwise_rel": 4.652763702398925e-12
+        },
+        "gradient": {
+          "max_abs": 0.00409581940039061,
+          "scale_rel": 7.112569538061988e-08,
+          "max_elementwise_rel": 0.001676736768134129,
+          "floor": 5.758565000275029e-08,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 158,
+          "worst_ours": -0.0004890100934683396,
+          "worst_baseline": -0.0004888760057631888,
+          "worst_error_over_allowed": 0.24537440776675748
+        }
+      },
+      "log_error_vs_public_reference": 5.374275744429724e-06,
+      "reference_vs_benchmark": {
+        "sensitivity": 0.0,
+        "gradient": 5.2544448172011445e-09
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "uifo-20-5000",
+      "description": "The second public setup (other layout, balanced homodyne readout) at 101 frequencies from 20 to 5000 Hz.",
+      "case_sha256": "ece0102a52562491297d40a0953b9347605aef3c91f7e5d29abdb991e44dff40",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7809274550004375,
+        "phases": {
+          "imports": 0.35444112900040636,
+          "initialize": 0.011216975000024831,
+          "load": 0.0026670499996725994,
+          "build": 0.10675967899987882,
+          "forward_lower": 0.009111683999890374,
+          "forward_compile": 0.00862196900015988,
+          "forward": 0.1020662160003667,
+          "sensitivity_lower": 0.05324330999974336,
+          "sensitivity_compile": 0.032792632000109734,
+          "sensitivity": 0.001266485000087414,
+          "gradient_lower": 0.026177880999966874,
+          "gradient_compile": 0.04134466200002862,
+          "gradient": 0.030991771000117296,
+          "host_transfer": 0.00022601199998462107
+        },
+        "path": "NumPy",
+        "loss": -24.071494914424736,
+        "frequencies": 101,
+        "design_variables": 192,
+        "signal_system_size": 769,
+        "detector_ports": 2,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 3.5333942828270617e-06,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 174,
+          "variables": 192
+        }
+      },
+      "original": {
+        "case": "uifo-20-5000",
+        "case_sha256": "ece0102a52562491297d40a0953b9347605aef3c91f7e5d29abdb991e44dff40",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:43:51.407185+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 14.321846873965114,
+          "phases": {
+            "imports": 0.15691966703161597,
+            "initialize": 0.0014312497805804014,
+            "load": 0.000782917020842433,
+            "build": 0.333637208212167,
+            "forward_lower": 0.5121598748955876,
+            "forward_compile": 1.2896778748836368,
+            "forward": 6.34416529093869,
+            "sensitivity_lower": 0.023090667091310024,
+            "sensitivity_compile": 0.0297346250154078,
+            "sensitivity": 0.00033637508749961853,
+            "gradient_lower": 0.15469962498173118,
+            "gradient_compile": 1.2472769159357995,
+            "gradient": 4.222788833081722,
+            "host_transfer": 0.005145750008523464
+          },
+          "path": "original",
+          "loss": -24.0714949144816,
+          "frequencies": 101,
+          "design_variables": 192,
+          "signal_system_size": 769,
+          "detector_ports": 2,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 6.943919529082047e-13,
+          "scale_rel": 2.631743866826229e-16,
+          "max_elementwise_rel": 2.3574175292393803e-13
+        },
+        "signal": {
+          "max_abs": 124108.50039316424,
+          "scale_rel": 2.492760025738127e-09,
+          "max_elementwise_rel": 1.5422291984574218e-08
+        },
+        "noise": {
+          "max_abs": 1.0859201232202005e-21,
+          "scale_rel": 3.090011944721177e-11,
+          "max_elementwise_rel": 3.4109580890774816e-11
+        },
+        "sensitivity": {
+          "max_abs": 1.3552076005958451e-32,
+          "scale_rel": 4.1564906643686105e-09,
+          "max_elementwise_rel": 5.691859480940291e-09,
+          "max_log_abs": 5.691859428225143e-09
+        },
+        "powers": {
+          "max_abs": 9.313225746154785e-10,
+          "scale_rel": 2.6755187950328736e-16,
+          "max_elementwise_rel": 1.0201226193848225e-13
+        },
+        "gradient": {
+          "max_abs": 0.006903475150465965,
+          "scale_rel": 1.1988714843105573e-10,
+          "max_elementwise_rel": 3.0751190368785396e-08,
+          "floor": 5.758311245876359e-05,
+          "entries": 192,
+          "entries_outside": 0,
+          "worst_index": 96,
+          "worst_ours": -284797.15785919083,
+          "worst_baseline": -284797.1613923665,
+          "worst_error_over_allowed": 1.240593462779065e-05
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "values-random",
+      "description": "Supplied layout; every design variable drawn at random from the optimizer's ranges.",
+      "case_sha256": "ff20edc4e88a64721fd3868e3fb34a3670078e36d678d368ee72898f5bee2fa3",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7308871270006421,
+        "phases": {
+          "imports": 0.35123245800014047,
+          "initialize": 0.011221042999750352,
+          "load": 0.0024540819999856467,
+          "build": 0.10298525200005315,
+          "forward_lower": 0.009334521000255336,
+          "forward_compile": 0.008943169000303897,
+          "forward": 0.0962478920000649,
+          "sensitivity_lower": 0.04100735199972405,
+          "sensitivity_compile": 0.02906606400028977,
+          "sensitivity": 0.0010529559999667981,
+          "gradient_lower": 0.017760403000011138,
+          "gradient_compile": 0.029297647000021243,
+          "gradient": 0.030034582000098453,
+          "host_transfer": 0.00024970599997686804
+        },
+        "path": "NumPy",
+        "loss": -19.1692823456362,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 751,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 3.052532888093165e-07,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 193,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "values-random",
+        "case_sha256": "ff20edc4e88a64721fd3868e3fb34a3670078e36d678d368ee72898f5bee2fa3",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:44:06.029211+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 13.436111665330827,
+          "phases": {
+            "imports": 0.16252833302132785,
+            "initialize": 0.0014624998439103365,
+            "load": 0.0007755837868899107,
+            "build": 0.3522468749433756,
+            "forward_lower": 0.5348940000403672,
+            "forward_compile": 1.3408988749142736,
+            "forward": 6.647910500178114,
+            "sensitivity_lower": 0.021153208101168275,
+            "sensitivity_compile": 0.032375582959502935,
+            "sensitivity": 0.0003447919152677059,
+            "gradient_lower": 0.1516054579988122,
+            "gradient_compile": 1.033791916910559,
+            "gradient": 3.152114874916151,
+            "host_transfer": 0.0040091658011078835
+          },
+          "path": "original",
+          "loss": -19.16928234620289,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 751,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.3914935841127267e-14,
+          "scale_rel": 1.2307610808956586e-15,
+          "max_elementwise_rel": 1.333881239993568e-14
+        },
+        "signal": {
+          "max_abs": 548.8065470644024,
+          "scale_rel": 3.0712180740656066e-08,
+          "max_elementwise_rel": 8.505951798750466e-08
+        },
+        "noise": {
+          "max_abs": 8.02227158411717e-20,
+          "scale_rel": 2.284337478980248e-10,
+          "max_elementwise_rel": 2.2845480635348637e-10
+        },
+        "sensitivity": {
+          "max_abs": 1.0274109214751897e-26,
+          "scale_rel": 5.8731592497407375e-08,
+          "max_elementwise_rel": 7.267117044371556e-08,
+          "max_log_abs": 7.267117752007834e-08
+        },
+        "powers": {
+          "max_abs": 1.4210854715202004e-13,
+          "scale_rel": 7.527647326766524e-16,
+          "max_elementwise_rel": 2.4315902714571978e-14
+        },
+        "gradient": {
+          "max_abs": 3.517314528522775e-08,
+          "scale_rel": 7.960899181625573e-09,
+          "max_elementwise_rel": 1.129182656505533e-06,
+          "floor": 4.4182377496263655e-12,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 118,
+          "worst_ours": 0.004087131277516483,
+          "worst_baseline": 0.004087126662403941,
+          "worst_error_over_allowed": 0.0011291814358455295
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "case": "values-shifted",
+      "description": "Supplied layout; every design variable moved by about 1%.",
+      "case_sha256": "48b84acc895644d79dc6d653444cde792ffe7d0e282884799ba410155a7e9ac0",
+      "problems": [],
+      "deviations": [],
+      "ours": {
+        "first_run_total": 0.7335326819998045,
+        "phases": {
+          "imports": 0.34941341100011414,
+          "initialize": 0.011485847000130889,
+          "load": 0.002582481999979791,
+          "build": 0.11039239599995199,
+          "forward_lower": 0.00945841200018549,
+          "forward_compile": 0.008721083999716939,
+          "forward": 0.09709709699973246,
+          "sensitivity_lower": 0.04036843899984888,
+          "sensitivity_compile": 0.029303007000180514,
+          "sensitivity": 0.0010647190001691342,
+          "gradient_lower": 0.017626414000005752,
+          "gradient_compile": 0.02919052700008251,
+          "gradient": 0.02660268499994345,
+          "host_transfer": 0.00022616199976255302
+        },
+        "path": "NumPy",
+        "loss": -18.039968018786325,
+        "frequencies": 101,
+        "design_variables": 193,
+        "signal_system_size": 751,
+        "detector_ports": 1,
+        "finite": true,
+        "positive_sensitivity": true,
+        "gradient_nonzero": true,
+        "finite_differences": {
+          "worst_relative_error": 2.375974320937275e-07,
+          "directions_settled": 4,
+          "directions": 4,
+          "limit": 0.02,
+          "variables_moved": 181,
+          "variables": 193
+        }
+      },
+      "original": {
+        "case": "values-shifted",
+        "case_sha256": "48b84acc895644d79dc6d653444cde792ffe7d0e282884799ba410155a7e9ac0",
+        "source_version": "v00-baseline",
+        "source_id": "02ec741d8a1bf1a2278294ea74f9fc1d68f08f1f",
+        "created_utc": "2026-11-21T19:44:27.873341+00:00",
+        "machine_id": "apple-m5-16g-darwin",
+        "limits": {
+          "strategy": "thread-env",
+          "env": {
+            "OMP_NUM_THREADS": "1",
+            "OPENBLAS_NUM_THREADS": "1",
+            "MKL_NUM_THREADS": "1",
+            "NUMEXPR_NUM_THREADS": "1",
+            "VECLIB_MAXIMUM_THREADS": "1",
+            "NPROC": "1"
+          }
+        },
+        "run": {
+          "first_run_total": 20.5260543320328,
+          "phases": {
+            "imports": 0.15892262500710785,
+            "initialize": 0.0014239170122891665,
+            "load": 0.0007790001109242439,
+            "build": 0.352134166052565,
+            "forward_lower": 0.5507265001069754,
+            "forward_compile": 1.7959362920373678,
+            "forward": 9.907669167034328,
+            "sensitivity_lower": 0.029209458036348224,
+            "sensitivity_compile": 0.04471029108390212,
+            "sensitivity": 0.0004314580000936985,
+            "gradient_lower": 0.18521795817650855,
+            "gradient_compile": 1.1571260411292315,
+            "gradient": 6.337740291142836,
+            "host_transfer": 0.004027167102321982
+          },
+          "path": "original",
+          "loss": -18.039968018736936,
+          "frequencies": 101,
+          "design_variables": 193,
+          "signal_system_size": 751,
+          "detector_ports": 1,
+          "finite": true,
+          "positive_sensitivity": true,
+          "gradient_nonzero": true
+        }
+      },
+      "metrics": {
+        "carrier": {
+          "max_abs": 2.8916994303251375e-14,
+          "scale_rel": 1.4495218422327907e-15,
+          "max_elementwise_rel": 1.9759893911009641e-13
+        },
+        "signal": {
+          "max_abs": 0.04959811220613483,
+          "scale_rel": 3.215788821085766e-10,
+          "max_elementwise_rel": 1.0476880943816341e-08
+        },
+        "noise": {
+          "max_abs": 6.2676702859364665e-24,
+          "scale_rel": 2.6714546485057e-12,
+          "max_elementwise_rel": 2.6753832930549097e-12
+        },
+        "sensitivity": {
+          "max_abs": 5.954253395427781e-26,
+          "scale_rel": 6.692092810319899e-09,
+          "max_elementwise_rel": 8.768880596331663e-09,
+          "max_log_abs": 8.768878956288972e-09
+        },
+        "powers": {
+          "max_abs": 2.2737367544323206e-13,
+          "scale_rel": 1.14265048101601e-15,
+          "max_elementwise_rel": 4.2333518192603784e-14
+        },
+        "gradient": {
+          "max_abs": 1.198094105347991e-05,
+          "scale_rel": 1.262786985976379e-10,
+          "max_elementwise_rel": 2.37928582988203e-07,
+          "floor": 9.487697597878173e-08,
+          "entries": 193,
+          "entries_outside": 0,
+          "worst_index": 142,
+          "worst_ours": 0.008573403051052772,
+          "worst_baseline": 0.008573403258309973,
+          "worst_error_over_allowed": 2.3909840866122666e-05
+        }
+      },
+      "verdict": "PASS"
+    }
+  ]
+}

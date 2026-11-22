@@ -500,8 +500,16 @@ One pinned core of an AMD EPYC 7763 (GitHub Codespace, official `--cpus 1`, 8 sh
 
 `bench/validate.py` on that machine gives `PASS` for `v12` (`bench/results/amd-epyc-7763-64-core-processor-16g-linux/validation/cand4@f4f5c40d53d8.json`), and `tests/test_host.py` and `benchmark_aligo.py` pass there.
 
+**Stress test of `v12`** (`python tests/stress.py`, Apple M5 and one Linux core of an AMD EPYC 7763, both `STRESS TEST PASSED`):
+
+- 24 random layouts (2×2 and 3×3, original and shifted parameters) from 1 Hz to 10 kHz, NumPy path against JAX path: noise within 2e-15, gradients within 9e-09, signal within 1e-07 (Apple M5).
+- The kept assembly of change 20: 12 pullbacks in random order after six forward passes, 24 jitted gradients from six threads, and a gradient under `vmap` all give exactly the gradient of a forward pass followed directly by its pullback. Never more than two assemblies are kept.
+- Peak memory is level over 300 gradient evaluations in one process.
+- On the Linux machine, `tests/variations.py` on `v12`: 18 `PASS` and the known `DEVIATION`, among them the scenario that takes the JAX fallback (`bench/results/amd-epyc-7763-64-core-processor-16g-linux/VARIATIONS.md`).
+
 ### Tried and not adopted
 
+- **Other settings of the factorisation** (panel size, relaxation, pivot threshold; ten combinations on the supplied and the homodyne setup, Apple M5): the current ones are the fastest, 10 to 11 ms, and larger panels or relaxation cost up to 30% more.
 - **No refinement in any solve:** all tests pass, but on the second UIFO setup (homodyne) the noise moves from 1e-12 to 1e-08 of the JAX result and the gradients from 6e-08 to 2e-06. Change 19 keeps the refinement where those numbers come from.
 - **A hand-written gradient rule for `signal_detector`**, to shorten the benchmark's readout compilation: about 2 ms on the Apple M5, inside the noise, and forward-mode differentiation of that function would be lost.
 - **More compiler flags** (`xla_cpu_enable_fast_math`, `xla_cpu_copy_insertion_use_region_analysis`, `xla_dump_disable_metadata`, `xla_disable_all_hlo_passes`): no effect on the Apple M5; the last one does not compile the programs at all.
