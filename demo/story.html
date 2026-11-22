@@ -32,7 +32,7 @@ function random(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; 
 const STEPS = ["title", "crash", "machine", "ripple", "design", "search", "compare", "end"];
 const PART = { title: "sky", crash: "crash", machine: "machine", ripple: "machine", design: "design", search: "design", compare: "design", end: "design" };
 const LABEL = ["", "01   The crash", "02   The machine", "03   The signal", "04   A bigger machine", "05   The search", "06   The difference", ""];
-const AUTO = [2.5, 14, 8, 10, 9, 11, 10, 7];                                     // seconds per step when recording
+const AUTO = [4, 19, 11, 14, 10, 13, 12, 9];                                     // seconds per step when recording: time to read each caption (about 2.5 words a second) plus 3 seconds to look
 let SCENE = null, time = 0, lastFrame = 0, step = 0, previous = 0, changed = -10;
 const entered = STEPS.map(() => -100), at_ = name => STEPS.indexOf(name), since = name => time - entered[at_(name)];
 const live = { stream: null, steps: 0, seconds: 0, best: [], shown: null, target: null, started: false, radius: 0, theirs: 0 };
@@ -472,9 +472,9 @@ function drawEnding() {
   const a = step === at_("end") ? span(since("end"), 0, 1.1) : previous === at_("end") ? 1 - span(time - changed, 0, 0.6) : 0; if (a <= 0.01) return;
   g.fillStyle = `rgba(2,4,9,${0.9 * a})`; g.fillRect(0, 0, W, H);
   words("ONE FULL TEST OF A MACHINE DESIGN", W / 2, 372, 22, 1500, a, 600, SOFT, 1.2, "center", 4);
-  number("35.62 s", W / 2 - 150, 590, 156, rgba(THEIRS, 1), a, "right"); number("0.72 s", W / 2 + 150, 590, 156, rgba(OURS, 1), a, "left");
+  number("41.31 s", W / 2 - 150, 590, 156, rgba(THEIRS, 1), a, "right"); number("0.626 s", W / 2 + 150, 590, 156, rgba(OURS, 1), a, "left");
   later.push(() => { ui.save(); ui.globalAlpha = a; ui.strokeStyle = INK; ui.lineWidth = 5; ui.lineCap = "round"; ui.lineJoin = "round"; ui.beginPath(); ui.moveTo(W / 2 - 62, 538); ui.lineTo(W / 2 + 62, 538); ui.moveTo(W / 2 + 30, 506); ui.lineTo(W / 2 + 62, 538); ui.lineTo(W / 2 + 30, 570); ui.stroke(); ui.restore(); });
-  words("Same answers. *Fifty* *times* *faster.*", W / 2, 712, 60, 1600, a * span(since("end"), 1.0, 2.0), 600, INK, 1.2, "center", -1, rgba(OURS, 1));
+  words("Same answers. *Sixty-six* *times* *faster.*", W / 2, 712, 60, 1600, a * span(since("end"), 1.0, 2.0), 600, INK, 1.2, "center", -1, rgba(OURS, 1));
   words("THE OFFICIAL TEST, ON ONE PROCESSOR CORE, BOTH ON THE SAME COMPUTER", W / 2, 776, 17, 1700, a * span(since("end"), 1.6, 2.6), 600, FAINT, 1.2, "center", 3);
 }
 
@@ -553,6 +553,6 @@ addEventListener("keydown", event => {
 });
 stage.addEventListener("click", () => { if (!recorder) go(step === STEPS.length - 1 ? 0 : step + 1); });
 try { setUp(); } catch (problem) { console.error("The graphics chip refused a shader; showing the plain version.", problem); R = null; }
-fetch("/scene.json").then(reply => reply.json()).then(scene => { SCENE = scene; });
+fetch("/scene.json").then(reply => reply.json()).then(scene => { SCENE = scene; if (new URLSearchParams(location.search).has("record")) setTimeout(record, 1500); });   // ?record starts a recording without a key press
 requestAnimationFrame(now => { lastFrame = now; tick(now); });
 </script></body></html>
