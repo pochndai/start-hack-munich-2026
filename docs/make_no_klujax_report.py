@@ -430,7 +430,7 @@ def build():
                               f"validation/, no-klujax-scipy-logs/). This document is built from those files by docs/make_no_klujax_report.py.", SMALL)]
 
     document = SimpleDocTemplate(str(OUTPUT), pagesize=A4, leftMargin=18 * mm, rightMargin=18 * mm, topMargin=16 * mm, bottomMargin=17 * mm,
-                                 title="Differometor without klujax: results on the judges' CPU", author="Team repository pochndai/start-hack-munich-2026")
+                                 title="Differometor without klujax: results on the judges' CPU", author="Team repository pochndai/start-hack-munich-2026-MICRODUCK")
     document.build(story, onFirstPage=footer, onLaterPages=footer)
     print(f"wrote {OUTPUT} ({OUTPUT.stat().st_size // 1024} KiB)")
     print(f"supplied: v07 {old:.3f}, v10 {main:.3f}, branch {branch:.3f} | aLIGO: {aligo_before:.3f} to {aligo_after:.3f} (original {aligo_original['timing_seconds']['end_to_end']:.2f}) "

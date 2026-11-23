@@ -53,7 +53,7 @@ These come from the organizers' [README.md](README.md) and the judging criteria.
   seems useful (a risky experiment, a change that would break `main` for the
   others), say why and wait for a yes. The same holds for pull requests: do
   not open one on your own initiative.
-- `origin` is the team repository (`pochndai/start-hack-munich-2026`).
+- `origin` is the team repository (`pochndai/start-hack-munich-2026-MICRODUCK`).
   `upstream` is the organizers' repository; we cannot push there, and nothing
   of ours belongs there.
 - **Pull as often as possible.** Several of us are coding on `main` in
